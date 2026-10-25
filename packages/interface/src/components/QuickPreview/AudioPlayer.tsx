@@ -315,7 +315,7 @@ export function AudioPlayer({ src, file }: AudioPlayerProps) {
 									♪
 								</div>
 								<p className="text-white/50">
-									No lyrics available
+									{t('quickPreview.noLyrics')}
 								</p>
 							</div>
 						)}

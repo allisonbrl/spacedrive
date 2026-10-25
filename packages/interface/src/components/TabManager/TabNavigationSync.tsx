@@ -48,7 +48,7 @@ function deriveTitleFromPath(
 		// Handle virtual views: /explorer?view=device&id=abc123
 		const view = params.get('view');
 		if (view === 'device') {
-			return 'This Device';
+			return t('tab.thisDevice');
 		}
 
 		// Handle path-based navigation
@@ -66,7 +66,7 @@ function deriveTitleFromPath(
 				// Fall through to default
 			}
 		}
-		return 'Explorer';
+		return t('tab.explorer');
 	}
 
 	// Default fallback

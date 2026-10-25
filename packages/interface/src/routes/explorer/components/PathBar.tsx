@@ -39,7 +39,7 @@ import {isPathItem, useSpaceLayout, useSpaces} from '../../../components/SpacesS
 import {useExplorer} from '../context';
 import {sdPathToUri} from '../utils';
 import {useAddToLibraryDialog} from './AddToLibraryModal';
-import {useI18n} from '../../../i18n';
+import {translateOr, useI18n} from '../../../i18n';
 
 interface PathBarProps {
 	path: SdPath;
@@ -391,7 +391,7 @@ function PathStatusButton({path}: {path: SdPath}) {
 									{context.source.name}
 								</div>
 								<div className="text-ink-faint text-[9px] font-semibold uppercase tracking-wider">
-									Source
+									{t('explorer.path.source')}
 								</div>
 								<div className="mt-2 flex flex-wrap gap-2">
 									<StateChip
@@ -434,7 +434,7 @@ function PathStatusButton({path}: {path: SdPath}) {
 								{context.availability !== 'available' && (
 									<div className="mb-3 flex items-center gap-2 text-[11px] font-medium text-amber-400">
 										<WarningCircle size={14} />
-										{statusLabel(context.availability)}
+										{translateOr(t, `explorer.path.status.${context.availability}`, statusLabel(context.availability))}
 									</div>
 								)}
 
@@ -528,7 +528,7 @@ function PathStatusButton({path}: {path: SdPath}) {
 											label={
 												canReindex
 													? t('explorer.path.reindex', {name: context.source.name})
-													: 'Source is unavailable'
+													: t('explorer.path.sourceUnavailable')
 											}
 											asChild
 											tooltipClassName="!z-[1000]"
@@ -540,7 +540,7 @@ function PathStatusButton({path}: {path: SdPath}) {
 													context.map_state ===
 													'indexing'
 												}
-												title={`Reindex ${context.source.name}`}
+												title={t('explorer.path.reindex', {name: context.source.name})}
 												aria-disabled={
 													!canReindex ||
 													reindexSource.isPending ||
@@ -600,14 +600,14 @@ function PathStatusButton({path}: {path: SdPath}) {
 
 								{context.volume && (
 									<Tooltip
-										label="Open volume in Storage"
+										label={t('explorer.path.openVolumeStorage')}
 										asChild
 										tooltipClassName="!z-[1000]"
 									>
 										<CircleButton
 											icon={HardDrive}
 											size="lg"
-											title="Open volume in Storage"
+											title={t('explorer.path.openVolumeStorage')}
 											onClick={openStorage}
 										/>
 									</Tooltip>
@@ -688,7 +688,7 @@ function PathStatusButton({path}: {path: SdPath}) {
 										{t('explorer.path.arena')}
 									</span>
 									<span className="text-ink-dull text-right">
-										{statusLabel(context.map_state)}
+										{translateOr(t, `explorer.path.status.${context.map_state}`, statusLabel(context.map_state))}
 									</span>
 									<span className="text-ink-faint">
 										{t('explorer.path.restartCache')}

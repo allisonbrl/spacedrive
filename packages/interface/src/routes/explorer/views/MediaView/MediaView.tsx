@@ -360,7 +360,7 @@ export function MediaView() {
 			<div className="text-ink-dull flex h-full flex-col items-center justify-center gap-2">
 				<div className="text-lg">{t('explorer.views.noFolder')}</div>
 				<div className="text-sm">
-					Select a place from the sidebar to view media
+					{t('explorer.media.selectPlace')}
 				</div>
 			</div>
 		);

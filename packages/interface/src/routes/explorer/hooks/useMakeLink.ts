@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { toast } from "@spacedrive/primitives";
+import { useI18n } from "../../../i18n";
 import type { File, FileLinkInput, SdPath, Validation } from "@sd/ts-client";
 import { RefusedError, WIRE_METHODS } from "@sd/ts-client";
 import { useLibraryMutation, useSpacedriveClient } from "../../../contexts/SpacedriveContext";
@@ -10,6 +11,7 @@ import { pathString } from "../../../components/modals/PreflightPanel";
  * validation, with nothing to choose and so no dialog.
  */
 export function useMakeLink() {
+	const { t } = useI18n();
 	const client = useSpacedriveClient();
 	const link = useLibraryMutation("files.link");
 
@@ -37,18 +39,18 @@ export function useMakeLink() {
 					return false;
 				}
 				await link.mutateAsync(input);
-				toast.success(`Linked ${file.name}`);
+				toast.success(t("explorer.linked", { name: file.name }));
 				return true;
 			} catch (error) {
 				toast.error(
 					error instanceof RefusedError
 						? error.validation.findings.map((finding) => finding.message).join("; ")
-						: `Could not link: ${error instanceof Error ? error.message : String(error)}`,
+						: t("explorer.linkError", { error: error instanceof Error ? error.message : String(error) }),
 				);
 				return false;
 			}
 		},
-		[client, link],
+		[client, link, t],
 	);
 
 	return { makeLink, isPending: link.isPending };

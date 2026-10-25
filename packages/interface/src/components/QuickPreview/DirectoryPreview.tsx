@@ -40,7 +40,7 @@ export function DirectoryPreview({ file }: DirectoryPreviewProps) {
 				<div className="text-center">
 					<img
 						src={Folder}
-						alt="Folder Icon"
+						alt={t('quickPreview.folderIcon')}
 						className="w-16 h-16 mb-4 mx-auto"
 					/>
 					<div className="text-lg font-medium text-ink">
@@ -60,7 +60,7 @@ export function DirectoryPreview({ file }: DirectoryPreviewProps) {
 				<div className="text-center">
 					<img
 						src={Folder}
-						alt="Folder Icon"
+						alt={t('quickPreview.folderIcon')}
 						className="w-16 h-16 mb-4 mx-auto"
 					/>
 					<div className="text-lg font-medium text-ink">

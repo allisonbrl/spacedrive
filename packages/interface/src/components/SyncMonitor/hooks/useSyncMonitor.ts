@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLibraryQuery, useSpacedriveClient } from '../../../contexts/SpacedriveContext';
 import type { SyncPeerActivity, SyncActivity, SyncState } from '../types';
+import { useI18n } from '../../../i18n';
 
 interface SyncMonitorState {
 	currentState: SyncState;
@@ -11,6 +12,10 @@ interface SyncMonitorState {
 }
 
 export function useSyncMonitor() {
+	const { t } = useI18n();
+	// Read through a ref so a language change does not resubscribe to events.
+	const tRef = useRef(t);
+	tRef.current = t;
 	const [state, setState] = useState<SyncMonitorState>({
 		currentState: 'Uninitialized',
 		peers: [],
@@ -84,29 +89,30 @@ export function useSyncMonitor() {
 				const activityType = activity.activityType;
 
 				let eventType: SyncActivity['eventType'] = 'broadcast';
-				let description = 'Activity';
+				const translate = tRef.current;
+				let description = translate('syncMonitor.activity.generic');
 
 				if ('BroadcastSent' in activityType) {
 					eventType = 'broadcast';
-					description = `Broadcast ${activityType.BroadcastSent.changes} changes`;
+					description = translate('syncMonitor.activity.broadcast', { count: activityType.BroadcastSent.changes });
 				} else if ('ChangesReceived' in activityType) {
 					eventType = 'received';
-					description = `Received ${activityType.ChangesReceived.changes} changes`;
+					description = translate('syncMonitor.activity.received', { count: activityType.ChangesReceived.changes });
 				} else if ('ChangesApplied' in activityType) {
 					eventType = 'applied';
-					description = `Applied ${activityType.ChangesApplied.changes} changes`;
+					description = translate('syncMonitor.activity.applied', { count: activityType.ChangesApplied.changes });
 				} else if ('BackfillStarted' in activityType) {
 					eventType = 'backfill';
-					description = 'Backfill started';
+					description = translate('syncMonitor.activity.backfillStarted');
 				} else if ('BackfillCompleted' in activityType) {
 					eventType = 'backfill';
-					description = `Backfill completed (${activityType.BackfillCompleted.records} records)`;
+					description = translate('syncMonitor.activity.backfillCompleted', { count: activityType.BackfillCompleted.records });
 				} else if ('CatchUpStarted' in activityType) {
 					eventType = 'backfill';
-					description = 'Catch-up started';
+					description = translate('syncMonitor.activity.catchUpStarted');
 				} else if ('CatchUpCompleted' in activityType) {
 					eventType = 'backfill';
-					description = 'Catch-up completed';
+					description = translate('syncMonitor.activity.catchUpCompleted');
 				}
 
 				setState((prev) => ({

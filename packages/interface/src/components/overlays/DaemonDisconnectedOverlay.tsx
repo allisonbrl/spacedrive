@@ -120,7 +120,7 @@ export function DaemonDisconnectedOverlay({
 						<div className="flex flex-1 flex-col items-center justify-center gap-6 px-12">
 							<img
 								src={folderIcon}
-								alt="Spacedrive folder icon"
+								alt={t('overlays.daemon.folderIcon')}
 								className="size-32 select-none"
 								draggable={false}
 							/>

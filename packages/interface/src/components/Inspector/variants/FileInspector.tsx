@@ -44,7 +44,7 @@ import {File as FileComponent} from '../../../routes/explorer/File';
 import { formatBytes } from '../../../routes/explorer/utils';
 import {Divider, InfoRow, Section, TabContent, Tabs, Tag} from '../Inspector';
 import {useRefetchTagQueries} from '../../../hooks/useRefetchTagQueries';
-import {useI18n} from '../../../i18n';
+import {translateOr, useI18n} from '../../../i18n';
 
 interface FileInspectorProps {
 	file: File;
@@ -574,7 +574,7 @@ function OverviewTab({file}: {file: File}) {
 				? file.extension || t('fileInspector.file')
 				: t('fileInspector.directory');
 	const displayKind = contentKind && contentKind !== 'unknown'
-		? t(`contentKinds.${contentKind}` as never)
+		? translateOr(t, `contentKinds.${contentKind}`, contentKind)
 		: fileKind;
 
 	return (
@@ -842,7 +842,7 @@ function OverviewTab({file}: {file: File}) {
 										});
 									} catch (err) {
 										console.error('Failed to remove tag:', err);
-										toast.error(`Failed to remove tag: ${err}`);
+										toast.error(t('explorer.context.removeTagError', {error: String(err)}));
 									}
 									}}
 								>

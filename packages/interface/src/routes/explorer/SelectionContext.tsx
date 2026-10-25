@@ -14,6 +14,7 @@ import { toast } from "@spacedrive/primitives";
 import { useClipboard } from "../../hooks/useClipboard";
 import { useLibraryMutation } from "../../contexts/SpacedriveContext";
 import { useTabManager } from "../../components/TabManager";
+import { useI18n } from "../../i18n";
 
 interface SelectionContextValue {
 	selectedFiles: File[];
@@ -60,6 +61,7 @@ export function SelectionProvider({
 	const tabManager = useTabManager();
 	const { activeTabId, getSelectionIds, updateSelectionIds } = tabManager;
 	const renameFile = useLibraryMutation("files.rename");
+	const { t } = useI18n();
 
 	// Local state for File objects (not serializable, can't be stored in TabManager)
 	const [selectedFiles, setSelectedFilesInternal] = useState<File[]>([]);
@@ -277,11 +279,11 @@ export function SelectionProvider({
 			toast.error(
 				error instanceof RefusedError
 					? error.validation.findings.map((finding) => finding.message).join("; ")
-					: `Could not rename: ${error instanceof Error ? error.message : String(error)}`,
+					: t("explorer.renameError", { error: error instanceof Error ? error.message : String(error) }),
 			);
 			throw error;
 		}
-	}, [renamingFileId, selectedFiles, renameFile]);
+	}, [renamingFileId, selectedFiles, renameFile, t]);
 
 	// Cancel rename when selection changes
 	useEffect(() => {

@@ -197,8 +197,8 @@ export function useExplorerKeyboard() {
 		openDelete({
 			title:
 				targets.length === 1
-					? `${permanent ? "Delete" : "Trash"} '${targets[0].name}'`
-					: `${permanent ? "Delete" : "Trash"} ${targets.length} items`,
+					? t(permanent ? "explorer.context.deleteName" : "explorer.context.trashName", { name: targets[0].name })
+					: t(permanent ? "explorer.context.deleteItems" : "explorer.context.trashItems", { count: targets.length }),
 			targets: { kind: "paths", paths: targets.map((file) => file.sd_path) },
 			permanent,
 			onComplete: clearSelection,
@@ -226,7 +226,7 @@ export function useExplorerKeyboard() {
 			.filter((job) => canUndo(job) && job.name !== "undo")
 			.sort((a, b) => (b.completed_at ?? "").localeCompare(a.completed_at ?? ""))[0];
 		if (!latest) {
-			toast.info("Nothing to undo");
+			toast.info(t("explorer.nothingToUndo"));
 			return;
 		}
 		openUndo({ job: latest.id, label: getJobDisplayName(latest, t) });

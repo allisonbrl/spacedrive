@@ -201,7 +201,7 @@ export function useFileContextMenu({
 			{
 				type: 'submenu',
 				icon: ArrowSquareOut,
-				label: 'Open With',
+				label: t('explorer.context.openWith'),
 				condition: () =>
 					!!file &&
 					file.kind === 'File' &&
@@ -221,7 +221,7 @@ export function useFileContextMenu({
 			},
 			{
 				icon: MagnifyingGlass,
-				label: 'Show in Finder',
+				label: t('context.showInFinder'),
 				onClick: async () => {
 					if (!file) return;
 					// Extract the physical path from SdPath
@@ -232,7 +232,7 @@ export function useFileContextMenu({
 								await platform.revealFile(physicalPath);
 							} catch (err) {
 								console.error('Failed to reveal file:', err);
-								toast.error(`Failed to reveal file: ${err}`);
+								toast.error(t('explorer.context.revealError', {error: String(err)}));
 							}
 						} else {
 							console.log(
@@ -254,8 +254,8 @@ export function useFileContextMenu({
 				icon: ShareNetwork,
 				label:
 					selected && selectedFiles.length > 1
-						? `Share ${selectedFiles.length} items`
-						: 'Share',
+						? t('explorer.context.shareItems', {count: selectedFiles.length})
+						: t('explorer.context.share'),
 				onClick: async () => {
 					const paths = localPaths;
 					if (paths.length === 0) {
@@ -267,7 +267,7 @@ export function useFileContextMenu({
 							await platform.shareFiles(paths);
 						} catch (err) {
 							console.error('Failed to share files:', err);
-							toast.error(`Failed to share: ${err}`);
+							toast.error(t('explorer.context.shareError', {error: String(err)}));
 						}
 					}
 				},
@@ -278,7 +278,7 @@ export function useFileContextMenu({
 			},
 			{
 				icon: Books,
-				label: 'Add to Library',
+				label: t('context.addToLibrary'),
 				// Everything on the drive is already searchable. What this adds
 				// is what a walk cannot rebuild: tags and notes that stay put,
 				// files still listed when the drive is unplugged, and sync to
@@ -299,7 +299,7 @@ export function useFileContextMenu({
 			{type: 'separator'},
 			{
 				icon: Pencil,
-				label: 'Rename',
+				label: t('explorer.context.rename'),
 				onClick: () => {
 					if (!file) return;
 					startRename(file.id);
@@ -313,7 +313,7 @@ export function useFileContextMenu({
 			},
 			{
 				icon: Pencil,
-				label: `Rename ${selectedFiles.length} items…`,
+				label: t('explorer.context.renameItems', {count: selectedFiles.length}),
 				// Rules applied to each name, previewed as they change.
 				onClick: () =>
 					openBatchRename({
@@ -327,26 +327,26 @@ export function useFileContextMenu({
 			},
 			{
 				icon: FolderPlus,
-				label: 'New Folder',
+				label: t('explorer.context.newFolder'),
 				onClick: async () => {
 					if (!currentPath) return;
 					try {
 						const result = await createFolder.mutateAsync({
 							parent: currentPath,
-							name: 'Untitled Folder',
+							name: t('explorer.context.untitledFolder'),
 							items: []
 						});
 						console.log('Created folder:', result);
 					} catch (err) {
 						console.error('Failed to create folder:', err);
-						toast.error(`Failed to create folder: ${err}`);
+						toast.error(t('explorer.context.createFolderError', {error: String(err)}));
 					}
 				},
 				condition: () => !!currentPath
 			},
 			{
 				icon: FolderPlus,
-				label: 'New Folder with Items',
+				label: t('explorer.context.newFolderWithItems'),
 				onClick: async () => {
 					if (!currentPath) return;
 					const targets = getTargetFiles();
@@ -355,7 +355,7 @@ export function useFileContextMenu({
 					try {
 						const result = await createFolder.mutateAsync({
 							parent: currentPath,
-							name: 'New Folder',
+							name: t('explorer.context.newFolder'),
 							items: targets.map((f) => f.sd_path)
 						});
 						console.log('Created folder with items:', result);
@@ -364,7 +364,7 @@ export function useFileContextMenu({
 							'Failed to create folder with items:',
 							err
 						);
-						toast.error(`Failed to create folder: ${err}`);
+						toast.error(t('explorer.context.createFolderError', {error: String(err)}));
 					}
 				},
 				condition: () =>
@@ -377,8 +377,8 @@ export function useFileContextMenu({
 				icon: Copy,
 				label:
 					selected && selectedFiles.length > 1
-						? `Copy ${selectedFiles.length} items`
-						: 'Copy',
+						? t('explorer.context.copyItems', {count: selectedFiles.length})
+						: t('explorer.context.copy'),
 				onClick: () => {
 					const targets = getTargetFiles();
 					if (targets.length === 0) {
@@ -399,8 +399,8 @@ export function useFileContextMenu({
 				icon: Scissors,
 				label:
 					selected && selectedFiles.length > 1
-						? `Cut ${selectedFiles.length} items`
-						: 'Cut',
+						? t('explorer.context.cutItems', {count: selectedFiles.length})
+						: t('explorer.context.cut'),
 				onClick: () => {
 					const targets = getTargetFiles();
 					if (targets.length === 0) {
@@ -419,7 +419,7 @@ export function useFileContextMenu({
 			},
 			{
 				icon: Copy,
-				label: 'Paste',
+				label: t('explorer.context.paste'),
 				onClick: () => {
 					if (!clipboard.hasClipboard() || !currentPath) {
 						console.log(

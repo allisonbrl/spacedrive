@@ -335,8 +335,8 @@ export function ExplorerView({
 										onExpand={openSearch}
 										placeholder={
 											currentPath
-												? 'Search in current folder...'
-												: 'Search...'
+												? t('explorer.search.placeholderFolder')
+												: t('explorer.search.placeholder')
 										}
 										value={searchValue}
 										onChange={handleSearchChange}

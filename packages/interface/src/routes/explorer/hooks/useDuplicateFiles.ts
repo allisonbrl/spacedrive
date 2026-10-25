@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { toast } from "@spacedrive/primitives";
+import { useI18n } from "../../../i18n";
 import type { File, FileCopyInput, SdPath, Validation } from "@sd/ts-client";
 import { RefusedError, WIRE_METHODS } from "@sd/ts-client";
 import { useLibraryMutation, useSpacedriveClient } from "../../../contexts/SpacedriveContext";
@@ -12,6 +13,7 @@ import { pathString } from "../../../components/modals/PreflightPanel";
  * first, a refusal is shown, and the same input is dispatched.
  */
 export function useDuplicateFiles() {
+	const { t } = useI18n();
 	const client = useSpacedriveClient();
 	const copy = useLibraryMutation("files.copy");
 
@@ -62,15 +64,15 @@ export function useDuplicateFiles() {
 							: error instanceof Error
 								? error.message
 								: String(error);
-					toast.error(`Could not duplicate: ${message}`);
+					toast.error(t("explorer.duplicateError", { error: message }));
 				}
 			}
 			if (dispatched > 0) {
-				toast.success(`Duplicating ${dispatched} ${dispatched === 1 ? "item" : "items"}`);
+				toast.success(t("explorer.duplicating", { count: dispatched }));
 			}
 			return dispatched > 0;
 		},
-		[client, copy],
+		[client, copy, t],
 	);
 
 	return { duplicate, isPending: copy.isPending };

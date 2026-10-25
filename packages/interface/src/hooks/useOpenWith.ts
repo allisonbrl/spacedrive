@@ -4,6 +4,7 @@ import { WIRE_METHODS } from "@sd/ts-client";
 import { toast } from "@spacedrive/primitives";
 import { usePlatform, type OpenResult } from "../contexts/PlatformContext";
 import { useSpacedriveClient } from "../contexts/SpacedriveContext";
+import { useI18n, type TranslateFn } from "../i18n";
 
 /**
  * Open files in other apps.
@@ -15,6 +16,7 @@ import { useSpacedriveClient } from "../contexts/SpacedriveContext";
  * apps for another device's file would mount the share for every row drawn.
  */
 export function useOpenWith(files: File[]) {
+	const { t } = useI18n();
 	const platform = usePlatform();
 	const client = useSpacedriveClient();
 
@@ -40,7 +42,7 @@ export function useOpenWith(files: File[]) {
 
 	const pathOnThisMachine = async (file: File): Promise<string> => {
 		if (!("Physical" in file.sd_path)) {
-			throw new Error(`${file.name} has no path on this machine`);
+			throw new Error(t("openWith.noPath", { name: file.name }));
 		}
 		if (file.is_local) {
 			return file.sd_path.Physical.path;
@@ -54,44 +56,44 @@ export function useOpenWith(files: File[]) {
 
 	const openWithDefault = async (file: File) => {
 		if (!platform.openPathDefault) {
-			toast.error("Opening files is not supported on this platform");
+			toast.error(t("openWith.unsupported"));
 			return;
 		}
 
 		try {
 			const result = await platform.openPathDefault(await pathOnThisMachine(file));
-			handleOpenResult(result);
+			handleOpenResult(result, t);
 		} catch (e) {
-			toast.error(`Failed to open file: ${e}`);
+			toast.error(t("openWith.openFailed", { error: errorText(e) }));
 		}
 	};
 
 	const openWithApp = async (file: File, appId: string) => {
 		if (!platform.openPathWithApp) {
-			toast.error("Opening files is not supported on this platform");
+			toast.error(t("openWith.unsupported"));
 			return;
 		}
 
 		try {
 			const result = await platform.openPathWithApp(await pathOnThisMachine(file), appId);
-			handleOpenResult(result);
+			handleOpenResult(result, t);
 		} catch (e) {
-			toast.error(`Failed to open file: ${e}`);
+			toast.error(t("openWith.openFailed", { error: errorText(e) }));
 		}
 	};
 
 	const openMultipleWithApp = async (files: File[], appId: string) => {
 		if (!platform.openPathsWithApp) {
-			toast.error("Opening files is not supported on this platform");
+			toast.error(t("openWith.unsupported"));
 			return;
 		}
 
 		try {
 			const paths = await Promise.all(files.map(pathOnThisMachine));
 			const results = await platform.openPathsWithApp(paths, appId);
-			results.forEach(handleOpenResult);
+			results.forEach((result) => handleOpenResult(result, t));
 		} catch (e) {
-			toast.error(`Failed to open files: ${e}`);
+			toast.error(t("openWith.openManyFailed", { error: errorText(e) }));
 		}
 	};
 
@@ -104,22 +106,26 @@ export function useOpenWith(files: File[]) {
 	};
 }
 
-function handleOpenResult(result: OpenResult) {
+function errorText(error: unknown): string {
+	return error instanceof Error ? error.message : String(error);
+}
+
+function handleOpenResult(result: OpenResult, t: TranslateFn) {
 	switch (result.status) {
 		case "success":
 			// Silent success
 			break;
 		case "file_not_found":
-			toast.error(`File not found: ${result.path}`);
+			toast.error(t("openWith.fileNotFound", { path: result.path }));
 			break;
 		case "app_not_found":
-			toast.error(`Application not found: ${result.app_id}`);
+			toast.error(t("openWith.appNotFound", { app: result.app_id }));
 			break;
 		case "permission_denied":
-			toast.error(`Permission denied: ${result.path}`);
+			toast.error(t("openWith.permissionDenied", { path: result.path }));
 			break;
 		case "platform_error":
-			toast.error(`Error: ${result.message}`);
+			toast.error(t("openWith.error", { message: result.message }));
 			break;
 	}
 }

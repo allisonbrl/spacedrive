@@ -102,7 +102,7 @@ export function HeroStats({
 					icon={
 						<img
 							src={DevicesIcon}
-							alt="Storage"
+							alt=""
 							className="size-10 opacity-80"
 							// style={{ filter: 'drop-shadow(0 0 4px rgba(217, 70, 239, 0.4))' }}
 						/>
@@ -136,7 +136,7 @@ export function HeroStats({
 					icon={
 						<img
 							src={IndexedIcon}
-							alt="Files"
+							alt=""
 							className="size-10 opacity-80"
 						/>
 					}
@@ -157,7 +157,7 @@ export function HeroStats({
 					icon={
 						<img
 							src={MobileIcon}
-							alt="Devices"
+							alt=""
 							className="size-10 opacity-80"
 						/>
 					}
@@ -172,7 +172,7 @@ export function HeroStats({
 					icon={
 						<img
 							src={DatabaseIcon}
-							alt="Library"
+							alt=""
 							className="size-10 opacity-80"
 						/>
 					}
@@ -194,7 +194,7 @@ export function HeroStats({
 					icon={
 						<img
 							src={StorageIcon}
-							alt="Sidecars"
+							alt=""
 							className="size-10 opacity-80"
 						/>
 					}
@@ -218,7 +218,7 @@ export function HeroStats({
 					icon={
 						<img
 							src={DatabaseIcon}
-							alt="Sources"
+							alt=""
 							className="size-10 opacity-80"
 						/>
 					}
@@ -233,7 +233,7 @@ export function HeroStats({
 					icon={
 						<img
 							src={TagsIcon}
-							alt="Tags"
+							alt=""
 							className="size-10 opacity-80"
 						/>
 					}
