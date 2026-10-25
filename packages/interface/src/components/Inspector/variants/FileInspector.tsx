@@ -44,12 +44,14 @@ import {File as FileComponent} from '../../../routes/explorer/File';
 import { formatBytes } from '../../../routes/explorer/utils';
 import {Divider, InfoRow, Section, TabContent, Tabs, Tag} from '../Inspector';
 import {useRefetchTagQueries} from '../../../hooks/useRefetchTagQueries';
+import {useI18n} from '../../../i18n';
 
 interface FileInspectorProps {
 	file: File;
 }
 
 export function FileInspector({file}: FileInspectorProps) {
+	const {t} = useI18n();
 	const [activeTab, setActiveTab] = useState('overview');
 	const isDev = import.meta.env.DEV;
 
@@ -99,16 +101,16 @@ export function FileInspector({file}: FileInspectorProps) {
 	const fileData = fileQuery.data || file;
 
 	const tabs = [
-		{id: 'overview', label: 'Overview', icon: Info},
-		{id: 'sidecars', label: 'Sidecars', icon: Image},
-		{id: 'instances', label: 'Instances', icon: MapPin},
+		{id: 'overview', label: t('fileInspector.overview'), icon: Info},
+		{id: 'sidecars', label: t('fileInspector.sidecars'), icon: Image},
+		{id: 'instances', label: t('fileInspector.instances'), icon: MapPin},
 		...(isDev
-			? [{id: 'chat', label: 'Chat', icon: ChatCircle, badge: 3}]
+			? [{id: 'chat', label: t('fileInspector.chat'), icon: ChatCircle, badge: 3}]
 			: []),
 		...(isDev
-			? [{id: 'activity', label: 'Activity', icon: ClockCounterClockwise}]
+			? [{id: 'activity', label: t('fileInspector.activity'), icon: ClockCounterClockwise}]
 			: []),
-		{id: 'details', label: 'More', icon: DotsThree}
+		{id: 'details', label: t('fileInspector.more'), icon: DotsThree}
 	];
 
 	return (
@@ -152,6 +154,7 @@ export function FileInspector({file}: FileInspectorProps) {
 
 // Quick Actions Component - Favorite, Share & Jobs buttons
 function FileQuickActions({file}: {file: File}) {
+	const {t} = useI18n();
 	const platform = usePlatform();
 	// Null in the pop-out inspector window, which has no explorer to overlay.
 	const explorer = useOptionalExplorer();
@@ -173,8 +176,8 @@ function FileQuickActions({file}: {file: File}) {
 	const handleShare = async () => {
 		if (!physicalPath || !platform.shareFiles) {
 			toast.error({
-				title: 'Cannot Share',
-				body: 'This file cannot be shared from its current location'
+				title: t('fileInspector.cannotShare'),
+				body: t('fileInspector.cannotShareBody')
 			});
 			return;
 		}
@@ -184,7 +187,7 @@ function FileQuickActions({file}: {file: File}) {
 		} catch (err) {
 			console.error('Failed to share file:', err);
 			toast.error({
-				title: 'Share Failed',
+				title: t('fileInspector.shareFailed'),
 				body: String(err)
 			});
 		}
@@ -198,7 +201,7 @@ function FileQuickActions({file}: {file: File}) {
 					type="button"
 					onClick={() => explorer.openQuickPreview(file.id)}
 					className="border-sidebar-line/30 bg-sidebar-box/20 text-sidebar-inkDull hover:bg-sidebar-box/30 hover:text-sidebar-ink flex size-7 items-center justify-center rounded-full border transition-all active:scale-95"
-					title="Quick Preview"
+					title={t('fileInspector.quickPreview')}
 				>
 					<Eye size={14} weight="bold" />
 				</button>
@@ -214,7 +217,7 @@ function FileQuickActions({file}: {file: File}) {
 						? 'border-accent/30 bg-accent/20 text-accent'
 						: 'border-sidebar-line/30 bg-sidebar-box/20 text-sidebar-inkDull hover:bg-sidebar-box/30 hover:text-sidebar-ink'
 				)}
-				title={isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}
+				title={isFavorite ? t('fileInspector.removeFavorite') : t('fileInspector.addFavorite')}
 			>
 				<Heart size={14} weight={isFavorite ? 'fill' : 'bold'} />
 			</button>
@@ -225,7 +228,7 @@ function FileQuickActions({file}: {file: File}) {
 					type="button"
 					onClick={handleShare}
 					className="border-sidebar-line/30 bg-sidebar-box/20 text-sidebar-inkDull hover:bg-sidebar-box/30 hover:text-sidebar-ink flex size-7 items-center justify-center rounded-full border transition-all active:scale-95"
-					title="Share"
+					title={t('fileInspector.share')}
 				>
 					<ShareNetwork size={14} weight="bold" />
 				</button>
@@ -237,6 +240,7 @@ function FileQuickActions({file}: {file: File}) {
 
 // Media Metadata Card Component - iOS Photos style
 function MediaMetadataCard({file}: {file: File}) {
+	const {locale} = useI18n();
 	const imageData = file.image_media_data;
 	const videoData = file.video_media_data;
 
@@ -246,13 +250,13 @@ function MediaMetadataCard({file}: {file: File}) {
 	const formatMediaDate = (dateStr: string | null | undefined) => {
 		if (!dateStr) return null;
 		const date = new Date(dateStr);
-		const weekday = date.toLocaleDateString('en-US', {weekday: 'long'});
-		const monthDay = date.toLocaleDateString('en-US', {
+		const weekday = date.toLocaleDateString(locale, {weekday: 'long'});
+		const monthDay = date.toLocaleDateString(locale, {
 			month: 'short',
 			day: 'numeric',
 			year: 'numeric'
 		});
-		const time = date.toLocaleTimeString('en-US', {
+		const time = date.toLocaleTimeString(locale, {
 			hour: '2-digit',
 			minute: '2-digit',
 			hour12: false
@@ -529,9 +533,10 @@ function formatCoordinates(latitude: number, longitude: number) {
 }
 
 function OverviewTab({file}: {file: File}) {
+	const {locale, t} = useI18n();
 	const formatDate = (dateStr: string) => {
 		const date = new Date(dateStr);
-		return date.toLocaleDateString('en-US', {
+		return date.toLocaleDateString(locale, {
 			month: 'short',
 			day: 'numeric',
 			year: 'numeric'
@@ -539,7 +544,7 @@ function OverviewTab({file}: {file: File}) {
 	};
 	// A capture time is a moment, not a day: the clock tells two frames apart.
 	const formatDateTime = (dateStr: string) =>
-		new Date(dateStr).toLocaleString('en-US', {
+		new Date(dateStr).toLocaleString(locale, {
 			month: 'short',
 			day: 'numeric',
 			year: 'numeric',
@@ -566,8 +571,11 @@ function OverviewTab({file}: {file: File}) {
 		contentKind && contentKind !== 'unknown'
 			? kindLabel(file, extensionKinds)
 			: file.kind === 'File'
-				? file.extension || 'File'
-				: file.kind;
+				? file.extension || t('fileInspector.file')
+				: t('fileInspector.directory');
+	const displayKind = contentKind && contentKind !== 'unknown'
+		? t(`contentKinds.${contentKind}` as never)
+		: fileKind;
 
 	return (
 		<div className="no-scrollbar mask-fade-out flex flex-col space-y-5 overflow-x-hidden overflow-y-scroll pb-10">
@@ -588,7 +596,7 @@ function OverviewTab({file}: {file: File}) {
 					{file.extension ? `.${file.extension}` : ''}
 				</h4>
 				<p className="text-sidebar-inkDull mt-1 text-center text-xs">
-					{fileKind}
+					{displayKind}
 				</p>
 				{/* Quick Actions - Favorite, Share & Jobs */}
 				<div className="mt-2.5">
@@ -608,37 +616,37 @@ function OverviewTab({file}: {file: File}) {
 			<Divider />
 
 			{/* Details */}
-			<Section title="Details" icon={Info}>
-				<InfoRow label="Size" value={formatBytes(file.size)} />
+			<Section title={t('fileInspector.details')} icon={Info}>
+				<InfoRow label={t('fileInspector.size')} value={formatBytes(file.size)} />
 				{file.kind === 'File' && file.extension && (
-					<InfoRow label="Extension" value={file.extension} />
+					<InfoRow label={t('fileInspector.extension')} value={file.extension} />
 				)}
-				<InfoRow label="Kind" value={fileKind} />
+				<InfoRow label={t('fileInspector.kind')} value={displayKind} />
 			</Section>
 
 			{/* Dates */}
-			<Section title="Dates" icon={Calendar}>
+			<Section title={t('fileInspector.dates')} icon={Calendar}>
 				{/* Show capture date for media files */}
 				{file.video_media_data?.date_captured && (
 					<InfoRow
-						label="Captured"
+						label={t('fileInspector.captured')}
 						value={formatDate(file.video_media_data.date_captured)}
 					/>
 				)}
 				{file.image_media_data?.date_taken && (
 					<InfoRow
-						label="Taken"
+						label={t('fileInspector.taken')}
 						value={formatDateTime(file.image_media_data.date_taken)}
 					/>
 				)}
-				<InfoRow label="Created" value={formatDate(file.created_at)} />
+				<InfoRow label={t('fileInspector.created')} value={formatDate(file.created_at)} />
 				<InfoRow
-					label="Modified"
+					label={t('fileInspector.modified')}
 					value={formatDate(file.modified_at)}
 				/>
 				{file.accessed_at && (
 					<InfoRow
-						label="Accessed"
+						label={t('fileInspector.accessed')}
 						value={formatDate(file.accessed_at)}
 					/>
 				)}
@@ -646,17 +654,17 @@ function OverviewTab({file}: {file: File}) {
 
 			{/* Image Metadata */}
 			{file.image_media_data && (
-				<Section title="Image Info" icon={Image}>
+				<Section title={t('fileInspector.imageInfo')} icon={Image}>
 					{file.image_media_data.width && file.image_media_data.height && (
 						<InfoRow
-							label="Dimensions"
+							label={t('fileInspector.dimensions')}
 							value={`${file.image_media_data.width} × ${file.image_media_data.height}`}
 						/>
 					)}
 					{file.image_media_data.latitude != null &&
 						file.image_media_data.longitude != null && (
 							<InfoRow
-								label="Location"
+								label={t('fileInspector.location')}
 								value={formatCoordinates(
 									file.image_media_data.latitude,
 									file.image_media_data.longitude
@@ -665,37 +673,37 @@ function OverviewTab({file}: {file: File}) {
 						)}
 					{file.image_media_data.camera_make && (
 						<InfoRow
-							label="Camera"
+							label={t('fileInspector.camera')}
 							value={`${file.image_media_data.camera_make} ${file.image_media_data.camera_model || ''}`}
 						/>
 					)}
 					{file.image_media_data.lens_model && (
 						<InfoRow
-							label="Lens"
+							label={t('fileInspector.lens')}
 							value={file.image_media_data.lens_model}
 						/>
 					)}
 					{file.image_media_data.iso && (
 						<InfoRow
-							label="ISO"
+							label={t('fileInspector.iso')}
 							value={String(file.image_media_data.iso)}
 						/>
 					)}
 					{file.image_media_data.focal_length && (
 						<InfoRow
-							label="Focal Length"
+							label={t('fileInspector.focalLength')}
 							value={file.image_media_data.focal_length}
 						/>
 					)}
 					{file.image_media_data.aperture && (
 						<InfoRow
-							label="Aperture"
+							label={t('fileInspector.aperture')}
 							value={file.image_media_data.aperture}
 						/>
 					)}
 					{file.image_media_data.shutter_speed && (
 						<InfoRow
-							label="Shutter Speed"
+							label={t('fileInspector.shutterSpeed')}
 							value={file.image_media_data.shutter_speed}
 						/>
 					)}
@@ -704,26 +712,26 @@ function OverviewTab({file}: {file: File}) {
 
 			{/* Video Metadata */}
 			{file.video_media_data && (
-				<Section title="Video Info" icon={Image}>
+				<Section title={t('fileInspector.videoInfo')} icon={Image}>
 					<InfoRow
-						label="Resolution"
+						label={t('fileInspector.resolution')}
 						value={`${file.video_media_data.width} × ${file.video_media_data.height}`}
 					/>
 					{file.video_media_data.duration_seconds && (
 						<InfoRow
-							label="Duration"
+							label={t('fileInspector.duration')}
 							value={`${Math.floor(file.video_media_data.duration_seconds / 60)}:${String(Math.floor(file.video_media_data.duration_seconds % 60)).padStart(2, '0')}`}
 						/>
 					)}
 					{file.video_media_data.codec && (
 						<InfoRow
-							label="Codec"
+							label={t('fileInspector.codec')}
 							value={file.video_media_data.codec}
 						/>
 					)}
 					{file.video_media_data.bit_rate && (
 						<InfoRow
-							label="Bitrate"
+							label={t('fileInspector.bitrate')}
 							value={`${Math.round(file.video_media_data.bit_rate / 1000000)} Mbps`}
 						/>
 					)}
@@ -731,13 +739,13 @@ function OverviewTab({file}: {file: File}) {
 						file.video_media_data.fps_den &&
 						file.video_media_data.fps_den !== 0 && (
 							<InfoRow
-								label="Frame Rate"
+								label={t('fileInspector.frameRate')}
 								value={`${Math.round((file.video_media_data.fps_num / file.video_media_data.fps_den) * 100) / 100} fps`}
 							/>
 						)}
 					{file.video_media_data.audio_codec && (
 						<InfoRow
-							label="Audio"
+							label={t('fileInspector.audio')}
 							value={`${file.video_media_data.audio_codec} · ${file.video_media_data.audio_channels || ''}`}
 						/>
 					)}
@@ -746,52 +754,52 @@ function OverviewTab({file}: {file: File}) {
 
 			{/* Audio Metadata */}
 			{file.audio_media_data && (
-				<Section title="Audio Info" icon={Image}>
+				<Section title={t('fileInspector.audioInfo')} icon={Image}>
 					{file.audio_media_data.artist && (
 						<InfoRow
-							label="Artist"
+							label={t('fileInspector.artist')}
 							value={file.audio_media_data.artist}
 						/>
 					)}
 					{file.audio_media_data.album && (
 						<InfoRow
-							label="Album"
+							label={t('fileInspector.album')}
 							value={file.audio_media_data.album}
 						/>
 					)}
 					{file.audio_media_data.title && (
 						<InfoRow
-							label="Title"
+							label={t('fileInspector.title')}
 							value={file.audio_media_data.title}
 						/>
 					)}
 					{file.audio_media_data.duration_seconds && (
 						<InfoRow
-							label="Duration"
+							label={t('fileInspector.duration')}
 							value={`${Math.floor(file.audio_media_data.duration_seconds / 60)}:${String(Math.floor(file.audio_media_data.duration_seconds % 60)).padStart(2, '0')}`}
 						/>
 					)}
 					{file.audio_media_data.codec && (
 						<InfoRow
-							label="Codec"
+							label={t('fileInspector.codec')}
 							value={file.audio_media_data.codec}
 						/>
 					)}
 					{file.audio_media_data.bit_rate && (
 						<InfoRow
-							label="Bitrate"
+							label={t('fileInspector.bitrate')}
 							value={`${Math.round(file.audio_media_data.bit_rate / 1000)} kbps`}
 						/>
 					)}
 					{file.audio_media_data.genre && (
 						<InfoRow
-							label="Genre"
+							label={t('fileInspector.genre')}
 							value={file.audio_media_data.genre}
 						/>
 					)}
 					{file.audio_media_data.year && (
 						<InfoRow
-							label="Year"
+							label={t('fileInspector.year')}
 							value={String(file.audio_media_data.year)}
 						/>
 					)}
@@ -799,9 +807,9 @@ function OverviewTab({file}: {file: File}) {
 			)}
 
 			{/* Storage */}
-			<Section title="Storage" icon={HardDrive}>
+			<Section title={t('fileInspector.storage')} icon={HardDrive}>
 				<InfoRow
-					label="Path"
+					label={t('fileInspector.path')}
 					value={
 						'Physical' in file.sd_path
 							? String(file.sd_path.Physical.path)
@@ -810,11 +818,11 @@ function OverviewTab({file}: {file: File}) {
 								: 'Content'
 					}
 				/>
-				<InfoRow label="Local" value={file.is_local ? 'Yes' : 'No'} />
+				<InfoRow label={t('fileInspector.local')} value={file.is_local ? t('fileInspector.yes') : t('fileInspector.no')} />
 			</Section>
 
 			{/* Tags */}
-			<Section title="Tags" icon={TagIcon}>
+			<Section title={t('fileInspector.tags')} icon={TagIcon}>
 				<div className="flex flex-wrap gap-1.5">
 						{file.tags &&
 							file.tags.length > 0 &&
@@ -872,7 +880,7 @@ function OverviewTab({file}: {file: File}) {
 
 			{/* Extracted text, when something has produced it */}
 			{(isImage || isVideo || isAudio) && (
-				<Section title="AI Processing" icon={Sparkle}>
+				<Section title={t('fileInspector.aiProcessing')} icon={Sparkle}>
 					<div className="flex flex-col gap-2">
 						{/* Show extracted text if available */}
 						{hasText && (
@@ -882,7 +890,7 @@ function OverviewTab({file}: {file: File}) {
 										<TextAa size={16} weight="bold" />
 									</span>
 									<span className="text-sidebar-ink text-xs font-medium">
-										Extracted Text
+										{t('fileInspector.extractedText')}
 									</span>
 								</div>
 								<pre className="text-sidebar-inkDull no-scrollbar max-h-40 overflow-y-auto whitespace-pre-wrap text-xs">
@@ -898,6 +906,7 @@ function OverviewTab({file}: {file: File}) {
 }
 
 function SidecarsTab({file}: {file: File}) {
+	const {t} = useI18n();
 	const sidecars = file.sidecars || [];
 	const platform = usePlatform();
 	const {buildSidecarUrl, libraryId} = useServer();
@@ -918,12 +927,12 @@ function SidecarsTab({file}: {file: File}) {
 	return (
 		<div className="no-scrollbar mask-fade-out flex flex-col space-y-4 overflow-x-hidden overflow-y-scroll px-2 pb-10 pt-2">
 			<p className="text-sidebar-inkDull text-xs">
-				Derivative files and associated content generated by Spacedrive
+				{t('fileInspector.sidecarsDescription')}
 			</p>
 
 			{sidecars.length === 0 ? (
 				<div className="text-sidebar-inkDull flex items-center justify-center py-8 text-xs">
-					No sidecars generated yet
+					{t('fileInspector.noSidecars')}
 				</div>
 			) : (
 				<div className="space-y-2">
@@ -956,6 +965,7 @@ function SidecarItem({
 	platform: ReturnType<typeof usePlatform>;
 	libraryId: string | null;
 }) {
+	const {t} = useI18n();
 	const isImage =
 		(sidecar.kind === 'thumb' || sidecar.kind === 'thumbstrip') &&
 		(sidecar.format === 'webp' ||
@@ -991,7 +1001,7 @@ function SidecarItem({
 		items: [
 			{
 				icon: MagnifyingGlass,
-				label: 'Show in Finder',
+				label: t('fileInspector.showInFinder'),
 				onClick: async () => {
 					if (
 						platform.getSidecarPath &&
@@ -1027,7 +1037,7 @@ function SidecarItem({
 			},
 			{
 				icon: Trash,
-				label: 'Delete Sidecar',
+				label: t('fileInspector.deleteSidecar'),
 				onClick: () => {
 					console.log('Delete sidecar:', sidecar);
 					// TODO: Implement sidecar deletion
@@ -1110,6 +1120,7 @@ function SidecarItem({
 }
 
 function InstancesTab({file}: {file: File}) {
+	const {t} = useI18n();
 	// Query for alternate instances with full File data
 	const instancesQuery = useNormalizedQuery<
 		{entry_uuid: string},
@@ -1167,7 +1178,7 @@ function InstancesTab({file}: {file: File}) {
 	if (instancesQuery.isLoading) {
 		return (
 			<div className="text-sidebar-inkDull flex items-center justify-center py-8 text-xs">
-				Loading instances...
+				{t('fileInspector.loadingInstances')}
 			</div>
 		);
 	}
@@ -1176,8 +1187,7 @@ function InstancesTab({file}: {file: File}) {
 		return (
 			<div className="no-scrollbar mask-fade-out flex flex-col space-y-4 overflow-x-hidden overflow-y-scroll px-2 pb-10 pt-2">
 				<p className="text-sidebar-inkDull text-xs">
-					This file has not been content-hashed yet. Instances will
-					appear after indexing completes.
+					{t('fileInspector.notHashed')}
 				</p>
 			</div>
 		);
@@ -1186,12 +1196,12 @@ function InstancesTab({file}: {file: File}) {
 	return (
 		<div className="no-scrollbar mask-fade-out flex flex-col space-y-5 overflow-x-hidden overflow-y-scroll px-2 pb-10 pt-2">
 			<p className="text-sidebar-inkDull text-xs">
-				All copies of this file across your devices and sources
+				{t('fileInspector.allInstances')}
 			</p>
 
 			{instances.length === 0 || instances.length === 1 ? (
 				<div className="text-sidebar-inkDull flex items-center justify-center py-8 text-xs">
-					No alternate instances found
+					{t('fileInspector.noInstances')}
 				</div>
 			) : (
 				<div className="space-y-4">
@@ -1238,6 +1248,7 @@ function InstancesTab({file}: {file: File}) {
 }
 
 function InstanceRow({instance}: {instance: File}) {
+	const {locale, t} = useI18n();
 	const getPathDisplay = (sdPath: typeof instance.sd_path) => {
 		if ('Physical' in sdPath) {
 			return sdPath.Physical.path;
@@ -1250,7 +1261,7 @@ function InstanceRow({instance}: {instance: File}) {
 
 	const formatDate = (dateStr: string) => {
 		const date = new Date(dateStr);
-		return date.toLocaleDateString('en-US', {
+		return date.toLocaleDateString(locale, {
 			month: 'short',
 			day: 'numeric'
 		});
@@ -1319,7 +1330,7 @@ function InstanceRow({instance}: {instance: File}) {
 							? 'bg-accent'
 							: 'bg-sidebar-inkDull/40'
 					)}
-					title={instance.is_local ? 'Available locally' : 'Remote'}
+					title={instance.is_local ? t('fileInspector.availableLocally') : t('fileInspector.remote')}
 				/>
 			</div>
 		</div>
@@ -1327,6 +1338,7 @@ function InstanceRow({instance}: {instance: File}) {
 }
 
 function ChatTab() {
+	const {t} = useI18n();
 	const [message, setMessage] = useState('');
 
 	const messages = [
@@ -1450,7 +1462,7 @@ function ChatTab() {
 				<div className="flex items-end gap-1.5">
 					<button
 						className="hover:bg-sidebar-selected text-sidebar-inkDull hover:text-sidebar-ink rounded-lg p-1.5 transition-colors"
-						title="Attach file"
+						title={t('fileInspector.attach')}
 					>
 						<Paperclip size={4} weight="bold" />
 					</button>
@@ -1460,14 +1472,14 @@ function ChatTab() {
 							type="text"
 							value={message}
 							onChange={(e) => setMessage(e.target.value)}
-							placeholder="Type a message..."
+							placeholder={t('fileInspector.typeMessage')}
 							className="text-sidebar-ink placeholder:text-sidebar-inkDull flex-1 bg-transparent text-xs outline-none"
 						/>
 					</div>
 
 					<button
 						className="bg-accent hover:bg-accent/90 rounded-lg p-1.5 text-white transition-colors"
-						title="Send message"
+						title={t('fileInspector.send')}
 					>
 						<PaperPlaneRight size={4} weight="bold" />
 					</button>
@@ -1476,13 +1488,13 @@ function ChatTab() {
 				<div className="flex gap-1">
 					<button className="text-sidebar-inkDull hover:text-sidebar-ink bg-app-box/40 hover:bg-app-box/60 flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium transition-colors">
 						<Sparkle size={3} weight="bold" />
-						Ask AI
+						{t('fileInspector.askAI')}
 					</button>
 					<button className="text-sidebar-inkDull hover:text-sidebar-ink bg-app-box/40 hover:bg-app-box/60 rounded-md px-2 py-1 text-[10px] font-medium transition-colors">
-						Share File
+						{t('fileInspector.shareFile')}
 					</button>
 					<button className="text-sidebar-inkDull hover:text-sidebar-ink bg-app-box/40 hover:bg-app-box/60 rounded-md px-2 py-1 text-[10px] font-medium transition-colors">
-						Create Task
+						{t('fileInspector.createTask')}
 					</button>
 				</div>
 			</div>
@@ -1491,6 +1503,7 @@ function ChatTab() {
 }
 
 function ActivityTab() {
+	const {t} = useI18n();
 	const activity = [
 		{action: 'Synced to NAS', time: '2 min ago', device: 'MacBook Pro'},
 		{action: 'Uploaded to S3', time: '1 hour ago', device: 'MacBook Pro'},
@@ -1506,7 +1519,7 @@ function ActivityTab() {
 	return (
 		<div className="no-scrollbar mask-fade-out flex flex-col space-y-4 overflow-x-hidden overflow-y-scroll px-2 pb-10 pt-2">
 			<p className="text-sidebar-inkDull text-xs">
-				History of changes and sync operations
+				{t('fileInspector.activityDescription')}
 			</p>
 
 			<div className="space-y-0.5">
@@ -1534,13 +1547,14 @@ function ActivityTab() {
 }
 
 function DetailsTab({file}: {file: File}) {
+	const {t} = useI18n();
 	return (
 		<div className="no-scrollbar mask-fade-out flex flex-col space-y-5 overflow-x-hidden overflow-y-scroll pb-10">
 			{/* Content Identity */}
 			{file.content_identity && (
-				<Section title="Content Identity" icon={Fingerprint}>
+				<Section title={t('fileInspector.contentIdentity')} icon={Fingerprint}>
 					<InfoRow
-						label="Content Hash"
+						label={t('fileInspector.contentHash')}
 						value={
 							String(file.content_identity.content_hash).slice(
 								0,
@@ -1551,7 +1565,7 @@ function DetailsTab({file}: {file: File}) {
 					/>
 					{file.content_identity.integrity_hash && (
 						<InfoRow
-							label="Integrity Hash"
+							label={t('fileInspector.integrityHash')}
 							value={
 								String(
 									file.content_identity.integrity_hash
@@ -1562,7 +1576,7 @@ function DetailsTab({file}: {file: File}) {
 					)}
 					{file.content_identity.mime_type_id !== null && (
 						<InfoRow
-							label="MIME Type ID"
+							label={t('fileInspector.mimeTypeId')}
 							value={String(file.content_identity.mime_type_id)}
 						/>
 					)}
@@ -1570,30 +1584,30 @@ function DetailsTab({file}: {file: File}) {
 			)}
 
 			{/* Metadata */}
-			<Section title="Metadata" icon={Hash}>
+			<Section title={t('fileInspector.metadata')} icon={Hash}>
 				<InfoRow
-					label="File ID"
+					label={t('fileInspector.fileId')}
 					value={String(file.id).slice(0, 8) + '...'}
 					mono
 				/>
 				<InfoRow
-					label="Content Kind"
+					label={t('fileInspector.contentKind')}
 					value={String(file.content_kind || 'Unknown')}
 				/>
 				{file.content_kind_name && (
-					<InfoRow label="Kind Name" value={getContentKindName(file)} mono />
+					<InfoRow label={t('fileInspector.kindName')} value={getContentKindName(file)} mono />
 				)}
 				{file.extension && (
-					<InfoRow label="Extension" value={String(file.extension)} />
+					<InfoRow label={t('fileInspector.extension')} value={String(file.extension)} />
 				)}
 			</Section>
 
 			{/* System */}
-			<Section title="System" icon={DotsThree}>
-				<InfoRow label="Entry Kind" value={file.kind} />
-				<InfoRow label="Local" value={file.is_local ? 'Yes' : 'No'} />
+			<Section title={t('fileInspector.system')} icon={DotsThree}>
+				<InfoRow label={t('fileInspector.entryKind')} value={file.kind} />
+				<InfoRow label={t('fileInspector.local')} value={file.is_local ? t('fileInspector.yes') : t('fileInspector.no')} />
 				<InfoRow
-					label="Instances"
+					label={t('fileInspector.instances')}
 					value={String((file.alternate_paths?.length || 0) + 1)}
 				/>
 			</Section>

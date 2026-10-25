@@ -12,9 +12,11 @@ import {
 	useNormalizedQuery
 } from '../../contexts/SpacedriveContext';
 import {TopBarItem, TopBarPortal} from '../../TopBar';
+import {useI18n} from '../../i18n';
 
 export function SourcesHome() {
 	const navigate = useNavigate();
+	const {t} = useI18n();
 	const {createTab} = useTabManager();
 	const {
 		data: sourcesRaw,
@@ -59,24 +61,24 @@ export function SourcesHome() {
 			<TopBarPortal
 				left={
 					<>
-						<TopBarItem id="back" label="Back" priority="high">
+						<TopBarItem id="back" label={t('sources.home.back')} priority="high">
 							<CircleButton
 								icon={ArrowLeft}
 								onClick={() => navigate(-1)}
 							/>
 						</TopBarItem>
-						<TopBarItem id="title" label="Title" priority="high">
+						<TopBarItem id="title" label={t('sources.home.title')} priority="high">
 							<h1 className="text-ink text-xl font-bold">
-								Storage
+								{t('sources.home.storage')}
 							</h1>
 						</TopBarItem>
 					</>
 				}
 				right={
 					<>
-						<TopBarItem id="search" label="Search" priority="high">
+						<TopBarItem id="search" label={t('sources.home.search')} priority="high">
 							<SearchBar
-								placeholder="Search sources..."
+								placeholder={t('sources.home.searchPlaceholder')}
 								value=""
 								onChange={() => {}}
 								onClear={() => {}}
@@ -85,26 +87,26 @@ export function SourcesHome() {
 						</TopBarItem>
 						<TopBarItem
 							id="storage-usage"
-							label="Usage"
+							label={t('sources.home.usage')}
 							priority="normal"
 						>
 							<CircleButton
 								icon={ChartPieSlice}
 								onClick={() => navigate('/analyzer')}
-								title="Storage usage"
+								title={t('sources.home.storageUsage')}
 							/>
 						</TopBarItem>
 						<TopBarItem
 							id="add-source"
-							label="Add Source"
+							label={t('sources.home.addSource')}
 							priority="high"
 						>
 							<CircleButton
 								icon={Plus}
 								onClick={() =>
-									createTab('Adapters', '/sources/adapters')
+									createTab(t('sources.home.adapters'), '/sources/adapters')
 								}
-								title="Add Source"
+								title={t('sources.home.addSource')}
 							/>
 						</TopBarItem>
 					</>
@@ -113,32 +115,31 @@ export function SourcesHome() {
 			<div className="p-6">
 				{isLoading && (
 					<div className="flex items-center justify-center py-20">
-						<div className="text-ink-faint text-sm">Loading...</div>
+						<div className="text-ink-faint text-sm">{t('sources.home.loading')}</div>
 					</div>
 				)}
 
 				{error && (
 					<div className="rounded-lg border border-red-400/20 p-4">
 						<p className="text-sm text-red-400">
-							Failed to load sources: {String(error)}
+							{t('sources.home.failedToLoad', { error: String(error) })}
 						</p>
 					</div>
 				)}
 
 				{sources && totalCount === 0 && (
 					<div className="flex flex-col items-center justify-center py-20">
-						<p className="text-ink-dull text-sm">No storage yet</p>
+						<p className="text-ink-dull text-sm">{t('sources.home.noStorage')}</p>
 						<p className="text-ink-faint mt-1 text-xs">
-							Track a folder, drive, server, or provider to get
-							started
+							{t('sources.home.getStarted')}
 						</p>
 						<button
 							onClick={() =>
-								createTab('Adapters', '/sources/adapters')
+								createTab(t('sources.home.adapters'), '/sources/adapters')
 							}
 							className="bg-accent hover:bg-accent-deep mt-4 rounded-lg px-3.5 py-1.5 text-sm font-medium text-white transition-colors"
 						>
-							Add Source
+							{t('sources.home.addSource')}
 						</button>
 					</div>
 				)}

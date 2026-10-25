@@ -1,5 +1,6 @@
 import clsx from 'clsx';
 import {applyTheme} from '../../hooks/useTheme';
+import {useI18n, type TranslationKey} from '../../i18n';
 import {
 	setShellLayout,
 	useShellLayout,
@@ -16,7 +17,7 @@ import {useAppConfig} from '../useConfig';
 
 interface Theme {
 	id: string;
-	name: string;
+	nameKey: TranslationKey;
 	/** Window fill used by the tile preview */
 	surface: string;
 	/** True for themes whose preview needs dark-on-light content bars */
@@ -24,26 +25,59 @@ interface Theme {
 }
 
 const THEMES: Theme[] = [
-	{id: 'system', name: 'System', surface: 'bg-app'},
-	{id: 'light', name: 'Light', surface: 'bg-white', light: true},
-	{id: 'dark', name: 'Dark', surface: 'bg-[hsl(235,15%,13%)]'},
-	{id: 'midnight', name: 'Midnight', surface: 'bg-[hsl(240,30%,4%)]'},
-	{id: 'noir', name: 'Noir', surface: 'bg-[hsl(0,0%,3%)]'},
-	{id: 'slate', name: 'Slate', surface: 'bg-[hsl(220,8%,9%)]'},
-	{id: 'nord', name: 'Nord', surface: 'bg-[hsl(220,18%,12%)]'},
-	{id: 'mocha', name: 'Mocha', surface: 'bg-[hsl(25,18%,10%)]'}
+	{id: 'system', nameKey: 'appearance.theme.system', surface: 'bg-app'},
+	{
+		id: 'light',
+		nameKey: 'appearance.theme.light',
+		surface: 'bg-white',
+		light: true
+	},
+	{
+		id: 'dark',
+		nameKey: 'appearance.theme.dark',
+		surface: 'bg-[hsl(235,15%,13%)]'
+	},
+	{
+		id: 'midnight',
+		nameKey: 'appearance.theme.midnight',
+		surface: 'bg-[hsl(240,30%,4%)]'
+	},
+	{
+		id: 'noir',
+		nameKey: 'appearance.theme.noir',
+		surface: 'bg-[hsl(0,0%,3%)]'
+	},
+	{
+		id: 'slate',
+		nameKey: 'appearance.theme.slate',
+		surface: 'bg-[hsl(220,8%,9%)]'
+	},
+	{
+		id: 'nord',
+		nameKey: 'appearance.theme.nord',
+		surface: 'bg-[hsl(220,18%,12%)]'
+	},
+	{
+		id: 'mocha',
+		nameKey: 'appearance.theme.mocha',
+		surface: 'bg-[hsl(25,18%,10%)]'
+	}
 ];
 
-const LAYOUTS: {id: ShellLayoutMode; name: string; description: string}[] = [
+const LAYOUTS: {
+	id: ShellLayoutMode;
+	nameKey: TranslationKey;
+	descriptionKey: TranslationKey;
+}[] = [
 	{
 		id: 'inset',
-		name: 'Inset content',
-		description: 'Keep files and their inspector together in one sheet.'
+		nameKey: 'appearance.layout.inset.name',
+		descriptionKey: 'appearance.layout.inset.description'
 	},
 	{
 		id: 'floating',
-		name: 'Floating panels',
-		description: 'Float navigation and the inspector over the window.'
+		nameKey: 'appearance.layout.floating.name',
+		descriptionKey: 'appearance.layout.floating.description'
 	}
 ];
 
@@ -55,17 +89,21 @@ const LANGUAGES = [
 	{value: 'it', label: 'Italiano'},
 	{value: 'ja', label: '日本語'},
 	{value: 'ko', label: '한국어'},
-	{value: 'pt', label: 'Português'},
+	{value: 'pt-BR', label: 'Português (Brasil)'},
 	{value: 'ru', label: 'Русский'},
 	{value: 'zh', label: '中文'}
 ];
 
 export function AppearanceSettings() {
 	const {config, update} = useAppConfig();
+	const {t} = useI18n();
 	const layout = useShellLayout();
 
 	const theme = config?.preferences?.theme ?? 'system';
-	const language = config?.preferences?.language ?? 'en';
+	const language =
+		config?.preferences?.language === 'pt'
+			? 'pt-BR'
+			: (config?.preferences?.language ?? 'en');
 
 	const handleThemeChange = (themeId: string) => {
 		applyTheme(themeId);
@@ -75,14 +113,14 @@ export function AppearanceSettings() {
 	return (
 		<SettingsPageContent>
 			<Section
-				title="Layout"
-				description="Choose how navigation and content share your window. Saved on this device."
+				title={t('appearance.layout.title')}
+				description={t('appearance.layout.description')}
 			>
 				<SectionCard padded>
 					<div
 						className="grid grid-cols-2 gap-4"
 						role="group"
-						aria-label="Window layout"
+						aria-label={t('appearance.layout.ariaLabel')}
 					>
 						{LAYOUTS.map((option) => (
 							<button
@@ -153,10 +191,10 @@ export function AppearanceSettings() {
 									</div>
 								</div>
 								<span className="text-ink text-sm font-medium">
-									{option.name}
+									{t(option.nameKey)}
 								</span>
 								<span className="text-ink-faint text-xs">
-									{option.description}
+									{t(option.descriptionKey)}
 								</span>
 							</button>
 						))}
@@ -165,8 +203,8 @@ export function AppearanceSettings() {
 			</Section>
 
 			<Section
-				title="Theme"
-				description="Match Spacedrive to your system theme or pick a fixed look."
+				title={t('appearance.theme.title')}
+				description={t('appearance.theme.description')}
 			>
 				<SectionCard padded>
 					<div className="grid grid-cols-4 gap-3">
@@ -178,7 +216,9 @@ export function AppearanceSettings() {
 									type="button"
 									role="radio"
 									aria-checked={isSelected}
-									aria-label={`Select theme: ${option.name}`}
+									aria-label={t('appearance.theme.select', {
+										name: t(option.nameKey)
+									})}
 									onClick={() => handleThemeChange(option.id)}
 									className="focus-visible:ring-accent focus-visible:ring-offset-app-box group flex flex-col items-center gap-2 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
 								>
@@ -222,7 +262,7 @@ export function AppearanceSettings() {
 												: 'text-ink-faint'
 										)}
 									>
-										{option.name}
+										{t(option.nameKey)}
 									</span>
 								</button>
 							);
@@ -232,13 +272,13 @@ export function AppearanceSettings() {
 			</Section>
 
 			<Section
-				title="Language"
-				description="Interface language for Spacedrive."
+				title={t('appearance.language.title')}
+				description={t('appearance.language.description')}
 			>
 				<SectionRows>
 					<SelectSettingItem
-						label="Language"
-						description="Select your preferred language"
+						label={t('appearance.language.label')}
+						description={t('appearance.language.select')}
 						value={language}
 						onChange={(value) => update({language: value})}
 						options={LANGUAGES}

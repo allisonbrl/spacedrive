@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { X, ShareNetwork, Users } from '@phosphor-icons/react';
 import { useState, useMemo } from 'react';
 import { CircleButton } from '@spacedrive/primitives';
+import { useI18n } from '../i18n';
 
 interface Person {
 	id: string;
@@ -16,6 +17,7 @@ interface SpacedropProps {
 }
 
 export function Spacedrop({ onClose, people = [] }: SpacedropProps) {
+	const { t } = useI18n();
 	const [selectedPerson, setSelectedPerson] = useState<string | null>(null);
 	const [starSpeed, setStarSpeed] = useState(1);
 
@@ -69,15 +71,15 @@ export function Spacedrop({ onClose, people = [] }: SpacedropProps) {
 			<div className="relative z-10 flex items-center justify-between border-b border-app-line/30 bg-app/80 p-3 backdrop-blur-xl">
 				<div className="flex gap-2">
 					<CircleButton icon={X} onClick={onClose}>
-						Close
+						{t('spacedrop.close')}
 					</CircleButton>
 				</div>
 
 				<div className="flex items-center gap-2">
 					<CircleButton icon={Users}>
-						{people.length} {people.length === 1 ? 'Device' : 'Devices'}
+						{t('spacedrop.devices', { count: people.length })}
 					</CircleButton>
-					<CircleButton icon={ShareNetwork}>Share</CircleButton>
+					<CircleButton icon={ShareNetwork}>{t('spacedrop.share')}</CircleButton>
 				</div>
 			</div>
 
@@ -95,10 +97,10 @@ export function Spacedrop({ onClose, people = [] }: SpacedropProps) {
 							</div>
 						</div>
 						<h2 className="mb-2 text-lg font-semibold text-sidebar-ink">
-							No devices found
+							{t('spacedrop.noDevices')}
 						</h2>
 						<p className="text-sm text-sidebar-inkFaint">
-							Waiting for nearby devices...
+							{t('spacedrop.waitingNearby')}
 						</p>
 					</motion.div>
 				) : (
@@ -163,7 +165,9 @@ export function Spacedrop({ onClose, people = [] }: SpacedropProps) {
 										{person.name}
 									</p>
 									<p className="text-xs text-sidebar-inkFaint">
-										{person.status === 'online' ? 'Online' : 'Offline'}
+										{person.status === 'online'
+											? t('spacedrop.online')
+											: t('spacedrop.offline')}
 									</p>
 								</div>
 							</motion.button>

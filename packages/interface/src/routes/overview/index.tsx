@@ -9,8 +9,10 @@ import { DevicePanel } from "./DevicePanel";
 import { OverviewTopBar } from "./OverviewTopBar";
 import { useNormalizedQuery } from "../../contexts/SpacedriveContext";
 import type { Library } from "@sd/ts-client";
+import { useI18n } from "../../i18n";
 
 export function Overview() {
+	const { t } = useI18n();
 	// Fetch library info with statistics using normalizedCache
 	// This returns cached stats immediately and updates via ResourceChanged events
 	const {
@@ -25,11 +27,11 @@ export function Overview() {
 	if (isLoading || !libraryInfo) {
 		return (
 			<>
-				<OverviewTopBar libraryName="Loading..." />
+				<OverviewTopBar libraryName={t('overview.loading')} />
 				<div className="flex flex-col h-full overflow-hidden">
 					<div className="flex-1 overflow-auto p-6 space-y-4">
 						<div className="text-center text-ink-dull">
-							Loading library statistics...
+							{t('overview.loadingStats')}
 						</div>
 					</div>
 				</div>

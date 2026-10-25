@@ -9,6 +9,7 @@ import {
 import type {LibraryInfo, Space} from '@sd/ts-client';
 import {DropdownMenu, SelectPill} from '@spacedrive/primitives';
 import clsx from 'clsx';
+import {useI18n} from '../../i18n';
 import {useCreateLibraryDialog} from '../modals/CreateLibraryModal';
 import {useCreateSpaceDialog} from './CreateSpaceModal';
 
@@ -35,6 +36,7 @@ export function LibrarySwitcher({
 	onPairDevice,
 	onOpenSettings
 }: LibrarySwitcherProps) {
+	const {t} = useI18n();
 	const currentLibrary = libraries?.find(
 		(library) => library.id === currentLibraryId
 	);
@@ -47,7 +49,7 @@ export function LibrarySwitcher({
 				<SelectPill variant="sidebar" size="lg" className="shrink-0">
 					<Books size={16} weight="bold" className="text-accent" />
 					<span className="min-w-0 flex-1 truncate text-left">
-						{currentLibrary?.name ?? 'Select Library'}
+						{currentLibrary?.name ?? t('sidebar.selectLibrary')}
 					</span>
 				</SelectPill>
 			</DropdownMenu.Trigger>
@@ -77,7 +79,7 @@ export function LibrarySwitcher({
 					<>
 						<DropdownMenu.Separator className="border-sidebar-line my-1" />
 						<div className="text-sidebar-ink-faint px-2 py-1 text-[10px] font-semibold uppercase tracking-wide">
-							Workspaces
+							{t('sidebar.workspaces')}
 						</div>
 						{spaces?.map((space) => (
 							<DropdownMenu.Item
@@ -106,35 +108,35 @@ export function LibrarySwitcher({
 					className="text-sidebar-ink-dull hover:bg-sidebar-box hover:text-sidebar-ink flex items-center gap-2 rounded-md px-2 py-1.5 text-sm"
 				>
 					<HardDrives size={16} weight="bold" />
-					Manage Storage
+					{t('sidebar.manageStorage')}
 				</DropdownMenu.Item>
 				<DropdownMenu.Item
 					onClick={onPairDevice}
 					className="text-sidebar-ink-dull hover:bg-sidebar-box hover:text-sidebar-ink flex items-center gap-2 rounded-md px-2 py-1.5 text-sm"
 				>
 					<DeviceMobile size={16} weight="bold" />
-					Pair a Device
+					{t('sidebar.pairDevice')}
 				</DropdownMenu.Item>
 				<DropdownMenu.Item
 					onClick={onOpenSettings}
 					className="text-sidebar-ink-dull hover:bg-sidebar-box hover:text-sidebar-ink flex items-center gap-2 rounded-md px-2 py-1.5 text-sm"
 				>
 					<GearSix size={16} weight="bold" />
-					Library Settings
+					{t('settings.library.title')}
 				</DropdownMenu.Item>
 				<DropdownMenu.Item
 					onClick={() => useCreateLibraryDialog()}
 					className="text-sidebar-ink-dull hover:bg-sidebar-box hover:text-sidebar-ink flex items-center gap-2 rounded-md px-2 py-1.5 text-sm"
 				>
 					<Plus size={16} weight="bold" />
-					New Library
+					{t('sidebar.newLibrary')}
 				</DropdownMenu.Item>
 				<DropdownMenu.Item
 					onClick={() => createWorkspace()}
 					className="text-sidebar-ink-dull hover:bg-sidebar-box hover:text-sidebar-ink flex items-center gap-2 rounded-md px-2 py-1.5 text-sm"
 				>
 					<Plus size={16} weight="bold" />
-					New Workspace
+					{t('sidebar.newWorkspace')}
 				</DropdownMenu.Item>
 			</DropdownMenu.Content>
 		</DropdownMenu.Root>

@@ -14,6 +14,7 @@ import {useSpacedriveClient} from '../../contexts/SpacedriveContext';
 import {useVolumeIndexingStore} from '../../stores/volumeIndexingStore';
 import {formatRelativeTime} from '../explorer/utils';
 import {formatBytes, getVolumeIcon} from './DevicePanel';
+import {useI18n} from '../../i18n';
 
 function getDiskTypeLabel(diskType: string): string {
 	return diskType === 'SSD' ? 'SSD' : diskType === 'HDD' ? 'HDD' : diskType;
@@ -36,6 +37,7 @@ interface IndexingProgress {
 }
 
 export function VolumeBar({volume, sources, isLocal, index}: VolumeBarProps) {
+	const {t, locale, formatNumber} = useI18n();
 	const [indexingProgress, setIndexingProgress] =
 		useState<IndexingProgress | null>(null);
 	const client = useSpacedriveClient();
@@ -248,23 +250,24 @@ export function VolumeBar({volume, sources, isLocal, index}: VolumeBarProps) {
 						)}
 						{volume.locked ? (
 							<span
-								title="The encryption key is not loaded"
+								title={t('overview.volume.encryptionKeyNotLoaded')}
 								className="bg-app-box border-app-line text-ink-dull flex items-center gap-1 rounded border px-1.5 py-0.5"
 							>
 								<Lock size={10} weight="bold" />
-								locked
+								{t('overview.volume.locked')}
 							</span>
 						) : (
 							!volume.is_mounted && (
 								<span className="bg-app-box border-app-line text-ink-faint rounded border px-1.5 py-0.5">
-									unmounted
+									{t('overview.volume.unmounted')}
 								</span>
 							)
 						)}
 						{indexingProgress ? (
 							<span className="bg-accent/20 border-accent/30 text-accent rounded border px-1.5 py-0.5 font-medium">
-								{indexingProgress.filesIndexed.toLocaleString()}{' '}
-								files
+								{t('overview.volume.files', {
+									count: formatNumber(indexingProgress.filesIndexed)
+								})}
 								{indexingProgress.rate > 0 && (
 									<span className="text-accent/70 ml-1">
 										({Math.round(indexingProgress.rate)}/s)
@@ -274,7 +277,9 @@ export function VolumeBar({volume, sources, isLocal, index}: VolumeBarProps) {
 						) : (
 							indexedCount != null && (
 								<span className="bg-accent/10 border-accent/20 text-accent rounded border px-1.5 py-0.5">
-									{indexedCount.toLocaleString()} files
+									{t('overview.volume.files', {
+										count: formatNumber(indexedCount)
+									})}
 								</span>
 							)
 						)}
@@ -287,12 +292,16 @@ export function VolumeBar({volume, sources, isLocal, index}: VolumeBarProps) {
 						{formatBytes(totalCapacity)}
 					</div>
 					<div className="text-ink-dull text-[10px]">
-						{formatBytes(availableBytes)} free
+						{t('overview.volume.free', {
+							size: formatBytes(availableBytes)
+						})}
 					</div>
 					<div className="text-ink-faint flex h-3.5 items-center justify-end gap-1.5 text-[10px]">
 						{!volume.is_mounted ? (
 							<span>
-								seen {formatRelativeTime(volume.last_seen_at)}
+								{t('overview.volume.seenTime', {
+									time: formatRelativeTime(volume.last_seen_at, t, locale)
+								})}
 							</span>
 						) : (
 							<>
@@ -321,7 +330,7 @@ export function VolumeBar({volume, sources, isLocal, index}: VolumeBarProps) {
 							e.stopPropagation();
 							contextMenu.show(e);
 						}}
-						title="Volume actions"
+						title={t('overview.volume.actions')}
 					/>
 				)}
 			</div>
@@ -340,7 +349,10 @@ export function VolumeBar({volume, sources, isLocal, index}: VolumeBarProps) {
 								delay: index * 0.05
 							}}
 							className="bg-accent border-accent-deep border-r"
-							title={`Unique: ${formatBytes(uniqueBytes)} (${uniquePercent.toFixed(1)}%)`}
+							title={t('overview.volume.tooltipUnique', {
+								size: formatBytes(uniqueBytes),
+								percent: uniquePercent.toFixed(1)
+							})}
 						/>
 						<motion.div
 							initial={{width: 0}}
@@ -355,7 +367,10 @@ export function VolumeBar({volume, sources, isLocal, index}: VolumeBarProps) {
 								backgroundImage:
 									'repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255,255,255,0.1) 4px, rgba(255,255,255,0.1) 8px)'
 							}}
-							title={`Duplicate: ${formatBytes(duplicateBytes)} (${duplicatePercent.toFixed(1)}%)`}
+							title={t('overview.volume.tooltipDuplicate', {
+								size: formatBytes(duplicateBytes),
+								percent: duplicatePercent.toFixed(1)
+							})}
 						/>
 					</div>
 
@@ -368,7 +383,11 @@ export function VolumeBar({volume, sources, isLocal, index}: VolumeBarProps) {
 							}}
 							transition={{duration: 0.3, ease: 'easeOut'}}
 							className="bg-accent-deep border-accent-deep absolute inset-y-0 left-0 border-r-2"
-							title={`Indexing: ${formatBytes(indexingProgress.bytesIndexed)} / ${formatBytes(totalCapacity)} (${(indexingProgress.percentage * 100).toFixed(1)}%)`}
+							title={t('overview.volume.tooltipIndexing', {
+								indexed: formatBytes(indexingProgress.bytesIndexed),
+								total: formatBytes(totalCapacity),
+								percent: (indexingProgress.percentage * 100).toFixed(1)
+							})}
 						>
 							{/* Animated shimmer effect */}
 							<div
@@ -387,9 +406,9 @@ export function VolumeBar({volume, sources, isLocal, index}: VolumeBarProps) {
 					{indexingProgress && (
 						<div className="absolute inset-0 flex items-center justify-center">
 							<span className="text-ink text-xs font-medium drop-shadow-lg">
-								Indexing:{' '}
-								{(indexingProgress.percentage * 100).toFixed(1)}
-								%
+								{t('overview.volume.indexingPercent', {
+									percent: (indexingProgress.percentage * 100).toFixed(1)
+								})}
 								<span className="text-ink-dull ml-2">
 									{formatBytes(indexingProgress.bytesIndexed)}{' '}
 									/ {formatBytes(totalCapacity)}

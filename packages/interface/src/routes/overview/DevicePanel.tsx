@@ -33,6 +33,7 @@ import {
 	useNormalizedQuery
 } from '../../contexts/SpacedriveContext';
 import {VolumeBar} from './VolumeBar';
+import {useI18n} from '../../i18n';
 
 // Temporary type extension until types are regenerated
 type DeviceWithConnection = Device & {
@@ -72,6 +73,7 @@ export function getVolumeIcon(volumeType: any, name?: string): string {
 }
 
 export function DevicePanel() {
+	const {t} = useI18n();
 	// Fetch all volumes using normalized cache
 	const {data: volumesData, isLoading: volumesLoading} = useNormalizedQuery<
 		VolumeListQueryInput,
@@ -135,8 +137,8 @@ export function DevicePanel() {
 		return (
 			<div className="bg-app-box border-app-line overflow-hidden rounded-xl border">
 				<div className="border-app-line border-b px-6 py-4">
-					<h2 className="text-ink text-base font-semibold">Devices</h2>
-					<p className="text-ink-dull mt-1 text-sm">Loading devices...</p>
+					<h2 className="text-ink text-base font-semibold">{t('overview.devices.title')}</h2>
+					<p className="text-ink-dull mt-1 text-sm">{t('overview.devices.loading')}</p>
 				</div>
 			</div>
 		);
@@ -236,9 +238,9 @@ export function DevicePanel() {
 					<div className="bg-app-box border-app-line overflow-hidden rounded-xl border">
 						<div className="text-ink-faint py-12 text-center">
 							<HardDrive className="mx-auto mb-3 size-12 opacity-20" />
-							<p className="text-sm">No devices detected</p>
+							<p className="text-sm">{t('overview.devices.noDevices')}</p>
 							<p className="mt-1 text-xs">
-								Pair a device to get started
+								{t('overview.devices.pairDevice')}
 							</p>
 						</div>
 					</div>
@@ -264,37 +266,38 @@ interface ConnectionBadgeProps {
 }
 
 function ConnectionBadge({method, online, current, icon: customIcon, color: customColor}: ConnectionBadgeProps) {
+	const {t} = useI18n();
 	const configs: Record<string, ConnectionBadgeConfig> = {
 		LocalNetwork: {
-			label: 'Local',
-			description: 'Connected via local network',
+			label: t('overview.connection.local'),
+			description: t('overview.connection.localDesc'),
 			icon: WifiHigh,
 			color: 'bg-green-500'
 		},
 		DirectInternet: {
-			label: 'Direct',
-			description: 'Connected directly via internet',
+			label: t('overview.connection.direct'),
+			description: t('overview.connection.directDesc'),
 			color: 'bg-blue-500'
 		},
 		Tailscale: {
-			label: 'Tailscale',
-			description: 'Connected directly over your Tailscale network',
+			label: t('overview.connection.tailscale'),
+			description: t('overview.connection.tailscaleDesc'),
 			color: 'bg-indigo-400'
 		},
 		RelayProxy: {
-			label: 'Relay',
-			description: 'Connected via relay proxy',
+			label: t('overview.connection.relay'),
+			description: t('overview.connection.relayDesc'),
 			color: 'bg-yellow-500'
 		},
 		Offline: {
-			label: 'Offline',
-			description: 'Device is currently offline',
+			label: t('overview.connection.offline'),
+			description: t('overview.connection.offlineDesc'),
 			icon: WifiSlash,
 			color: 'bg-ink-dull'
 		},
 		Current: {
-			label: 'This device',
-			description: 'This is your current device',
+			label: t('overview.connection.current'),
+			description: t('overview.connection.currentDesc'),
 		}
 	};
 
@@ -336,7 +339,8 @@ function DeviceCard({
 	jobs,
 	volumesLoading
 }: DeviceCardProps) {
-	const deviceName = device?.name || 'Unknown Device';
+	const {t} = useI18n();
+	const deviceName = device?.name || t('overview.devices.unknown');
 	const deviceIconSrc = device ? getDeviceIcon(device) : null;
 	const {pause, resume, cancel, getSpeedHistory} = useJobsContext();
 	// Format hardware specs
@@ -395,8 +399,8 @@ function DeviceCard({
 							</div>
 							<p className="text-ink-dull text-sm">
 								{volumesLoading
-									? 'Loading volumes...'
-									: `${volumes.length} ${volumes.length === 1 ? 'volume' : 'volumes'}`}
+									? t('overview.devices.loadingVolumes')
+									: t('overview.devices.volumes', { count: volumes.length })}
 								{/* {device?.is_online === false && ' • Offline'} */}
 							</p>
 						</div>
@@ -419,7 +423,10 @@ function DeviceCard({
 							{device?.cpu_cores_physical && (
 								<div
 									className="flex items-center gap-1"
-									title={`${device.cpu_cores_physical} Cores / ${device.cpu_cores_logical} Threads`}
+									title={t('overview.devices.hardwareSpecs', {
+										cores: device.cpu_cores_physical,
+										threads: device.cpu_cores_logical ?? 0
+									})}
 								>
 									<Cpu
 										className="size-3.5 opacity-50"
@@ -436,7 +443,9 @@ function DeviceCard({
 							{ramInfo && (
 								<div
 									className="flex items-center gap-1"
-									title={`${ramInfo} Total Memory`}
+									title={t('overview.devices.totalMemory', {
+										ram: ramInfo
+									})}
 								>
 									<Memory
 										className="size-3.5 opacity-50"
@@ -471,7 +480,7 @@ function DeviceCard({
 				<div className="space-y-3 px-3 py-3">
 					{volumesLoading ? (
 						<div className="text-ink-dull text-center text-xs">
-							Loading volumes...
+							{t('overview.devices.loadingVolumes')}
 						</div>
 					) : volumes.length > 0 ? (
 						volumes.map((volume, idx) => (
@@ -487,7 +496,7 @@ function DeviceCard({
 						<div className="flex flex-col items-center justify-center py-8 text-center">
 							<div className="text-ink-faint">
 								<HardDrive className="mx-auto mb-2 size-8 opacity-20" />
-								<p className="text-xs">No volumes</p>
+								<p className="text-xs">{t('overview.devices.noVolumes')}</p>
 							</div>
 						</div>
 					)}
@@ -503,6 +512,7 @@ function DeviceCard({
 // A source whose volume the card doesn't list. There is no capacity bar
 // because the row knows the source's contents, not the drive underneath it.
 function SourceRow({source}: {source: SourceInfo}) {
+	const {t, formatNumber, formatTime} = useI18n();
 	return (
 		<div className="bg-app-box border-app-line/50 overflow-hidden rounded-lg border">
 			<div className="flex h-[64px] items-center gap-3 px-3">
@@ -519,11 +529,13 @@ function SourceRow({source}: {source: SourceInfo}) {
 					</div>
 					<div className="text-ink-dull flex h-[18px] items-center gap-1.5 text-[10px]">
 						<span className="bg-app-box border-app-line rounded border px-1.5 py-0.5">
-							{source.device_id ? 'Replica' : 'Source'}
+							{source.device_id ? t('overview.sourceRow.replica') : t('overview.sourceRow.source')}
 						</span>
 						{source.item_count > 0 && (
 							<span className="bg-accent/20 border-accent/30 text-accent rounded border px-1.5 py-0.5 font-medium">
-								{source.item_count.toLocaleString()} files
+								{t('overview.sourceRow.files', {
+									count: formatNumber(source.item_count)
+								})}
 							</span>
 						)}
 					</div>
@@ -536,8 +548,9 @@ function SourceRow({source}: {source: SourceInfo}) {
 					)}
 					{source.last_synced && (
 						<div className="text-ink-dull text-[10px]">
-							synced{' '}
-							{new Date(source.last_synced).toLocaleTimeString()}
+							{t('overview.sourceRow.syncedTime', {
+								time: formatTime(source.last_synced)
+							})}
 						</div>
 					)}
 				</div>

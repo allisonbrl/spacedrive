@@ -2,8 +2,9 @@ import { Pause, Play, X } from "@phosphor-icons/react";
 import { useState } from "react";
 import clsx from "clsx";
 import type { JobListItem } from "../types";
-import { getJobDisplayName, formatDuration, timeAgo } from "../types";
+import { getJobDisplayName, formatDuration, timeAgo, getStatusBadge } from "../types";
 import { JobStatusIndicator } from "../components/JobStatusIndicator";
+import { useI18n } from "../../../i18n";
 
 interface JobRowProps {
 	job: JobListItem;
@@ -13,9 +14,10 @@ interface JobRowProps {
 }
 
 export function JobRow({ job, onPause, onResume, onCancel }: JobRowProps) {
+	const { t } = useI18n();
 	const [isHovered, setIsHovered] = useState(false);
 
-	const displayName = getJobDisplayName(job);
+	const displayName = getJobDisplayName(job, t);
 	const showActionButton =
 		job.status === "running" || job.status === "paused";
 	const canPause = job.status === "running" && onPause;
@@ -107,12 +109,12 @@ export function JobRow({ job, onPause, onResume, onCancel }: JobRowProps) {
 					) : job.status === "completed" ? (
 						// Show duration for completed jobs
 						<span className="text-xs text-ink-dull">
-							{formatDuration(duration)}
+							{formatDuration(duration, t)}
 						</span>
 					) : job.status === "queued" ? (
 						// Show waiting status for queued jobs
 						<span className="text-xs text-ink-dull">
-							Waiting...
+							{t("jobs.status.waiting")}
 						</span>
 					) : (
 						// Show dash for failed/cancelled jobs
@@ -124,11 +126,11 @@ export function JobRow({ job, onPause, onResume, onCancel }: JobRowProps) {
 				<div className="flex-shrink-0 w-24 text-right">
 					<span className="text-xs text-ink-dull">
 						{job.status === "completed" && job.completed_at
-							? timeAgo(job.completed_at)
+							? timeAgo(job.completed_at, t)
 							: job.status === "running" && job.started_at
-								? timeAgo(job.started_at)
+								? timeAgo(job.started_at, t)
 								: job.created_at
-									? timeAgo(job.created_at)
+									? timeAgo(job.created_at, t)
 									: "—"}
 					</span>
 				</div>
@@ -150,7 +152,7 @@ export function JobRow({ job, onPause, onResume, onCancel }: JobRowProps) {
 								"bg-app-line/20 text-ink-dull",
 						)}
 					>
-						{job.status}
+						{getStatusBadge(job, t)}
 					</span>
 				</div>
 			</div>
@@ -162,7 +164,7 @@ export function JobRow({ job, onPause, onResume, onCancel }: JobRowProps) {
 						<button
 							onClick={handleAction}
 							className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-app-box hover:bg-app-selected transition-colors"
-							title={canPause ? "Pause job" : "Resume job"}
+							title={canPause ? t("jobs.action.pauseJob") : t("jobs.action.resumeJob")}
 						>
 							{canPause ? (
 								<Pause size={12} weight="fill" className="text-ink" />
@@ -175,7 +177,7 @@ export function JobRow({ job, onPause, onResume, onCancel }: JobRowProps) {
 						<button
 							onClick={handleCancel}
 							className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-app-box hover:bg-red-500 transition-colors"
-							title="Cancel job"
+							title={t("jobs.action.cancelJob")}
 						>
 							<X size={12} weight="bold" className="text-ink hover:text-white" />
 						</button>

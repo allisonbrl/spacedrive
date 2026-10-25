@@ -4,10 +4,12 @@ import {useFileOperationDialog} from '../../../components/modals/FileOperationMo
 import {useLibraryMutation} from '../../../contexts/SpacedriveContext';
 import {useClipboard} from '../../../hooks/useClipboard';
 import {useContextMenu} from '../../../hooks/useContextMenu';
+import {useI18n} from '../../../i18n';
 import {useExplorer} from '../context';
 
 export function useEmptySpaceContextMenu() {
 	const {currentPath} = useExplorer();
+	const {t} = useI18n();
 	const createFolder = useLibraryMutation('files.createFolder');
 	const generateThumbnails = useLibraryMutation('thumbs.generate');
 	const clipboard = useClipboard();
@@ -17,7 +19,7 @@ export function useEmptySpaceContextMenu() {
 		items: [
 			{
 				icon: ArrowClockwise,
-				label: 'Regenerate Thumbnails',
+				label: t('explorer.context.regenerateThumbnails'),
 				condition: () => !!currentPath && 'Physical' in currentPath,
 				onClick: async () => {
 					if (!currentPath) return;
@@ -27,36 +29,42 @@ export function useEmptySpaceContextMenu() {
 							recursive: true,
 							mode: 'force'
 						});
-						toast.success('Thumbnail regeneration started');
+						toast.success(t('explorer.context.thumbnailStarted'));
 					} catch (error) {
 						toast.error(
-							`Could not regenerate thumbnails: ${error}`
+							t('explorer.context.thumbnailError', {
+								error: String(error)
+							})
 						);
 					}
 				}
 			},
 			{
 				icon: FolderPlus,
-				label: 'New Folder',
+				label: t('explorer.context.newFolder'),
 				onClick: async () => {
 					if (!currentPath) return;
 					try {
 						const result = await createFolder.mutateAsync({
 							parent: currentPath,
-							name: 'Untitled Folder',
+							name: t('explorer.context.untitledFolder'),
 							items: []
 						});
 						console.log('Created folder:', result);
 					} catch (err) {
 						console.error('Failed to create folder:', err);
-						alert(`Failed to create folder: ${err}`);
+						alert(
+							t('explorer.context.createFolderError', {
+								error: String(err)
+							})
+						);
 					}
 				},
 				condition: () => !!currentPath
 			},
 			{
 				icon: Copy,
-				label: 'Paste',
+				label: t('explorer.context.paste'),
 				onClick: () => {
 					if (!clipboard.hasClipboard() || !currentPath) {
 						console.log(

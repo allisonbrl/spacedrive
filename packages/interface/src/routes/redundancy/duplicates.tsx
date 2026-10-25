@@ -13,22 +13,33 @@ import { useDeleteDialog } from "../../components/modals/DeleteModal";
 import { useCoreQuery } from "../../contexts/SpacedriveContext";
 import { TopBarItem, TopBarPortal } from "../../TopBar";
 import { formatBytes } from "../explorer/utils";
+import { useI18n } from "../../i18n";
 
-const SIZES: { label: string; bytes: number }[] = [
-	{ label: "Any size", bytes: 0 },
-	{ label: "1 MB+", bytes: 1024 * 1024 },
-	{ label: "100 MB+", bytes: 100 * 1024 * 1024 },
-	{ label: "1 GB+", bytes: 1024 * 1024 * 1024 },
+const SIZES_CONFIG = [
+	{ key: "redundancy.duplicates.sizes.any" as const, bytes: 0 },
+	{ key: "redundancy.duplicates.sizes.1mb" as const, bytes: 1024 * 1024 },
+	{ key: "redundancy.duplicates.sizes.100mb" as const, bytes: 100 * 1024 * 1024 },
+	{ key: "redundancy.duplicates.sizes.1gb" as const, bytes: 1024 * 1024 * 1024 },
 ];
 
 export function DuplicatesView() {
 	const navigate = useNavigate();
-	const [minSize, setMinSize] = useState(SIZES[1].bytes);
+	const { t, formatNumber } = useI18n();
+	const [minSize, setMinSize] = useState(SIZES_CONFIG[1].bytes);
 	/** The chosen keeper per group, by content id; the first copy otherwise. */
 	const [keepers, setKeepers] = useState<Record<string, string>>({});
 	/** Groups left out of the removal, by content id. */
 	const [excluded, setExcluded] = useState<Record<string, boolean>>({});
 	const openDelete = useDeleteDialog();
+
+	const sizes = useMemo(
+		() =>
+			SIZES_CONFIG.map((size) => ({
+				label: t(size.key),
+				bytes: size.bytes,
+			})),
+		[t],
+	);
 
 	const { data, isLoading, refetch } = useCoreQuery({
 		type: "files.duplicates",
@@ -48,9 +59,9 @@ export function DuplicatesView() {
 	const remove = () => {
 		if (selected.length === 0) return;
 		openDelete({
-			title: `Remove the other copies of ${selected.length} ${
-				selected.length === 1 ? "file" : "files"
-			}`,
+			title: t('redundancy.duplicates.removeTitle', {
+				count: formatNumber(selected.length)
+			}),
 			targets: {
 				kind: "duplicates",
 				duplicates: {
@@ -70,11 +81,11 @@ export function DuplicatesView() {
 		<div className="flex items-center gap-2">
 			<CircleButton
 				icon={ArrowLeft}
-				title="Back to Protection"
+				title={t('redundancy.duplicates.back')}
 				onClick={() => navigate("/redundancy")}
 			/>
 			<Stack size={18} weight="bold" className="text-ink" />
-			<span className="text-sm font-semibold text-ink">Duplicates</span>
+			<span className="text-sm font-semibold text-ink">{t('redundancy.duplicates.title')}</span>
 		</div>
 	);
 
@@ -82,7 +93,7 @@ export function DuplicatesView() {
 		<>
 			<TopBarPortal
 				center={
-					<TopBarItem id="redundancy-duplicates-title" label="Duplicates" priority="high">
+					<TopBarItem id="redundancy-duplicates-title" label={t('redundancy.duplicates.title')} priority="high">
 						{titleItem}
 					</TopBarItem>
 				}
@@ -90,7 +101,7 @@ export function DuplicatesView() {
 			<div className="flex h-full flex-col overflow-hidden bg-app/80 pt-1.5">
 				<div className="flex items-center gap-2 px-4 py-2">
 					<div className="flex gap-1">
-						{SIZES.map((size) => (
+						{sizes.map((size) => (
 							<button
 								key={size.bytes}
 								type="button"
@@ -108,11 +119,13 @@ export function DuplicatesView() {
 					</div>
 					<div className="flex-1 text-xs text-ink-dull">
 						{data
-							? `${groups.length} ${groups.length === 1 ? "group" : "groups"} across ${
-									data.sources_queried
-								} sources · ${formatBytes(reclaimable)} reclaimable in the selection`
+							? t('redundancy.duplicates.summary', {
+									groups: formatNumber(groups.length),
+									sources: formatNumber(data.sources_queried),
+									size: formatBytes(reclaimable)
+								})
 							: isLoading
-								? "Looking for copies…"
+								? t('redundancy.duplicates.looking')
 								: ""}
 					</div>
 					<Button
@@ -122,15 +135,14 @@ export function DuplicatesView() {
 						disabled={selected.length === 0}
 						onClick={remove}
 					>
-						Remove other copies
+						{t('redundancy.duplicates.removeButton')}
 					</Button>
 				</div>
 
 				<div className="flex-1 overflow-auto px-4 pb-4">
 					{groups.length === 0 && !isLoading && (
 						<div className="rounded-lg border border-app-line bg-app-box/50 p-6 text-center text-sm text-ink-dull">
-							No content is held more than once at this size. A drive that is unplugged
-							does not answer.
+							{t('redundancy.duplicates.empty')}
 						</div>
 					)}
 					<div className="space-y-2">
@@ -158,10 +170,15 @@ export function DuplicatesView() {
 													}))
 												}
 											/>
-											{group.copies.length} copies of {formatBytes(group.size)}
+											{t('redundancy.duplicates.copiesOf', {
+												count: formatNumber(group.copies.length),
+												size: formatBytes(group.size)
+											})}
 										</label>
 										<span className="text-ink-faint">
-											{formatBytes(group.reclaimable)} reclaimable
+											{t('redundancy.duplicates.reclaimable', {
+												size: formatBytes(group.reclaimable)
+											})}
 										</span>
 									</div>
 									<div className="space-y-0.5">
@@ -190,7 +207,7 @@ export function DuplicatesView() {
 															kept ? "text-accent" : "text-red-500",
 														)}
 													>
-														{kept ? "keep" : "remove"}
+														{kept ? t('redundancy.duplicates.keep') : t('redundancy.duplicates.remove')}
 													</span>
 													<span
 														className={clsx(

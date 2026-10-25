@@ -11,12 +11,9 @@ import {
 } from "@spacedrive/primitives";
 import type { FileUndoInput } from "@sd/ts-client";
 import { RefusedError } from "@sd/ts-client";
-import {
-	useLibraryMutation,
-	useLibraryPreview,
-	useLibraryValidate,
-} from "../../contexts/SpacedriveContext";
+import { useLibraryMutation, useLibraryPreview, useLibraryValidate } from "../../contexts/SpacedriveContext";
 import { usePlanPreviewStore } from "../../routes/explorer/hooks/usePlanPreview";
+import { useI18n } from "../../i18n";
 import { hasErrors, pathName, PreflightPanel } from "./PreflightPanel";
 
 interface UndoDialogProps {
@@ -43,6 +40,7 @@ export function useUndoDialog() {
 }
 
 function UndoDialog(props: UndoDialogProps) {
+	const { t } = useI18n();
 	const dialog = useDialog(props);
 	const form = useForm();
 	const [failure, setFailure] = useState<string | null>(null);
@@ -64,7 +62,7 @@ function UndoDialog(props: UndoDialogProps) {
 		setFailure(null);
 		try {
 			await undo.mutateAsync(input);
-			toast.success(`Undoing ${props.label}`);
+			toast.success(t("modals.undo.toast", { label: props.label }));
 			close();
 			props.onComplete?.();
 		} catch (error) {
@@ -81,7 +79,7 @@ function UndoDialog(props: UndoDialogProps) {
 		enterPreview({
 			source: { type: "files.undo", input },
 			plan: preview.data,
-			label: `Undo ${props.label}`,
+			label: t("modals.undo.title", { label: props.label }),
 		});
 		close();
 	};
@@ -102,13 +100,16 @@ function UndoDialog(props: UndoDialogProps) {
 	const steps = (preview.data?.changes ?? []).map((change) => {
 		switch (change.change.type) {
 			case "move":
-				return `${pathName(change.change.from)} goes back to ${pathName(change.path)}`;
+				return t("modals.undo.stepMove", {
+					from: pathName(change.change.from),
+					to: pathName(change.path),
+				});
 			case "delete":
-				return `${pathName(change.path)} goes to the trash`;
+				return t("modals.undo.stepTrash", { name: pathName(change.path) });
 			case "replace":
-				return `${pathName(change.path)} gets its previous bytes back`;
+				return t("modals.undo.stepReplace", { name: pathName(change.path) });
 			case "set_attributes":
-				return `${pathName(change.path)} gets its attributes back`;
+				return t("modals.undo.stepAttributes", { name: pathName(change.path) });
 			default:
 				return pathName(change.path);
 		}
@@ -119,9 +120,9 @@ function UndoDialog(props: UndoDialogProps) {
 		<Dialog
 			dialog={dialog}
 			form={form}
-			title={`Undo ${props.label}`}
+			title={t("modals.undo.title", { label: props.label })}
 			icon={<ArrowCounterClockwise size={20} weight="bold" />}
-			ctaLabel={count > 0 ? `Reverse ${count} ${count === 1 ? "effect" : "effects"}` : "Undo"}
+			ctaLabel={count > 0 ? t("modals.undo.reverseEffects", { count }) : t("modals.undo.undo")}
 			submitDisabled={refused || validation.isLoading || undo.isPending}
 			loading={undo.isPending}
 			onSubmit={form.handleSubmit(submit)}
@@ -130,8 +131,7 @@ function UndoDialog(props: UndoDialogProps) {
 		>
 			<div className="space-y-4 py-1">
 				<div className="text-sm text-ink-dull">
-					Reverses what the job did, newest effect first. A file that changed since is
-					left as it is.
+					{t("modals.undo.description")}
 				</div>
 
 				{steps.length > 0 && (
@@ -141,7 +141,9 @@ function UndoDialog(props: UndoDialogProps) {
 								{step}
 							</div>
 						))}
-						{steps.length > 200 && <div>and {steps.length - 200} more</div>}
+						{steps.length > 200 && (
+							<div>{t("modals.undo.andMore", { count: steps.length - 200 })}</div>
+						)}
 					</div>
 				)}
 
@@ -168,7 +170,7 @@ function UndoDialog(props: UndoDialogProps) {
 						onClick={browse}
 					>
 						<Eye className="mr-1.5 size-4" weight="bold" />
-						Browse the result
+						{t("modals.undo.browseResult")}
 					</Button>
 				</div>
 			</div>

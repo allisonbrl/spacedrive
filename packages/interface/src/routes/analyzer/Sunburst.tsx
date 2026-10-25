@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import type { SizeNode } from "@sd/ts-client";
+import { useI18n } from "../../i18n";
 
 /**
  * Two-ring sunburst rendered from a SizeNode tree — pure SVG arcs, no
@@ -63,7 +64,7 @@ function arcPath(
 	].join(" ");
 }
 
-export function buildSlices(root: SizeNode): Slice[] {
+export function buildSlices(root: SizeNode, otherLabel = "other"): Slice[] {
 	const total = Math.max(
 		root.size,
 		root.children.reduce((a, c) => a + c.size, 0) + root.other_size,
@@ -117,7 +118,7 @@ export function buildSlices(root: SizeNode): Slice[] {
 				if (ofrac >= MIN_FRACTION) {
 					slices.push({
 						path: child.path,
-						label: "other",
+						label: otherLabel,
 						color: OTHER_COLOR,
 						start: inner,
 						end: inner + ofrac,
@@ -135,7 +136,7 @@ export function buildSlices(root: SizeNode): Slice[] {
 		const ofrac = root.other_size / total;
 		slices.push({
 			path: root.path,
-			label: "other",
+			label: otherLabel,
 			color: OTHER_COLOR,
 			start: cursor,
 			end: cursor + ofrac,
@@ -157,7 +158,11 @@ interface SunburstProps {
 }
 
 export function Sunburst({ root, size, onSelect, onHover }: SunburstProps) {
-	const slices = useMemo(() => buildSlices(root), [root]);
+	const { t } = useI18n();
+	const slices = useMemo(
+		() => buildSlices(root, t('analyzer.sunburst.other')),
+		[root, t],
+	);
 	const c = size / 2;
 	const r0 = size * 0.18;
 	const r1 = size * 0.32;
@@ -169,7 +174,7 @@ export function Sunburst({ root, size, onSelect, onHover }: SunburstProps) {
 			height={size}
 			viewBox={`0 0 ${size} ${size}`}
 			role="img"
-			aria-label={`Size breakdown of ${root.name}`}
+			aria-label={t('analyzer.sunburst.ariaLabel', { name: root.name })}
 		>
 			{slices.map((s, i) => (
 				<path

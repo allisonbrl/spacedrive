@@ -1,13 +1,20 @@
-import { useState, type ReactNode } from "react";
-import { useForm } from "react-hook-form";
-import { useNavigate, type NavigateFunction } from "react-router-dom";
 import {
 	ArrowCounterClockwise,
 	Books,
 	CheckCircle,
 	HardDrive,
-	Warning,
-} from "@phosphor-icons/react";
+	Warning
+} from '@phosphor-icons/react';
+import FolderIcon from '@sd/assets/icons/Folder.webp';
+import HDDIcon from '@sd/assets/icons/HDD.webp';
+import ServerIcon from '@sd/assets/icons/Server.webp';
+import type {
+	SdPath,
+	StorePlacement,
+	TrackSourceOutput,
+	ValidateSourcePathOutput,
+	Volume
+} from '@sd/ts-client';
 import {
 	Button,
 	Dialog,
@@ -16,21 +23,21 @@ import {
 	RadixCheckbox,
 	Switch,
 	useDialog,
-	type UseDialogProps,
-} from "@spacedrive/primitives";
-import type {
-	SdPath,
-	StorePlacement,
-	TrackSourceOutput,
-	ValidateSourcePathOutput,
-	Volume,
-} from "@sd/ts-client";
-import clsx from "clsx";
+	type UseDialogProps
+} from '@spacedrive/primitives';
+import clsx from 'clsx';
+import {useState, type ReactNode} from 'react';
+import {useForm} from 'react-hook-form';
+import {useNavigate, type NavigateFunction} from 'react-router-dom';
+import {
+	describeError,
+	Failure
+} from '../../../components/modals/RearrangeModal';
 import {
 	useLibraryMutation,
-	useLibraryQuery,
-} from "../../../contexts/SpacedriveContext";
-import { describeError, Failure } from "../../../components/modals/RearrangeModal";
+	useLibraryQuery
+} from '../../../contexts/SpacedriveContext';
+import {useI18n} from '../../../i18n';
 import {
 	addRefusal,
 	buildPayload,
@@ -44,26 +51,22 @@ import {
 	suggestedName,
 	targetPath,
 	type AddSettings,
-	type AddTarget,
-} from "./addToLibrary";
+	type AddTarget
+} from './addToLibrary';
 import {
 	CategoryGrid,
 	DrivePicker,
 	FolderPicker,
 	NetworkComingSoon,
-	type StorageCategory,
-} from "./AddToLibraryPicker";
+	type StorageCategory
+} from './AddToLibraryPicker';
 import {
 	CloudConnectionFields,
 	CloudProviderGrid,
 	cloudStepIcon,
 	useCloudConnection,
-	type CloudProvider,
-} from "./CloudStorageSteps";
-
-import FolderIcon from "@sd/assets/icons/Folder.webp";
-import HDDIcon from "@sd/assets/icons/HDD.webp";
-import ServerIcon from "@sd/assets/icons/Server.webp";
+	type CloudProvider
+} from './CloudStorageSteps';
 
 /**
  * Add to Library: one setup modal for a folder or a whole drive. It shows the
@@ -80,14 +83,14 @@ interface AddToLibraryOptions {
 }
 
 type Step =
-	| { kind: "pick" }
-	| { kind: "folder" }
-	| { kind: "drive" }
-	| { kind: "network" }
-	| { kind: "cloud-provider" }
-	| { kind: "cloud"; provider: CloudProvider }
-	| { kind: "setup"; target: AddTarget; from?: Step }
-	| { kind: "done"; target: AddTarget; result: TrackSourceOutput | null };
+	| {kind: 'pick'}
+	| {kind: 'folder'}
+	| {kind: 'drive'}
+	| {kind: 'network'}
+	| {kind: 'cloud-provider'}
+	| {kind: 'cloud'; provider: CloudProvider}
+	| {kind: 'setup'; target: AddTarget; from?: Step}
+	| {kind: 'done'; target: AddTarget; result: TrackSourceOutput | null};
 
 /**
  * Dialogs mount outside the router, so the hook captures navigation where it
@@ -102,35 +105,38 @@ export function useAddToLibraryDialog() {
 }
 
 function AddToLibraryDialog(
-	props: UseDialogProps & AddToLibraryOptions & { navigate: NavigateFunction },
+	props: UseDialogProps & AddToLibraryOptions & {navigate: NavigateFunction}
 ) {
 	const dialog = useDialog(props);
-	const { navigate } = props;
+	const {t} = useI18n();
+	const {navigate} = props;
 	const [step, setStep] = useState<Step>(
-		props.target ? { kind: "setup", target: props.target } : { kind: "pick" },
+		props.target ? {kind: 'setup', target: props.target} : {kind: 'pick'}
 	);
-	const close = () => dialogManager.setState(props.id, { open: false });
+	const close = () => dialogManager.setState(props.id, {open: false});
 
 	const pickCategory = (category: StorageCategory) => {
-		if (category === "local") setStep({ kind: "folder" });
-		else if (category === "external") setStep({ kind: "drive" });
-		else if (category === "cloud") setStep({ kind: "cloud-provider" });
-		else setStep({ kind: "network" });
+		if (category === 'local') setStep({kind: 'folder'});
+		else if (category === 'external') setStep({kind: 'drive'});
+		else if (category === 'cloud') setStep({kind: 'cloud-provider'});
+		else setStep({kind: 'network'});
 	};
 
-	if (step.kind === "setup") {
+	if (step.kind === 'setup') {
 		return (
 			<SetupDialog
 				dialog={dialog}
 				target={step.target}
 				onBack={step.from ? () => setStep(step.from!) : undefined}
-				onRetarget={(target) => setStep({ ...step, target })}
-				onAdded={(result) => setStep({ kind: "done", target: step.target, result })}
+				onRetarget={(target) => setStep({...step, target})}
+				onAdded={(result) =>
+					setStep({kind: 'done', target: step.target, result})
+				}
 			/>
 		);
 	}
 
-	if (step.kind === "done") {
+	if (step.kind === 'done') {
 		return (
 			<DoneDialog
 				dialog={dialog}
@@ -142,27 +148,29 @@ function AddToLibraryDialog(
 								close();
 								props.onAdded?.({
 									Physical: {
-										device_slug: "local",
-										path: step.result?.root ?? targetPath(step.target),
-									},
+										device_slug: 'local',
+										path:
+											step.result?.root ??
+											targetPath(step.target)
+									}
 								});
 							}
 						: undefined
 				}
 				onProgress={() => {
 					close();
-					navigate("/jobs");
+					navigate('/jobs');
 				}}
 			/>
 		);
 	}
 
-	if (step.kind === "cloud") {
+	if (step.kind === 'cloud') {
 		return (
 			<CloudDialog
 				dialog={dialog}
 				provider={step.provider}
-				onBack={() => setStep({ kind: "cloud-provider" })}
+				onBack={() => setStep({kind: 'cloud-provider'})}
 				onConnected={(root) => {
 					close();
 					props.onAdded?.(root);
@@ -172,59 +180,73 @@ function AddToLibraryDialog(
 	}
 
 	const picker: Record<
-		Exclude<Step["kind"], "setup" | "done" | "cloud">,
-		{ title: string; description: string; icon: ReactNode; body: ReactNode; back?: Step }
+		Exclude<Step['kind'], 'setup' | 'done' | 'cloud'>,
+		{
+			title: string;
+			description: string;
+			icon: ReactNode;
+			body: ReactNode;
+			back?: Step;
+		}
 	> = {
 		pick: {
-			title: "Add to Library",
-			description: "Choose what to add",
+			title: t('explorer.add.title'),
+			description: t('explorer.add.chooseWhat'),
 			icon: <Books size={20} weight="fill" />,
-			body: <CategoryGrid onSelect={pickCategory} />,
+			body: <CategoryGrid onSelect={pickCategory} />
 		},
 		folder: {
-			title: "Add a Folder",
-			description: "Choose a folder on this computer",
+			title: t('explorer.add.folder.title'),
+			description: t('explorer.add.folder.description'),
 			icon: <img src={FolderIcon} className="size-5" alt="" />,
 			body: (
 				<FolderPicker
 					onPick={(path) =>
-						setStep({ kind: "setup", target: { kind: "path", path }, from: step })
+						setStep({
+							kind: 'setup',
+							target: {kind: 'path', path},
+							from: step
+						})
 					}
 				/>
 			),
-			back: { kind: "pick" },
+			back: {kind: 'pick'}
 		},
 		drive: {
-			title: "Add a Drive",
-			description: "Choose a connected drive to add whole",
+			title: t('explorer.add.drive.title'),
+			description: t('explorer.add.drive.description'),
 			icon: <HardDrive size={20} weight="fill" />,
 			body: (
 				<DrivePicker
 					onPick={(volume) =>
-						setStep({ kind: "setup", target: { kind: "volume", volume }, from: step })
+						setStep({
+							kind: 'setup',
+							target: {kind: 'volume', volume},
+							from: step
+						})
 					}
 				/>
 			),
-			back: { kind: "pick" },
+			back: {kind: 'pick'}
 		},
 		network: {
-			title: "Network Protocol",
-			description: "Choose a network file protocol",
+			title: t('explorer.add.network.title'),
+			description: t('explorer.add.network.descriptionShort'),
 			icon: <img src={ServerIcon} className="size-5" alt="" />,
 			body: <NetworkComingSoon />,
-			back: { kind: "pick" },
+			back: {kind: 'pick'}
 		},
-		"cloud-provider": {
-			title: "Cloud Storage",
-			description: "Choose your cloud storage service",
+		'cloud-provider': {
+			title: t('explorer.add.cloud.title'),
+			description: t('explorer.add.cloud.description'),
 			icon: cloudStepIcon,
 			body: (
 				<CloudProviderGrid
-					onSelect={(provider) => setStep({ kind: "cloud", provider })}
+					onSelect={(provider) => setStep({kind: 'cloud', provider})}
 				/>
 			),
-			back: { kind: "pick" },
-		},
+			back: {kind: 'pick'}
+		}
 	};
 	const current = picker[step.kind];
 
@@ -268,7 +290,8 @@ function Shell({
 	buttonsSideContent?: ReactNode;
 }) {
 	const form = useForm();
-	const { onSubmit, buttonsSideContent, ...dialogProps } = rest;
+	const {t} = useI18n();
+	const {onSubmit, buttonsSideContent, ...dialogProps} = rest;
 	return (
 		<Dialog
 			dialog={dialog}
@@ -284,8 +307,13 @@ function Shell({
 				onBack || buttonsSideContent ? (
 					<div className="flex items-center gap-2">
 						{onBack && (
-							<Button type="button" variant="gray" size="sm" onClick={onBack}>
-								Back
+							<Button
+								type="button"
+								variant="gray"
+								size="sm"
+								onClick={onBack}
+							>
+								{t('explorer.add.back')}
 							</Button>
 						)}
 						{buttonsSideContent}
@@ -303,29 +331,30 @@ function CloudDialog({
 	dialog,
 	provider,
 	onBack,
-	onConnected,
+	onConnected
 }: {
 	dialog: ReturnType<typeof useDialog>;
 	provider: CloudProvider;
 	onBack: () => void;
 	onConnected: (root: SdPath) => void;
 }) {
-	const { form, submit, pending } = useCloudConnection(provider, onConnected);
+	const {t} = useI18n();
+	const {form, submit, pending} = useCloudConnection(provider, onConnected);
 	return (
 		<Dialog
 			dialog={dialog}
 			form={form}
 			onSubmit={submit}
-			title={`Connect ${provider.name}`}
+			title={t('explorer.add.cloud.connect', {provider: provider.name})}
 			icon={<img src={provider.icon} className="size-5" alt="" />}
-			description="Configure your cloud storage connection"
-			ctaLabel="Connect"
+			description={t('explorer.add.cloud.configure')}
+			ctaLabel={t('explorer.add.cloud.connectButton')}
 			loading={pending}
 			onCancelled={true}
 			formClassName="!min-w-[520px] !max-w-[520px] max-h-[85vh] flex flex-col"
 			buttonsSideContent={
 				<Button type="button" variant="gray" size="sm" onClick={onBack}>
-					Back
+					{t('explorer.add.back')}
 				</Button>
 			}
 		>
@@ -344,7 +373,7 @@ function SetupDialog({
 	target,
 	onBack,
 	onRetarget,
-	onAdded,
+	onAdded
 }: {
 	dialog: ReturnType<typeof useDialog>;
 	target: AddTarget;
@@ -352,40 +381,55 @@ function SetupDialog({
 	onRetarget: (target: AddTarget) => void;
 	onAdded: (result: TrackSourceOutput | null) => void;
 }) {
+	const {t} = useI18n();
 	const path = targetPath(target);
-	const { data: config } = useLibraryQuery({ type: "config.library.get", input: null });
-	const { data: sources } = useLibraryQuery({
-		type: "sources.list",
-		input: { data_type: null },
+	const {data: config} = useLibraryQuery({
+		type: 'config.library.get',
+		input: null
 	});
-	const { data: volumeList } = useLibraryQuery({
-		type: "volumes.list",
-		input: { filter: "All" },
+	const {data: sources} = useLibraryQuery({
+		type: 'sources.list',
+		input: {data_type: null}
+	});
+	const {data: volumeList} = useLibraryQuery({
+		type: 'volumes.list',
+		input: {filter: 'All'}
 	});
 	const validatePath = useLibraryQuery(
 		{
-			type: "sources.validate_path",
-			input: { path: { Physical: { device_slug: "local", path } } },
+			type: 'sources.validate_path',
+			input: {path: {Physical: {device_slug: 'local', path}}}
 		},
-		{ enabled: target.kind === "path" },
+		{enabled: target.kind === 'path'}
 	);
 	// Which of the listed volumes are this device's, so a drive another
 	// device tracked at the same mount point cannot refuse an add here.
-	const { data: devices } = useLibraryQuery({
-		type: "devices.list",
-		input: { include_offline: true, include_details: false, show_paired: false },
+	const {data: devices} = useLibraryQuery({
+		type: 'devices.list',
+		input: {
+			include_offline: true,
+			include_details: false,
+			show_paired: false
+		}
 	});
-	const trackSource = useLibraryMutation("sources.track");
-	const trackVolume = useLibraryMutation("volumes.track");
-	const updateConfig = useLibraryMutation("config.library.update");
+	const trackSource = useLibraryMutation('sources.track');
+	const trackVolume = useLibraryMutation('volumes.track');
+	const updateConfig = useLibraryMutation('config.library.update');
 
 	const volumes = volumeList?.volumes ?? [];
 	const volume =
-		target.kind === "volume" ? target.volume : containingVolume(path, volumes);
+		target.kind === 'volume'
+			? target.volume
+			: containingVolume(path, volumes);
 	const inclusion = inclusionOf(path, sources ?? []);
 	const library = libraryDefaults(config?.adding);
-	const defaults = effectiveDefaults(library, target, volume, inclusion.exact);
-	const choices = placementChoices(volume, inclusion.exact);
+	const defaults = effectiveDefaults(
+		library,
+		target,
+		volume,
+		inclusion.exact
+	);
+	const choices = placementChoices(volume, inclusion.exact, t);
 	const loaded = Boolean(config && sources && volumeList && devices);
 	// A drive that is unmounted or locked cannot be added until it is back;
 	// the core would refuse, and the modal says why before the attempt. The
@@ -396,6 +440,7 @@ function SetupDialog({
 				target,
 				volumes,
 				devices.find((device) => device.is_current)?.id,
+				t
 			)
 		: undefined;
 
@@ -405,25 +450,28 @@ function SetupDialog({
 	const [failure, setFailure] = useState<string | null>(null);
 	const [pending, setPending] = useState(false);
 
-	const chosen: AddSettings = { ...defaults, ...edits };
+	const chosen: AddSettings = {...defaults, ...edits};
 	const changed = changedKeys(defaults, chosen);
 	const name = typedName ?? inclusion.exact?.name ?? suggestedName(target);
 	const set = <K extends keyof AddSettings>(key: K, value: AddSettings[K]) =>
-		setEdits((previous) => ({ ...previous, [key]: value }));
+		setEdits((previous) => ({...previous, [key]: value}));
 
 	// A risky root (a home directory, a whole system drive) is said before
 	// the add, with the whole drive offered where the core suggests it.
 	const risk: RiskWarning | null =
-		target.kind === "path" && validatePath.data && validatePath.data.risk_level !== "low"
+		target.kind === 'path' &&
+		validatePath.data &&
+		validatePath.data.risk_level !== 'low'
 			? {
 					validation: validatePath.data,
 					wholeVolume: validatePath.data.suggested_alternative
 						? volumes.find(
 								(candidate) =>
 									candidate.fingerprint ===
-									validatePath.data?.suggested_alternative?.volume_fingerprint,
+									validatePath.data?.suggested_alternative
+										?.volume_fingerprint
 							)
-						: undefined,
+						: undefined
 				}
 			: null;
 
@@ -436,10 +484,10 @@ function SetupDialog({
 			// cannot hold) is this add's circumstance, not a library choice.
 			const overrides = overridesFrom(defaults, chosen);
 			if (saveAsDefaults && changed.length > 0) {
-				await updateConfig.mutateAsync({ adding: overrides });
+				await updateConfig.mutateAsync({adding: overrides});
 			}
 			const payload = buildPayload(target, name, overrides);
-			if (payload.type === "volumes.track") {
+			if (payload.type === 'volumes.track') {
 				const output = await trackVolume.mutateAsync(payload.input);
 				onAdded(output.source);
 			} else {
@@ -453,16 +501,16 @@ function SetupDialog({
 	};
 
 	const scopeLabel =
-		target.kind === "volume" ? `Entire drive ${target.volume.name}` : path;
-	const onSourceRoot = `${path.replace(/\/+$/, "")}/.spacedrive/`;
+		target.kind === 'volume' ? `Entire drive ${target.volume.name}` : path;
+	const onSourceRoot = `${path.replace(/\/+$/, '')}/.spacedrive/`;
 
 	return (
 		<Shell
 			dialog={dialog}
-			title={inclusion.exact ? "Re-add to Library" : "Add to Library"}
+			title={inclusion.exact ? t('explorer.add.reAdd') : t('explorer.add.title')}
 			description={scopeLabel}
 			icon={
-				target.kind === "volume" ? (
+				target.kind === 'volume' ? (
 					<img src={HDDIcon} className="size-5" alt="" />
 				) : (
 					<img src={FolderIcon} className="size-5" alt="" />
@@ -470,7 +518,13 @@ function SetupDialog({
 			}
 			onBack={onBack}
 			onSubmit={() => void submit()}
-			ctaLabel={risk ? "Add anyway" : inclusion.exact ? "Re-add to Library" : "Add to Library"}
+			ctaLabel={
+				risk
+					? t('explorer.add.addAnyway')
+					: inclusion.exact
+						? t('explorer.add.reAdd')
+						: t('explorer.add.title')
+			}
 			ctaDanger={Boolean(risk)}
 			submitDisabled={!loaded || pending || Boolean(refusal)}
 			loading={pending}
@@ -480,40 +534,40 @@ function SetupDialog({
 
 				{refusal && (
 					<Notice tone="warning">
-						<span className="font-medium text-ink">Cannot add this now.</span>{" "}
+						<span className="text-ink font-medium">
+							{t('explorer.add.cannotAdd')}
+						</span>{' '}
 						{refusal}
 					</Notice>
 				)}
 
 				{inclusion.exact && (
 					<Notice tone="info">
-						<span className="font-medium text-ink">
-							Already in this library as {inclusion.exact.name}.
-						</span>{" "}
-						Adding it again reopens its catalog
-						{inclusion.exact.store_path ? ` at ${inclusion.exact.store_path}` : ""}{" "}
-						and walks the folder for changes. The settings below are the ones it
-						was saved with; capture can widen here but never narrows.
+						<span className="text-ink font-medium">
+							{t('explorer.add.inclusion.exact', {name: inclusion.exact.name ?? ''})}
+						</span>{' '}
+						{t('explorer.add.inclusion.exactDetail')}
+						{inclusion.exact.store_path
+							? ` at ${inclusion.exact.store_path}`
+							: ''}{' '}
+						and walks the folder for changes. The settings below are
+						the ones it was saved with; capture can widen here but
+						never narrows.
 					</Notice>
 				)}
 				{!inclusion.exact && inclusion.enclosing && (
 					<Notice tone="info">
-						<span className="font-medium text-ink">
-							Inside {inclusion.enclosing.name}
-						</span>{" "}
-						({inclusion.enclosing.root}), whose catalog already covers this folder.
-						Adding it makes a nested source with its own catalog and settings.
+						<span className="text-ink font-medium">
+							{t('explorer.add.inclusion.enclosing', {name: inclusion.enclosing.name ?? '', root: inclusion.enclosing.root ?? ''})}
+						</span>{' '}
+						{t('explorer.add.inclusion.enclosingDetail')}
 					</Notice>
 				)}
 				{inclusion.nested.length > 0 && (
 					<Notice tone="info">
-						Contains{" "}
 						{inclusion.nested.length === 1
-							? `the source ${inclusion.nested[0]?.name}`
-							: `${inclusion.nested.length} sources (${inclusion.nested
-									.map((source) => source.name)
-									.join(", ")})`}
-						. They stay as they are; this add does not merge them.
+							? t('explorer.add.inclusion.nestedOne', {name: inclusion.nested[0]?.name ?? ''})
+							: t('explorer.add.inclusion.nestedMany', {count: inclusion.nested.length, names: inclusion.nested.map((source) => source.name).join(', ')})}
 					</Notice>
 				)}
 
@@ -522,15 +576,22 @@ function SetupDialog({
 						risk={risk}
 						onWholeVolume={
 							risk.wholeVolume
-								? () => onRetarget({ kind: "volume", volume: risk.wholeVolume! })
+								? () =>
+										onRetarget({
+											kind: 'volume',
+											volume: risk.wholeVolume!
+										})
 								: undefined
 						}
 					/>
 				)}
 
 				<div className="space-y-1.5">
-					<label className="text-xs font-medium text-ink-dull" htmlFor="add-name">
-						Name
+					<label
+						className="text-ink-dull text-xs font-medium"
+						htmlFor="add-name"
+					>
+						{t('explorer.add.name')}
 					</label>
 					<Input
 						id="add-name"
@@ -543,80 +604,94 @@ function SetupDialog({
 
 				<div className="space-y-1.5">
 					<div className="flex items-center justify-between">
-						<div className="text-xs font-medium text-ink-dull">Settings for this add</div>
+						<div className="text-ink-dull text-xs font-medium">
+							{t('explorer.add.settings')}
+						</div>
 						{changed.length > 0 ? (
 							<button
 								type="button"
-								className="flex items-center gap-1 text-xs text-accent hover:underline"
+								className="text-accent flex items-center gap-1 text-xs hover:underline"
 								onClick={() => setEdits({})}
 							>
-								<ArrowCounterClockwise size={12} weight="bold" />
-								Reset to defaults
+								<ArrowCounterClockwise
+									size={12}
+									weight="bold"
+								/>
+								{t('explorer.add.reset')}
 							</button>
 						) : (
-							<span className="text-xs text-ink-faint">
-								{inclusion.exact ? "As saved" : "Library defaults"}
+							<span className="text-ink-faint text-xs">
+								{inclusion.exact
+									? t('explorer.add.asSaved')
+									: t('explorer.add.libraryDefaults')}
 							</span>
 						)}
 					</div>
-					<div className="divide-y divide-app-line overflow-hidden rounded-lg border border-app-line bg-app-box">
+					<div className="divide-app-line border-app-line bg-app-box divide-y overflow-hidden rounded-lg border">
 						<Row
-							label="Store catalog"
-							changed={changed.includes("placement")}
+							label={t('explorer.add.storeCatalog')}
+							changed={changed.includes('placement')}
 							description={
-								chosen.placement === "on_source"
-									? `Under ${onSourceRoot}, so the catalog travels with the drive.`
-									: "In the library on this device, under the Spacedrive data folder."
-							}
+								chosen.placement === 'on_source'
+									? t('explorer.add.catalogOnSource', {root: onSourceRoot})
+									: t('explorer.add.catalogInLibrary')}
 						>
 							<PlacementPicker
 								value={chosen.placement}
 								choices={choices}
-								onChange={(placement) => set("placement", placement)}
+								onChange={(placement) =>
+									set('placement', placement)
+								}
 							/>
 						</Row>
 						<Row
-							label="Keep an offline copy"
-							changed={changed.includes("keep_offline_copy")}
-							muted={chosen.placement !== "on_source"}
+							label={t('explorer.add.offlineCopy')}
+							changed={changed.includes('keep_offline_copy')}
+							muted={chosen.placement !== 'on_source'}
 							description={
-								chosen.placement === "on_source"
-									? "A replica in the library keeps the catalog answering while the drive is unplugged. Uses extra space; does not copy the files."
-									: "Only applies when the catalog lives on the source."
-							}
+								chosen.placement === 'on_source'
+									? t('explorer.add.offlineDetail')
+									: t('explorer.add.offlineOnlySource')}
 						>
 							<Switch
 								size="sm"
 								checked={chosen.keep_offline_copy}
-								disabled={chosen.placement !== "on_source"}
-								onCheckedChange={(value) => set("keep_offline_copy", value)}
+								disabled={chosen.placement !== 'on_source'}
+								onCheckedChange={(value) =>
+									set('keep_offline_copy', value)
+								}
 							/>
 						</Row>
 						<Row
-							label="Capture everything"
-							changed={changed.includes("unfiltered")}
+							label={t('explorer.add.captureEverything')}
+							changed={changed.includes('unfiltered')}
 							description={
 								chosen.unfiltered
-									? "Records every readable file, including system files, .git and dev directories."
-									: "Skips system files, .git and dev directories, as Indexer settings say."
-							}
+									? t('explorer.add.captureDetail')
+									: t('explorer.add.captureFilteredDetail')}
 						>
 							<Switch
 								size="sm"
 								checked={chosen.unfiltered}
-								disabled={Boolean(inclusion.exact?.settings?.unfiltered)}
-								onCheckedChange={(value) => set("unfiltered", value)}
+								disabled={Boolean(
+									inclusion.exact?.settings?.unfiltered
+								)}
+								onCheckedChange={(value) =>
+									set('unfiltered', value)
+								}
 							/>
 						</Row>
 						<Row
-							label="Identify content"
-							changed={changed.includes("identify_content")}
-							description="Hashes each file once the walk lands, so duplicates and integrity checks work."
+							label={t('explorer.add.identifyContent')}
+							changed={changed.includes('identify_content')}
+							description={t('explorer.add.identifyDetail')}
 						>
 							<Switch
 								size="sm"
 								checked={chosen.identify_content}
-								onCheckedChange={(value) => set("identify_content", value)}
+								onCheckedChange={(value) =>
+									set('identify_content', value)
+								}
 							/>
 						</Row>
 					</div>
@@ -625,8 +700,10 @@ function SetupDialog({
 				{!inclusion.exact && (
 					<RadixCheckbox
 						checked={saveAsDefaults}
-						onCheckedChange={(value) => setSaveAsDefaults(value === true)}
-						label="Use these changes as the library's defaults for later adds"
+						onCheckedChange={(value) =>
+							setSaveAsDefaults(value === true)
+						}
+						label={t('explorer.add.saveDefaults')}
 						labelClassName="text-xs text-ink-dull"
 					/>
 				)}
@@ -637,24 +714,33 @@ function SetupDialog({
 	);
 }
 
-function IncludeCard({ target, volume }: { target: AddTarget; volume: Volume | undefined }) {
+function IncludeCard({
+	target,
+	volume
+}: {
+	target: AddTarget;
+	volume: Volume | undefined;
+}) {
+	const {t} = useI18n();
 	const drive = volume
-		? `${volume.name}${volume.mount_type === "Network" ? " (network)" : volume.mount_type === "External" ? " (external)" : ""}`
-		: "Drive not matched";
+		? `${volume.name}${volume.mount_type === 'Network' ? ` (${t('explorer.add.network')})` : volume.mount_type === 'External' ? ` (${t('explorer.add.external')})` : ''}`
+		: t('explorer.add.driveNotMatched');
 	return (
-		<div className="flex items-center gap-3 rounded-lg border border-app-line bg-app-box px-3 py-2.5">
+		<div className="border-app-line bg-app-box flex items-center gap-3 rounded-lg border px-3 py-2.5">
 			<img
-				src={target.kind === "volume" ? HDDIcon : FolderIcon}
+				src={target.kind === 'volume' ? HDDIcon : FolderIcon}
 				className="size-9"
 				alt=""
 			/>
 			<div className="min-w-0 flex-1">
-				<div className="truncate text-sm font-medium text-ink">
-					{target.kind === "volume" ? target.volume.name : suggestedName(target)}
+				<div className="text-ink truncate text-sm font-medium">
+					{target.kind === 'volume'
+						? target.volume.name
+						: suggestedName(target)}
 				</div>
-				<div className="truncate text-xs text-ink-faint">
-					{target.kind === "volume" ? "Whole drive" : "Folder"} · {drive} · this
-					device
+				<div className="text-ink-faint truncate text-xs">
+					{target.kind === 'volume' ? t('explorer.add.wholeDrive') : t('explorer.add.folder')} ·{' '}
+					{drive} · {t('explorer.add.thisDevice')}
 				</div>
 			</div>
 		</div>
@@ -666,7 +752,7 @@ function Row({
 	description,
 	changed,
 	muted,
-	children,
+	children
 }: {
 	label: string;
 	description: string;
@@ -674,42 +760,53 @@ function Row({
 	muted?: boolean;
 	children: ReactNode;
 }) {
+	const {t} = useI18n();
 	return (
-		<div className={clsx("flex items-center justify-between gap-4 px-3 py-2.5", muted && "opacity-60")}>
+		<div
+			className={clsx(
+				'flex items-center justify-between gap-4 px-3 py-2.5',
+				muted && 'opacity-60'
+			)}
+		>
 			<div className="flex min-w-0 flex-1 flex-col gap-0.5">
 				<div className="flex items-center gap-2">
-					<span className="text-sm text-ink">{label}</span>
+					<span className="text-ink text-sm">{label}</span>
 					{changed && (
-						<span className="rounded-full bg-accent/15 px-1.5 py-px text-[10px] font-medium text-accent">
-							changed
+						<span className="bg-accent/15 text-accent rounded-full px-1.5 py-px text-[10px] font-medium">
+							{t('explorer.add.changed')}
 						</span>
 					)}
 				</div>
-				<span className="text-tiny leading-snug text-ink-faint">{description}</span>
+				<span className="text-tiny text-ink-faint leading-snug">
+					{description}
+				</span>
 			</div>
 			<div className="flex shrink-0 items-center">{children}</div>
 		</div>
 	);
 }
 
-const PLACEMENTS: { value: StorePlacement; label: string }[] = [
-	{ value: "in_library", label: "In library" },
-	{ value: "on_source", label: "On source" },
+const PLACEMENTS: {value: StorePlacement; label: string}[] = [
+	{value: 'in_library', label: 'in_library'},
+	{value: 'on_source', label: 'on_source'}
 ];
 
 function PlacementPicker({
 	value,
 	choices,
-	onChange,
+	onChange
 }: {
 	value: StorePlacement;
 	choices: ReturnType<typeof placementChoices>;
 	onChange: (value: StorePlacement) => void;
 }) {
-	const unavailable = PLACEMENTS.find((option) => !choices[option.value].available);
+	const {t} = useI18n();
+	const unavailable = PLACEMENTS.find(
+		(option) => !choices[option.value].available
+	);
 	return (
 		<div className="flex flex-col items-end gap-1">
-			<div className="flex rounded-md bg-app-input p-0.5">
+			<div className="bg-app-input flex rounded-md p-0.5">
 				{PLACEMENTS.map((option) => {
 					const choice = choices[option.value];
 					return (
@@ -720,35 +817,42 @@ function PlacementPicker({
 							title={choice.reason}
 							onClick={() => onChange(option.value)}
 							className={clsx(
-								"rounded px-2 py-1 text-xs font-medium transition-colors",
+								'rounded px-2 py-1 text-xs font-medium transition-colors',
 								value === option.value
-									? "bg-accent text-white"
-									: "text-ink-dull hover:text-ink",
-								!choice.available && "cursor-not-allowed opacity-40 hover:text-ink-dull",
+									? 'bg-accent text-white'
+									: 'text-ink-dull hover:text-ink',
+								!choice.available &&
+									'hover:text-ink-dull cursor-not-allowed opacity-40'
 							)}
 						>
-							{option.label}
+							{option.value === 'in_library' ? t('explorer.add.inLibrary') : t('explorer.add.onSource')}
 						</button>
 					);
 				})}
 			</div>
 			{unavailable && (
-				<span className="max-w-[220px] text-right text-[10px] leading-snug text-ink-faint">
-					{unavailable.label} unavailable: {choices[unavailable.value].reason}
+				<span className="text-ink-faint max-w-[220px] text-right text-[10px] leading-snug">
+					{t('explorer.add.unavailable', {label: unavailable.value === 'in_library' ? t('explorer.add.inLibrary') : t('explorer.add.onSource'), reason: choices[unavailable.value].reason ?? ''})}
 				</span>
 			)}
 		</div>
 	);
 }
 
-function Notice({ tone, children }: { tone: "info" | "warning"; children: ReactNode }) {
+function Notice({
+	tone,
+	children
+}: {
+	tone: 'info' | 'warning';
+	children: ReactNode;
+}) {
 	return (
 		<div
 			className={clsx(
-				"rounded-lg border px-3 py-2 text-xs leading-relaxed text-ink-dull",
-				tone === "warning"
-					? "border-yellow-500/40 bg-yellow-500/10"
-					: "border-accent/20 bg-accent/10",
+				'text-ink-dull rounded-lg border px-3 py-2 text-xs leading-relaxed',
+				tone === 'warning'
+					? 'border-yellow-500/40 bg-yellow-500/10'
+					: 'border-accent/20 bg-accent/10'
 			)}
 		>
 			{children}
@@ -758,32 +862,41 @@ function Notice({ tone, children }: { tone: "info" | "warning"; children: ReactN
 
 function RiskNotice({
 	risk,
-	onWholeVolume,
+	onWholeVolume
 }: {
 	risk: RiskWarning;
 	onWholeVolume?: () => void;
 }) {
+	const {t} = useI18n();
 	return (
 		<Notice tone="warning">
 			<div className="flex items-start gap-2">
-				<Warning size={16} weight="fill" className="mt-px shrink-0 text-yellow-500" />
+				<Warning
+					size={16}
+					weight="fill"
+					className="mt-px shrink-0 text-yellow-500"
+				/>
 				<div className="flex-1 space-y-1.5">
-					<div className="font-medium text-ink">
-						{risk.validation.risk_level === "high"
-							? "This is a lot to add"
-							: "Check this path"}
+					<div className="text-ink font-medium">
+						{risk.validation.risk_level === 'high'
+							? t('explorer.add.riskLarge')
+							: t('explorer.add.riskPath')}
 					</div>
 					{risk.validation.warnings.map((warning, index) => (
 						<div key={index}>
 							<div>{warning.message}</div>
 							{warning.suggestion && (
-								<div className="text-ink-faint">{warning.suggestion}</div>
+								<div className="text-ink-faint">
+									{warning.suggestion}
+								</div>
 							)}
 						</div>
 					))}
 					{risk.validation.suggested_alternative && (
 						<div className="pt-1">
-							<div>{risk.validation.suggested_alternative.message}</div>
+							<div>
+								{risk.validation.suggested_alternative.message}
+							</div>
 							{onWholeVolume && (
 								<Button
 									type="button"
@@ -792,8 +905,7 @@ function RiskNotice({
 									className="mt-1.5"
 									onClick={onWholeVolume}
 								>
-									Add the whole drive {risk.validation.suggested_alternative.volume_name}{" "}
-									instead
+									{t('explorer.add.riskAlternative', {name: risk.validation.suggested_alternative.volume_name})}
 								</Button>
 							)}
 						</div>
@@ -809,7 +921,7 @@ function DoneDialog({
 	target,
 	result,
 	onOpen,
-	onProgress,
+	onProgress
 }: {
 	dialog: ReturnType<typeof useDialog>;
 	target: AddTarget;
@@ -817,54 +929,66 @@ function DoneDialog({
 	onOpen?: () => void;
 	onProgress: () => void;
 }) {
+	const {t} = useI18n();
 	const settings = result?.settings;
-	const facts: { label: string; value: string }[] = result
+	const facts: {label: string; value: string}[] = result
 		? [
-				{ label: "Root", value: result.root },
+				{label: t('explorer.add.done.root'), value: result.root},
 				{
-					label: "Catalog",
+					label: t('explorer.add.done.catalog'),
 					value: result.store_path
 						? result.store_path
-						: settings?.placement === "on_source"
-							? "On the drive"
-							: "In the library",
+						: settings?.placement === 'on_source'
+							? t('explorer.add.done.onDrive')
+							: t('explorer.add.done.inLibrary')
 				},
 				{
-					label: "Identity",
+					label: t('explorer.add.done.identity'),
 					value: result.catalog_reused
-						? "Catalog reused; continuing where it left off"
-						: "New catalog",
+						? t('explorer.add.done.reused')
+						: t('explorer.add.done.newCatalog')
 				},
 				{
-					label: "Capture",
-					value: settings?.unfiltered ? "Everything" : "Filtered",
+					label: t('explorer.add.done.capture'),
+					value: settings?.unfiltered ? t('explorer.add.done.everything') : t('explorer.add.done.filtered')
 				},
 				{
-					label: "Identify content",
-					value: settings?.identify_content === false ? "Off" : "On",
-				},
+					label: t('explorer.add.identifyContent'),
+					value: settings?.identify_content === false ? t('explorer.add.done.off') : t('explorer.add.done.on')
+				}
 			]
 		: [];
-	if (result && settings?.placement === "on_source") {
+	if (result && settings?.placement === 'on_source') {
 		facts.push({
-			label: "Offline copy",
-			value: settings.keep_offline_copy === false ? "Off" : "On",
+			label: t('explorer.add.offlineCopy'),
+			value: settings.keep_offline_copy === false ? t('explorer.add.done.off') : t('explorer.add.done.on')
 		});
 	}
 
 	return (
 		<Shell
 			dialog={dialog}
-			title={result ? `Added ${result.name}` : "Drive tracked"}
+			title={result ? t('explorer.add.done.added', {name: result.name}) : t('explorer.add.done.tracked')}
 			description={result?.root ?? targetPath(target)}
-			icon={<CheckCircle size={20} weight="fill" className="text-green-500" />}
+			icon={
+				<CheckCircle
+					size={20}
+					weight="fill"
+					className="text-green-500"
+				/>
+			}
 			onSubmit={onProgress}
-			ctaLabel={result?.job_id ? "View progress" : "View jobs"}
-			cancelLabel="Close"
+			ctaLabel={result?.job_id ? t('explorer.add.done.progress') : t('explorer.add.done.jobs')}
+			cancelLabel={t('explorer.add.close')}
 			buttonsSideContent={
 				onOpen ? (
-					<Button type="button" variant="gray" size="sm" onClick={onOpen}>
-						Open
+					<Button
+						type="button"
+						variant="gray"
+						size="sm"
+						onClick={onOpen}
+					>
+						{t('explorer.add.open')}
 					</Button>
 				) : undefined
 			}
@@ -872,26 +996,33 @@ function DoneDialog({
 			<div className="space-y-3 py-1">
 				{result ? (
 					<>
-						<div className="divide-y divide-app-line overflow-hidden rounded-lg border border-app-line bg-app-box">
+						<div className="divide-app-line border-app-line bg-app-box divide-y overflow-hidden rounded-lg border">
 							{facts.map((fact) => (
-								<div key={fact.label} className="flex items-baseline gap-3 px-3 py-2">
-									<span className="w-28 shrink-0 text-xs text-ink-faint">{fact.label}</span>
-									<span className="min-w-0 flex-1 truncate text-xs text-ink" title={fact.value}>
+								<div
+									key={fact.label}
+									className="flex items-baseline gap-3 px-3 py-2"
+								>
+									<span className="text-ink-faint w-28 shrink-0 text-xs">
+										{fact.label}
+									</span>
+									<span
+										className="text-ink min-w-0 flex-1 truncate text-xs"
+										title={fact.value}
+									>
 										{fact.value}
 									</span>
 								</div>
 							))}
 						</div>
-						<p className="text-xs text-ink-dull">
+						<p className="text-ink-dull text-xs">
 							{result.job_id
-								? "The walk is running; files appear as it goes and content identification follows."
-								: "No walk was started. Open Jobs to see what is running."}
+								? t('explorer.add.done.walkRunning')
+								: t('explorer.add.done.noWalk')}
 						</p>
 					</>
 				) : (
-					<p className="text-xs text-ink-dull">
-						The drive is tracked but offline, so no source was set up. Its files are
-						walked when it comes back.
+					<p className="text-ink-dull text-xs">
+						{t('explorer.add.done.offline')}
 					</p>
 				)}
 			</div>
@@ -899,4 +1030,4 @@ function DoneDialog({
 	);
 }
 
-export type { AddTarget };
+export type {AddTarget};

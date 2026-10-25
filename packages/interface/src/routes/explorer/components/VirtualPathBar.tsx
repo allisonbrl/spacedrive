@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { getDeviceIcon } from "../../../contexts/SpacedriveContext";
 import LaptopIcon from "@sd/assets/icons/Laptop.webp";
 import type { VirtualView } from "../context";
+import {useI18n} from '../../../i18n';
 
 interface VirtualPathBarProps {
 	view: VirtualView;
@@ -14,6 +15,7 @@ interface VirtualPathBarProps {
  * Shows the view name with an appropriate icon instead of file path breadcrumbs
  */
 export function VirtualPathBar({ view, devices }: VirtualPathBarProps) {
+	const {t} = useI18n();
 	const device = view.id ? devices.get(view.id) : null;
 	
 	// Determine label and icon based on view type
@@ -22,9 +24,9 @@ export function VirtualPathBar({ view, devices }: VirtualPathBarProps) {
 			return device.name;
 		}
 		if (view.view === "devices") {
-			return "All Devices";
+			return t('explorer.path.allDevices');
 		}
-		return "Virtual View";
+		return t('explorer.path.virtualView');
 	})();
 
 	const icon = (() => {

@@ -3,6 +3,7 @@ import type {SearchTagsOutput, Tag} from '@sd/ts-client';
 import {Popover, usePopover} from '@spacedrive/primitives';
 import clsx from 'clsx';
 import {useEffect, useState} from 'react';
+import {useI18n} from '../../i18n';
 import {
 	useLibraryMutation,
 	useNormalizedQuery
@@ -35,6 +36,7 @@ export function TagSelector({
 	fileId,
 	contentId
 }: TagSelectorProps) {
+	const {t} = useI18n();
 	const [query, setQuery] = useState('');
 	const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -153,7 +155,7 @@ export function TagSelector({
 					value={query}
 					onChange={(e) => setQuery(e.target.value)}
 					onKeyDown={handleKeyDown}
-					placeholder="Search tags..."
+					placeholder={t('tags.search')}
 					autoFocus={autoFocus}
 					className="text-ink placeholder:text-ink-faint flex-1 bg-transparent text-sm outline-none"
 				/>
@@ -179,7 +181,7 @@ export function TagSelector({
 							className="flex-shrink-0"
 						/>
 						<span className="flex-1 text-left">
-							Create tag "<strong>{query}</strong>"
+							{t('tags.create', {query})}
 						</span>
 						<kbd className="text-ink-faint bg-app-line rounded px-1.5 py-0.5 text-xs">
 							↵
@@ -189,7 +191,7 @@ export function TagSelector({
 
 				{filteredTags.length === 0 && !query.trim() ? (
 					<div className="text-ink-dull px-3 py-4 text-center text-sm">
-						No tags yet
+						{t('tags.empty')}
 					</div>
 				) : filteredTags.length === 0 && query.trim() ? null : (
 					filteredTags.map((tag, index) => (

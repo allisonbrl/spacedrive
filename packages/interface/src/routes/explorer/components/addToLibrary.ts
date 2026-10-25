@@ -6,8 +6,9 @@ import type {
 	StorePlacement,
 	TrackSourceInput,
 	Volume,
-	VolumeTrackInput,
-} from "@sd/ts-client";
+	VolumeTrackInput
+} from '@sd/ts-client';
+import type {TranslateFn} from '../../../i18n';
 
 /**
  * The state behind the Add to Library modal, kept free of React so the
@@ -20,8 +21,8 @@ import type {
  */
 
 export type AddTarget =
-	| { kind: "path"; path: string }
-	| { kind: "volume"; volume: Volume };
+	| {kind: 'path'; path: string}
+	| {kind: 'volume'; volume: Volume};
 
 /** Every add setting resolved to a value. */
 export interface AddSettings {
@@ -32,18 +33,18 @@ export interface AddSettings {
 }
 
 export const ADD_SETTING_KEYS = [
-	"placement",
-	"keep_offline_copy",
-	"unfiltered",
-	"identify_content",
+	'placement',
+	'keep_offline_copy',
+	'unfiltered',
+	'identify_content'
 ] as const satisfies readonly (keyof AddSettings)[];
 
 /** The core's own defaults, used while the library's have not loaded. */
 export const BUILT_IN_DEFAULTS: AddSettings = {
-	placement: "in_library",
+	placement: 'in_library',
 	keep_offline_copy: true,
 	unfiltered: false,
-	identify_content: true,
+	identify_content: true
 };
 
 /** Fill the library's saved defaults with the built-in value for each field it leaves unset. */
@@ -54,38 +55,43 @@ export function libraryDefaults(adding: AddDefaults | undefined): AddSettings {
 			adding?.keep_offline_copy ?? BUILT_IN_DEFAULTS.keep_offline_copy,
 		unfiltered: adding?.unfiltered ?? BUILT_IN_DEFAULTS.unfiltered,
 		identify_content:
-			adding?.identify_content ?? BUILT_IN_DEFAULTS.identify_content,
+			adding?.identify_content ?? BUILT_IN_DEFAULTS.identify_content
 	};
 }
 
 /** The path the add registers: a volume target adds its mount point. */
 export function targetPath(target: AddTarget): string {
-	return target.kind === "path" ? target.path : target.volume.mount_point;
+	return target.kind === 'path' ? target.path : target.volume.mount_point;
 }
 
 /** The last component of a path, for a name the user can keep or edit. */
 export function suggestedName(target: AddTarget): string {
-	if (target.kind === "volume") return target.volume.name;
-	const parts = target.path.split("/").filter(Boolean);
+	if (target.kind === 'volume') return target.volume.name;
+	const parts = target.path.split('/').filter(Boolean);
 	return parts[parts.length - 1] ?? target.path;
 }
 
 function isUnder(path: string, root: string): boolean {
-	const trimmed = root.endsWith("/") && root.length > 1 ? root.slice(0, -1) : root;
-	return path === trimmed || path.startsWith(trimmed === "/" ? "/" : `${trimmed}/`);
+	const trimmed =
+		root.endsWith('/') && root.length > 1 ? root.slice(0, -1) : root;
+	return (
+		path === trimmed ||
+		path.startsWith(trimmed === '/' ? '/' : `${trimmed}/`)
+	);
 }
 
 /** The mounted volume whose mount point is the longest prefix of the path. */
 export function containingVolume(
 	path: string,
-	volumes: readonly Volume[],
+	volumes: readonly Volume[]
 ): Volume | undefined {
-	let best: { volume: Volume; depth: number } | undefined;
+	let best: {volume: Volume; depth: number} | undefined;
 	for (const volume of volumes) {
 		if (!volume.is_mounted) continue;
 		for (const mount of [volume.mount_point, ...volume.mount_points]) {
 			if (!mount || !isUnder(path, mount)) continue;
-			if (!best || mount.length > best.depth) best = { volume, depth: mount.length };
+			if (!best || mount.length > best.depth)
+				best = {volume, depth: mount.length};
 		}
 	}
 	return best?.volume;
@@ -110,21 +116,25 @@ export function addRefusal(
 	target: AddTarget,
 	volumes: readonly Volume[],
 	deviceId: string | undefined,
+	t?: TranslateFn
 ): string | undefined {
 	let away: Volume | undefined;
-	if (target.kind === "volume") {
+	if (target.kind === 'volume') {
 		away = target.volume;
 	} else {
-		let best: { volume: Volume; depth: number } | undefined;
+		let best: {volume: Volume; depth: number} | undefined;
 		for (const volume of volumes) {
-			if (deviceId !== undefined && volume.device_id !== deviceId) continue;
+			if (deviceId !== undefined && volume.device_id !== deviceId)
+				continue;
 			for (const mount of [volume.mount_point, ...volume.mount_points]) {
 				if (!mount || !isUnder(target.path, mount)) continue;
 				const better =
 					!best ||
 					mount.length > best.depth ||
-					(mount.length === best.depth && volume.is_mounted && !best.volume.is_mounted);
-				if (better) best = { volume, depth: mount.length };
+					(mount.length === best.depth &&
+						volume.is_mounted &&
+						!best.volume.is_mounted);
+				if (better) best = {volume, depth: mount.length};
 			}
 		}
 		away = best?.volume;
@@ -132,8 +142,10 @@ export function addRefusal(
 	if (!away || away.is_mounted) return undefined;
 	const name = away.display_name || away.name;
 	return away.locked
-		? `${name} is locked: its encryption key is not loaded. Load the key and mount it, then add it.`
-		: `${name} is not mounted. Mount it, then add it.`;
+		? (t?.('explorer.add.locked', {name}) ??
+				`${name} is locked: its encryption key is not loaded. Load the key and mount it, then add it.`)
+		: (t?.('explorer.add.unmounted', {name}) ??
+				`${name} is not mounted. Mount it, then add it.`);
 }
 
 /** How the library already covers the path, before anything is added. */
@@ -152,20 +164,20 @@ export interface Inclusion {
  */
 export function inclusionOf(
 	path: string,
-	sources: readonly SourceInfo[],
+	sources: readonly SourceInfo[]
 ): Inclusion {
 	const local = sources.filter(
-		(source): source is SourceInfo & { root: string } =>
-			!source.device_id && typeof source.root === "string",
+		(source): source is SourceInfo & {root: string} =>
+			!source.device_id && typeof source.root === 'string'
 	);
 	const exact = local.find((source) => source.root === path);
 	const enclosing = local
 		.filter((source) => source.root !== path && isUnder(path, source.root))
 		.sort((a, b) => b.root.length - a.root.length)[0];
 	const nested = local.filter(
-		(source) => source.root !== path && isUnder(source.root, path),
+		(source) => source.root !== path && isUnder(source.root, path)
 	);
-	return { exact, enclosing, nested };
+	return {exact, enclosing, nested};
 }
 
 /** Why a placement cannot be chosen for this add, when it cannot. */
@@ -181,32 +193,38 @@ export interface PlacementChoice {
 export function placementChoices(
 	volume: Volume | undefined,
 	existing: SourceInfo | undefined,
+	t?: TranslateFn
 ): Record<StorePlacement, PlacementChoice> {
 	if (existing) {
 		const reason =
-			"This source already has a catalog. Moving it is a later step in source settings.";
+			t?.('explorer.add.existingCatalog') ??
+			'This source already has a catalog. Moving it is a later step in source settings.';
 		return {
-			in_library: { available: existing.placement !== "on_source", reason },
-			on_source: { available: existing.placement === "on_source", reason },
+			in_library: {available: existing.placement !== 'on_source', reason},
+			on_source: {available: existing.placement === 'on_source', reason}
 		};
 	}
-	const in_library: PlacementChoice = { available: true };
+	const in_library: PlacementChoice = {available: true};
 	if (!volume) {
 		return {
 			in_library,
 			on_source: {
 				available: false,
-				reason: "Spacedrive has not matched this path to a drive, so it cannot place a catalog on it.",
-			},
+				reason:
+					t?.('explorer.add.noMatchingDrive') ??
+					'Spacedrive has not matched this path to a drive, so it cannot place a catalog on it.'
+			}
 		};
 	}
-	if (volume.mount_type === "Network" || volume.cloud_identifier) {
+	if (volume.mount_type === 'Network' || volume.cloud_identifier) {
 		return {
 			in_library,
 			on_source: {
 				available: false,
-				reason: "A network or cloud volume cannot hold its own catalog; the catalog stays in the library on this device.",
-			},
+				reason:
+					t?.('explorer.add.networkCatalog') ??
+					'A network or cloud volume cannot hold its own catalog; the catalog stays in the library on this device.'
+			}
 		};
 	}
 	if (volume.is_read_only) {
@@ -214,11 +232,13 @@ export function placementChoices(
 			in_library,
 			on_source: {
 				available: false,
-				reason: "This drive is read-only, so nothing can be written beside its files.",
-			},
+				reason:
+					t?.('explorer.add.readOnly') ??
+					'This drive is read-only, so nothing can be written beside its files.'
+			}
 		};
 	}
-	return { in_library, on_source: { available: true } };
+	return {in_library, on_source: {available: true}};
 }
 
 /**
@@ -235,7 +255,7 @@ export function effectiveDefaults(
 	library: AddSettings,
 	target: AddTarget,
 	volume: Volume | undefined,
-	existing: SourceInfo | undefined,
+	existing: SourceInfo | undefined
 ): AddSettings {
 	if (existing?.settings) {
 		return settingsFromConfig(existing.settings);
@@ -243,12 +263,12 @@ export function effectiveDefaults(
 	const choices = placementChoices(volume, existing);
 	const placement = choices[library.placement].available
 		? library.placement
-		: "in_library";
+		: 'in_library';
 	const unfiltered =
-		target.kind === "volume" && target.volume.mount_type === "External"
+		target.kind === 'volume' && target.volume.mount_type === 'External'
 			? true
 			: library.unfiltered;
-	return { ...library, placement, unfiltered };
+	return {...library, placement, unfiltered};
 }
 
 export function settingsFromConfig(config: SourceConfig): AddSettings {
@@ -258,19 +278,19 @@ export function settingsFromConfig(config: SourceConfig): AddSettings {
 			config.keep_offline_copy ?? BUILT_IN_DEFAULTS.keep_offline_copy,
 		unfiltered: config.unfiltered ?? BUILT_IN_DEFAULTS.unfiltered,
 		identify_content:
-			config.identify_content ?? BUILT_IN_DEFAULTS.identify_content,
+			config.identify_content ?? BUILT_IN_DEFAULTS.identify_content
 	};
 }
 
 /** The fields the user changed from what the modal showed, and nothing else. */
 export function overridesFrom(
 	defaults: AddSettings,
-	chosen: AddSettings,
+	chosen: AddSettings
 ): AddOverrides {
 	const overrides: AddOverrides = {};
 	for (const key of ADD_SETTING_KEYS) {
 		if (chosen[key] !== defaults[key]) {
-			Object.assign(overrides, { [key]: chosen[key] });
+			Object.assign(overrides, {[key]: chosen[key]});
 		}
 	}
 	return overrides;
@@ -278,14 +298,14 @@ export function overridesFrom(
 
 export function changedKeys(
 	defaults: AddSettings,
-	chosen: AddSettings,
+	chosen: AddSettings
 ): (keyof AddSettings)[] {
 	return ADD_SETTING_KEYS.filter((key) => chosen[key] !== defaults[key]);
 }
 
 export type AddPayload =
-	| { type: "sources.track"; input: TrackSourceInput }
-	| { type: "volumes.track"; input: VolumeTrackInput };
+	| {type: 'sources.track'; input: TrackSourceInput}
+	| {type: 'volumes.track'; input: VolumeTrackInput};
 
 /**
  * One add, whichever entry point chose the scope. A whole drive goes
@@ -296,22 +316,21 @@ export type AddPayload =
 export function buildPayload(
 	target: AddTarget,
 	name: string,
-	overrides: AddOverrides,
+	overrides: AddOverrides
 ): AddPayload {
 	const trimmed = name.trim();
-	if (target.kind === "volume") {
+	if (target.kind === 'volume') {
 		return {
-			type: "volumes.track",
+			type: 'volumes.track',
 			input: {
 				fingerprint: target.volume.fingerprint,
 				display_name: trimmed || null,
-				overrides,
-			},
+				overrides
+			}
 		};
 	}
 	return {
-		type: "sources.track",
-		input: { path: target.path, name: trimmed || null, overrides },
+		type: 'sources.track',
+		input: {path: target.path, name: trimmed || null, overrides}
 	};
 }
-

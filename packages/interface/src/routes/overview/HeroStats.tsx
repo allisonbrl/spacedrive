@@ -8,6 +8,7 @@ import TagsIcon from '@sd/assets/icons/Tags.webp';
 import {CircleButton} from '@spacedrive/primitives';
 import {motion} from 'framer-motion';
 import {useEffect, useRef, useState} from 'react';
+import {useI18n} from '../../i18n';
 
 interface HeroStatsProps {
 	totalStorage: number; // bytes
@@ -45,6 +46,7 @@ export function HeroStats({
 	sidecarCount,
 	sidecarSize
 }: HeroStatsProps) {
+	const {t, formatNumber} = useI18n();
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const [canScrollLeft, setCanScrollLeft] = useState(false);
 	const [canScrollRight, setCanScrollRight] = useState(false);
@@ -116,7 +118,7 @@ export function HeroStats({
 							// style={{ filter: 'drop-shadow(0 0 4px rgba(217, 70, 239, 0.4))' }}
 						/>
 					}
-					label="Total Storage"
+					label={t('overview.stats.totalStorage')}
 					value={
 						<>
 							{storageFormatted.value}{' '}
@@ -133,7 +135,7 @@ export function HeroStats({
 									{usedFormatted.unit}
 								</span>
 							</span>{' '}
-							used
+							{t('overview.stats.used')}
 						</>
 					}
 					progress={usagePercent}
@@ -149,12 +151,14 @@ export function HeroStats({
 							className="size-10 opacity-80"
 						/>
 					}
-					label="Files Indexed"
-					value={totalFiles.toLocaleString()}
+					label={t('overview.stats.filesIndexed')}
+					value={formatNumber(totalFiles)}
 					subtitle={
 						uniqueContentCount > 0
-							? `${uniqueContentCount.toLocaleString()} unique files`
-							: "content hashing pending"
+							? t('overview.stats.uniqueFiles', {
+									count: formatNumber(uniqueContentCount)
+								})
+							: t('overview.stats.contentHashingPending')
 					}
 					color="from-purple-500 to-pink-500"
 				/>
@@ -168,9 +172,9 @@ export function HeroStats({
 							className="size-10 opacity-80"
 						/>
 					}
-					label="Connected Devices"
-					value={deviceCount}
-					subtitle={`registered in library`}
+					label={t('overview.stats.connectedDevices')}
+					value={formatNumber(deviceCount)}
+					subtitle={t('overview.stats.registeredInLibrary')}
 					color="from-green-500 to-emerald-500"
 				/>
 
@@ -183,7 +187,7 @@ export function HeroStats({
 							className="size-10 opacity-80"
 						/>
 					}
-					label="Library Size"
+					label={t('overview.stats.librarySize')}
 					value={
 						<>
 							{databaseFormatted.value}{' '}
@@ -192,7 +196,7 @@ export function HeroStats({
 							</span>
 						</>
 					}
-					subtitle="database on disk"
+					subtitle={t('overview.stats.databaseOnDisk')}
 					color="from-blue-500 to-cyan-500"
 				/>
 
@@ -205,7 +209,7 @@ export function HeroStats({
 							className="size-10 opacity-80"
 						/>
 					}
-					label="Sidecar Storage"
+					label={t('overview.stats.sidecarStorage')}
 					value={
 						<>
 							{sidecarFormatted.value}{' '}
@@ -214,7 +218,9 @@ export function HeroStats({
 							</span>
 						</>
 					}
-					subtitle={`${sidecarCount.toLocaleString()} files generated`}
+					subtitle={t('overview.stats.filesGenerated', {
+						count: formatNumber(sidecarCount)
+					})}
 					color="from-orange-500 to-red-500"
 				/>
 
@@ -227,9 +233,9 @@ export function HeroStats({
 							className="size-10 opacity-80"
 						/>
 					}
-					label="Sources"
-					value={sourceCount}
-					subtitle="kept in this library"
+					label={t('overview.stats.sources')}
+					value={formatNumber(sourceCount)}
+					subtitle={t('overview.stats.keptInThisLibrary')}
 					color="from-teal-500 to-green-500"
 				/>
 
@@ -242,9 +248,9 @@ export function HeroStats({
 							className="size-10 opacity-80"
 						/>
 					}
-					label="Tags"
-					value={tagCount}
-					subtitle="organization labels"
+					label={t('overview.stats.tags')}
+					value={formatNumber(tagCount)}
+					subtitle={t('overview.stats.organizationLabels')}
 					color="from-pink-500 to-rose-500"
 				/>
 			</div>

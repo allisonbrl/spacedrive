@@ -5,8 +5,10 @@ import {useNavigate} from 'react-router-dom';
 import {useSyncCount} from '../../SyncMonitor/hooks/useSyncCount';
 import {useJobsContext} from '../hooks/JobsContext';
 import {JobRow} from './JobRow';
+import {useI18n} from '../../../i18n';
 
 export function JobsScreen() {
+	const {t} = useI18n();
 	const navigate = useNavigate();
 	const {jobs, pause, resume, cancel} = useJobsContext();
 	const {onlinePeerCount, isSyncing} = useSyncCount();
@@ -33,31 +35,27 @@ export function JobsScreen() {
 				<div className="flex items-center justify-between px-6 py-4">
 					<div className="flex items-center gap-4">
 						<h1 className="text-ink text-2xl font-bold">
-							Activity
+							{t('jobs.screen.title')}
 						</h1>
 						<div className="text-ink-dull flex items-center gap-2 text-sm">
-							<span>{jobs.length} total</span>
+							<span>{t('jobs.screen.total', { count: jobs.length })}</span>
 							{runningJobs.length > 0 && (
 								<>
 									<span>•</span>
-									<span>{runningJobs.length} running</span>
+									<span>{t('jobs.screen.running', { count: runningJobs.length })}</span>
 								</>
 							)}
 							{isSyncing && (
 								<>
 									<span>•</span>
-									<span>syncing</span>
+									<span>{t('jobs.screen.syncing')}</span>
 								</>
 							)}
 							{onlinePeerCount > 0 && (
 								<>
 									<span>•</span>
 									<span>
-										{onlinePeerCount}{' '}
-										{onlinePeerCount === 1
-											? 'peer'
-											: 'peers'}{' '}
-										online
+										{t('jobs.screen.peersOnline', { count: onlinePeerCount })}
 									</span>
 								</>
 							)}
@@ -72,8 +70,8 @@ export function JobsScreen() {
 							onClick={() => setShowOnlyRunning(!showOnlyRunning)}
 							title={
 								showOnlyRunning
-									? 'Show all jobs'
-									: 'Show only active jobs'
+									? t('jobs.popover.showAll')
+									: t('jobs.popover.showOnlyActive')
 							}
 						/>
 
@@ -81,7 +79,7 @@ export function JobsScreen() {
 						<CircleButton
 							icon={X}
 							onClick={() => navigate(-1)}
-							title="Go back"
+							title={t('jobs.screen.goBack')}
 						/>
 					</div>
 				</div>
@@ -90,13 +88,13 @@ export function JobsScreen() {
 				<div className="text-ink-dull bg-app-box/30 border-app-line/30 flex items-center gap-4 border-t px-4 py-2 text-xs font-medium uppercase tracking-wide">
 					<div className="w-10 flex-shrink-0" /> {/* Icon spacer */}
 					<div className="flex min-w-0 flex-1 items-center gap-6">
-						<div className="flex-1">Name</div>
-						<div className="w-32 flex-shrink-0">Duration</div>
+						<div className="flex-1">{t('jobs.table.name')}</div>
+						<div className="w-32 flex-shrink-0">{t('jobs.table.duration')}</div>
 						<div className="w-24 flex-shrink-0 text-right">
-							Time
+							{t('jobs.table.time')}
 						</div>
 						<div className="w-20 flex-shrink-0 text-right">
-							Status
+							{t('jobs.table.status')}
 						</div>
 					</div>
 					<div className="w-6 flex-shrink-0" />{' '}
@@ -110,7 +108,7 @@ export function JobsScreen() {
 					<div className="flex h-full items-center justify-center">
 						<div className="text-center">
 							<p className="text-ink-dull text-sm">
-								No jobs found
+								{t('jobs.screen.noJobsFound')}
 							</p>
 						</div>
 					</div>
@@ -119,7 +117,7 @@ export function JobsScreen() {
 						{/* Running Jobs */}
 						{runningJobs.length > 0 && (
 							<JobSection
-								title="Running"
+								title={t('jobs.section.running')}
 								count={runningJobs.length}
 							>
 								{runningJobs.map((job) => (
@@ -137,7 +135,7 @@ export function JobsScreen() {
 						{/* Paused Jobs */}
 						{pausedJobs.length > 0 && (
 							<JobSection
-								title="Paused"
+								title={t('jobs.section.paused')}
 								count={pausedJobs.length}
 							>
 								{pausedJobs.map((job) => (
@@ -155,7 +153,7 @@ export function JobsScreen() {
 						{/* Queued Jobs */}
 						{queuedJobs.length > 0 && (
 							<JobSection
-								title="Queued"
+								title={t('jobs.section.queued')}
 								count={queuedJobs.length}
 							>
 								{queuedJobs.map((job) => (
@@ -173,7 +171,7 @@ export function JobsScreen() {
 						{/* Completed Jobs */}
 						{completedJobs.length > 0 && (
 							<JobSection
-								title="Completed"
+								title={t('jobs.section.completed')}
 								count={completedJobs.length}
 							>
 								{completedJobs.map((job) => (
@@ -191,7 +189,7 @@ export function JobsScreen() {
 						{/* Failed Jobs */}
 						{failedJobs.length > 0 && (
 							<JobSection
-								title="Failed"
+								title={t('jobs.section.failed')}
 								count={failedJobs.length}
 							>
 								{failedJobs.map((job) => (

@@ -1,22 +1,27 @@
-import { useEffect, useRef } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { useTabManager } from "./useTabManager";
+import {useEffect, useRef} from 'react';
+import {useLocation, useNavigate} from 'react-router-dom';
+import {useI18n} from '../../i18n';
+import {useTabManager} from './useTabManager';
 
 /**
  * Derives a tab title from the current route pathname and search params
  */
-function deriveTitleFromPath(pathname: string, search: string): string | null {
+function deriveTitleFromPath(
+	pathname: string,
+	search: string,
+	t: (key: import('../../i18n').TranslationKey) => string
+): string | null {
 	// Static route mappings
 	const routeTitles: Record<string, string> = {
-		"/": "Overview",
-		"/favorites": "Favorites",
-		"/recents": "Recents",
-		"/file-kinds": "File Kinds",
-		"/sources": "Sources",
-		"/sources/adapters": "Adapters",
-		"/search": "Search",
-		"/jobs": "Jobs",
-		"/daemon": "Daemon",
+		'/': t('tab.overview'),
+		'/favorites': t('tab.favorites'),
+		'/recents': t('tab.recents'),
+		'/file-kinds': t('tab.fileKinds'),
+		'/sources': t('tab.sources'),
+		'/sources/adapters': t('tab.adapters'),
+		'/search': t('tab.search'),
+		'/jobs': t('tab.jobs'),
+		'/daemon': t('tab.daemon')
 	};
 
 	// Check static routes first
@@ -25,47 +30,47 @@ function deriveTitleFromPath(pathname: string, search: string): string | null {
 	}
 
 	// Handle tag routes: /tag/:tagId
-	if (pathname.startsWith("/tag/")) {
-		const tagId = pathname.split("/")[2];
-		return tagId ? `Tag: ${tagId.slice(0, 8)}...` : "Tag";
+	if (pathname.startsWith('/tag/')) {
+		const tagId = pathname.split('/')[2];
+		return tagId ? `Tag: ${tagId.slice(0, 8)}...` : 'Tag';
 	}
 
 	// Handle source detail routes: /sources/:sourceId
 	// Title is set dynamically by SourceDetail component, return null to skip overwrite
-	if (pathname.startsWith("/sources/") && pathname !== "/sources/adapters") {
+	if (pathname.startsWith('/sources/') && pathname !== '/sources/adapters') {
 		return null;
 	}
 
 	// Handle explorer routes
-	if (pathname === "/explorer" && search) {
+	if (pathname === '/explorer' && search) {
 		const params = new URLSearchParams(search);
 
 		// Handle virtual views: /explorer?view=device&id=abc123
-		const view = params.get("view");
-		if (view === "device") {
-			return "This Device";
+		const view = params.get('view');
+		if (view === 'device') {
+			return 'This Device';
 		}
 
 		// Handle path-based navigation
-		const pathParam = params.get("path");
+		const pathParam = params.get('path');
 		if (pathParam) {
 			try {
 				const sdPath = JSON.parse(decodeURIComponent(pathParam));
 				// Extract the last component of the path for the title
 				if (sdPath?.Physical?.path) {
 					const fullPath = sdPath.Physical.path as string;
-					const parts = fullPath.split("/").filter(Boolean);
-					return parts[parts.length - 1] || "Explorer";
+					const parts = fullPath.split('/').filter(Boolean);
+					return parts[parts.length - 1] || 'Explorer';
 				}
 			} catch {
 				// Fall through to default
 			}
 		}
-		return "Explorer";
+		return 'Explorer';
 	}
 
 	// Default fallback
-	return "Spacedrive";
+	return 'Spacedrive';
 }
 
 /**
@@ -79,7 +84,8 @@ function deriveTitleFromPath(pathname: string, search: string): string | null {
 export function TabNavigationSync() {
 	const location = useLocation();
 	const navigate = useNavigate();
-	const { activeTabId, tabs, updateTabPath, updateTabTitle } = useTabManager();
+	const {activeTabId, tabs, updateTabPath, updateTabTitle} = useTabManager();
+	const {t} = useI18n();
 
 	const activeTab = tabs.find((t) => t.id === activeTabId);
 	const currentPath = location.pathname + location.search;
@@ -100,16 +106,29 @@ export function TabNavigationSync() {
 		}
 
 		// Update title based on current location (null = managed by the route component)
-		const newTitle = deriveTitleFromPath(location.pathname, location.search);
+		const newTitle = deriveTitleFromPath(
+			location.pathname,
+			location.search,
+			t
+		);
 		if (activeTab && newTitle !== null && newTitle !== activeTab.title) {
 			updateTabTitle(activeTabId, newTitle);
 		}
-	}, [currentPath, activeTab, activeTabId, updateTabPath, updateTabTitle, location.pathname, location.search]);
+	}, [
+		currentPath,
+		activeTab,
+		activeTabId,
+		updateTabPath,
+		updateTabTitle,
+		location.pathname,
+		location.search,
+		t
+	]);
 
 	// Navigate to saved location when switching tabs
 	useEffect(() => {
 		if (activeTab && currentPath !== activeTab.savedPath) {
-			navigate(activeTab.savedPath, { replace: true });
+			navigate(activeTab.savedPath, {replace: true});
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [activeTabId]);

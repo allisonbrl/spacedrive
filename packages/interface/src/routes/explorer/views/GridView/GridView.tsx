@@ -7,10 +7,12 @@ import type { File } from "@sd/ts-client";
 import { useExplorerFiles } from "../../hooks/useExplorerFiles";
 import { DragSelect } from "./DragSelect";
 import { useEmptySpaceContextMenu } from "../../hooks/useEmptySpaceContextMenu";
+import { useI18n } from "../../../../i18n";
 
 const VIRTUALIZATION_THRESHOLD = 0; // Disabled - always virtualize
 
 export function GridView() {
+	const { t } = useI18n();
 	const { viewSettings, setCurrentFiles } = useExplorer();
 	const {
 		isSelected,
@@ -61,9 +63,9 @@ export function GridView() {
 		return (
 			<div className="flex items-center justify-center h-full">
 				<div className="text-center">
-					<div className="text-ink-dull text-lg font-medium mb-1">No tagged files</div>
+					<div className="text-ink-dull text-lg font-medium mb-1">{t('explorer.views.noTaggedFiles')}</div>
 					<div className="text-ink-dull text-sm">
-						Files tagged with this tag will appear here
+						{t('explorer.views.taggedFilesHint')}
 					</div>
 				</div>
 			</div>

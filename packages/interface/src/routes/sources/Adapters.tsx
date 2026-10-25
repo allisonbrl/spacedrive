@@ -12,9 +12,11 @@ import { TopBarPortal, TopBarItem } from "../../TopBar";
 import { CircleButton } from "@spacedrive/primitives";
 import { ExpandableSearchButton } from "../explorer/components/ExpandableSearchButton";
 import { SourceTypeIcon } from "../../components/Sources/SourceTypeIcon";
+import { useI18n } from "../../i18n";
 
 export function AdaptersScreen() {
 	const navigate = useNavigate();
+	const { t } = useI18n();
 	const [searchValue, setSearchValue] = useState("");
 
 	const { data: adaptersRaw, isLoading } = useLibraryQuery({
@@ -44,7 +46,7 @@ export function AdaptersScreen() {
 					<>
 						<TopBarItem
 							id="navigation"
-							label="Navigation"
+							label={t('sources.adapters.navigation')}
 							priority="high"
 						>
 							<CircleButton
@@ -54,11 +56,11 @@ export function AdaptersScreen() {
 						</TopBarItem>
 						<TopBarItem
 							id="title"
-							label="Title"
+							label={t('sources.adapters.title')}
 							priority="high"
 						>
 							<span className="text-ink whitespace-nowrap text-xs font-medium">
-								Data Adapters
+								{t('sources.adapters.dataAdapters')}
 							</span>
 						</TopBarItem>
 					</>
@@ -67,11 +69,11 @@ export function AdaptersScreen() {
 					<>
 						<TopBarItem
 							id="search"
-							label="Search"
+							label={t('sources.adapters.search')}
 							priority="high"
 						>
 							<ExpandableSearchButton
-								placeholder="Search adapters..."
+								placeholder={t('sources.adapters.searchPlaceholder')}
 								value={searchValue}
 								onChange={setSearchValue}
 								onClear={() => setSearchValue("")}
@@ -79,7 +81,7 @@ export function AdaptersScreen() {
 						</TopBarItem>
 						<TopBarItem
 							id="install"
-							label="Install"
+							label={t('sources.adapters.install')}
 							priority="high"
 						>
 							<CircleButton
@@ -87,7 +89,7 @@ export function AdaptersScreen() {
 								onClick={() => {
 									/* TODO: Install from directory */
 								}}
-								title="Install adapter from directory"
+								title={t('sources.adapters.installTitle')}
 							/>
 						</TopBarItem>
 					</>
@@ -96,22 +98,22 @@ export function AdaptersScreen() {
 			<div className="p-6">
 			{isLoading && (
 				<div className="flex items-center justify-center py-20">
-					<div className="text-ink-faint text-sm">Loading...</div>
+					<div className="text-ink-faint text-sm">{t('sources.adapters.loading')}</div>
 				</div>
 			)}
 
 			{adapters && adapters.length === 0 && !searchValue && (
 				<div className="flex flex-col items-center justify-center py-20">
-					<p className="text-ink-dull text-sm">No adapters installed</p>
+					<p className="text-ink-dull text-sm">{t('sources.adapters.noAdapters')}</p>
 					<p className="text-ink-faint mt-1 text-xs">
-						Adapters are loaded from the adapters directory on startup
+						{t('sources.adapters.noAdaptersHint')}
 					</p>
 				</div>
 			)}
 
 			{filteredAdapters && filteredAdapters.length === 0 && searchValue && (
 				<div className="flex items-center justify-center py-20">
-					<p className="text-ink-faint text-sm">No matching adapters</p>
+					<p className="text-ink-faint text-sm">{t('sources.adapters.noMatching')}</p>
 				</div>
 			)}
 
@@ -138,7 +140,7 @@ export function AdaptersScreen() {
 									</span>
 									{adapter.update_available && (
 										<span className="shrink-0 rounded-full bg-blue-500/15 px-2 py-0.5 text-[10px] font-medium text-blue-400 ring-1 ring-blue-500/30">
-											Update
+											{t('sources.adapters.update')}
 										</span>
 									)}
 								</div>
@@ -147,7 +149,7 @@ export function AdaptersScreen() {
 								</div>
 								{adapter.author && (
 									<div className="text-ink-faint/70 mt-0.5 text-[11px]">
-										by {adapter.author}
+										{t('sources.adapters.byAuthor', { author: adapter.author })}
 									</div>
 								)}
 							</div>
@@ -193,6 +195,7 @@ function ConfigureForm({
 	onDone: () => void;
 }) {
 	const navigate = useNavigate();
+	const { t } = useI18n();
 
 	const {
 		data: fields,
@@ -217,7 +220,7 @@ function ConfigureForm({
 
 	const handleSubmit = async () => {
 		if (!name.trim()) {
-			setError("Source name is required");
+			setError(t('sources.configure.nameRequired'));
 			return;
 		}
 
@@ -226,7 +229,7 @@ function ConfigureForm({
 			for (const field of fields ?? []) {
 				const val = values[field.key]?.trim() ?? "";
 				if (field.required && !val) {
-					setError(`${field.name} is required`);
+					setError(t('sources.configure.fieldRequired', { field: field.name }));
 					return;
 				}
 				if (!val && !field.required) continue;
@@ -251,9 +254,7 @@ function ConfigureForm({
 				source_id: source.id,
 			});
 
-			setResult(
-				"Source created. Sync is running in the background — check the job manager for progress.",
-			);
+			setResult(t('sources.configure.successMessage'));
 		} catch (e) {
 			setError(String(e));
 		}
@@ -262,7 +263,7 @@ function ConfigureForm({
 	if (isLoading) {
 		return (
 			<div className="text-ink-faint py-8 text-center text-sm">
-				Loading...
+				{t('sources.adapters.loading')}
 			</div>
 		);
 	}
@@ -270,7 +271,7 @@ function ConfigureForm({
 	if (queryError) {
 		return (
 			<div className="rounded-md border border-red-400/20 p-3 text-xs text-red-400">
-				Failed to load config: {String(queryError)}
+				{t('sources.configure.failedToLoad', { error: String(queryError) })}
 			</div>
 		);
 	}
@@ -282,7 +283,7 @@ function ConfigureForm({
 				<p
 					className={`text-sm ${isError ? "text-red-400" : "text-ink"}`}
 				>
-					{isError ? "Something went wrong" : "Source added"}
+					{isError ? t('sources.configure.somethingWentWrong') : t('sources.configure.sourceAdded')}
 				</p>
 				<p className="text-ink-faint mt-1 text-xs">{result}</p>
 				<button
@@ -292,7 +293,7 @@ function ConfigureForm({
 					}}
 					className="bg-accent hover:bg-accent-deep mt-4 rounded-lg px-3.5 py-1.5 text-sm font-medium text-white transition-colors"
 				>
-					Done
+					{t('sources.configure.done')}
 				</button>
 			</div>
 		);
@@ -302,12 +303,12 @@ function ConfigureForm({
 		<div className="flex flex-col gap-3">
 			<div>
 				<label className="text-ink-dull mb-1 block text-xs font-medium">
-					Source Name
+					{t('sources.configure.sourceName')}
 				</label>
 				<input
 					value={name}
 					onChange={(e) => setName(e.target.value)}
-					placeholder={`e.g., My ${adapterName}`}
+					placeholder={t('sources.configure.placeholderName', { adapter: adapterName })}
 					className="border-app-line bg-app-input text-ink w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-accent"
 				/>
 			</div>
@@ -333,7 +334,7 @@ function ConfigureForm({
 						}
 						placeholder={
 							field.default
-								? `Default: ${field.default}`
+								? t('sources.configure.defaultValue', { value: String(field.default) })
 								: undefined
 						}
 						className="border-app-line bg-app-input text-ink w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-accent"
@@ -353,13 +354,13 @@ function ConfigureForm({
 					disabled={createSource.isPending}
 					className="bg-accent hover:bg-accent-deep flex-1 rounded-lg px-3.5 py-1.5 text-sm font-medium text-white transition-colors disabled:opacity-40"
 				>
-					Add & Sync
+					{t('sources.configure.addAndSync')}
 				</button>
 				<button
 					onClick={onDone}
 					className="text-ink-faint hover:text-ink rounded-lg px-3.5 py-1.5 text-sm font-medium transition-colors"
 				>
-					Cancel
+					{t('sources.configure.cancel')}
 				</button>
 			</div>
 		</div>

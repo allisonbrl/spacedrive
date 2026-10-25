@@ -1,6 +1,6 @@
 import {
-	ArrowSquareOut,
 	ArrowClockwise,
+	ArrowSquareOut,
 	Books,
 	Browsers,
 	Copy,
@@ -24,22 +24,30 @@ import {
 } from '@phosphor-icons/react';
 import type {File} from '@sd/ts-client';
 import {isVirtualFile} from '@sd/ts-client';
-import { toast } from '@spacedrive/primitives';
+import {toast} from '@spacedrive/primitives';
+import {
+	isArchiveName,
+	useArchiveDialog,
+	useExtractDialog
+} from '../../../components/modals/ArchiveModal';
+import {useAttributesDialog} from '../../../components/modals/AttributesModal';
+import {useDeleteDialog} from '../../../components/modals/DeleteModal';
 import {useFileOperationDialog} from '../../../components/modals/FileOperationModal';
 import {useMergeFoldersDialog} from '../../../components/modals/MergeFoldersModal';
-import {useDeleteDialog} from '../../../components/modals/DeleteModal';
+import {
+	useFlattenDialog,
+	useOrganizeDialog
+} from '../../../components/modals/RearrangeModal';
 import {useBatchRenameDialog} from '../../../components/modals/RenameModal';
-import {useFlattenDialog, useOrganizeDialog} from '../../../components/modals/RearrangeModal';
-import {isArchiveName, useArchiveDialog, useExtractDialog} from '../../../components/modals/ArchiveModal';
-import {useAttributesDialog} from '../../../components/modals/AttributesModal';
-import {useAddToLibraryDialog} from '../components/AddToLibraryModal';
+import {useTabManager} from '../../../components/TabManager';
 import {usePlatform} from '../../../contexts/PlatformContext';
 import {useLibraryMutation} from '../../../contexts/SpacedriveContext';
 import {useClipboard} from '../../../hooks/useClipboard';
 import {useContextMenu} from '../../../hooks/useContextMenu';
 import {useOpenWith} from '../../../hooks/useOpenWith';
 import {useRefetchTagQueries} from '../../../hooks/useRefetchTagQueries';
-import {useTabManager} from '../../../components/TabManager';
+import {useI18n} from '../../../i18n';
+import {useAddToLibraryDialog} from '../components/AddToLibraryModal';
 import {targetToUrl, useExplorer} from '../context';
 import {useSelection} from '../SelectionContext';
 import {useDuplicateFiles} from './useDuplicateFiles';
@@ -57,6 +65,7 @@ export function useFileContextMenu({
 	selected
 }: UseFileContextMenuProps) {
 	const {navigateToPath, currentPath, mode} = useExplorer();
+	const {t} = useI18n();
 	const {createTab} = useTabManager();
 	const platform = usePlatform();
 	const refetchTagQueries = useRefetchTagQueries();
@@ -82,8 +91,11 @@ export function useFileContextMenu({
 	const openAttributes = useAttributesDialog();
 	const {startRename} = useSelection();
 
-	const openTargets = (selected && selectedFiles.length > 0 ? selectedFiles : [file]).filter(
-		(f): f is File => f != null && f.sd_path != null && 'Physical' in f.sd_path
+	const openTargets = (
+		selected && selectedFiles.length > 0 ? selectedFiles : [file]
+	).filter(
+		(f): f is File =>
+			f != null && f.sd_path != null && 'Physical' in f.sd_path
 	);
 
 	// Paths on this machine, for the platform calls that take one. Another
@@ -122,8 +134,11 @@ export function useFileContextMenu({
 		items: [
 			{
 				icon: ArrowClockwise,
-				label: 'Regenerate Thumbnails',
-				condition: () => getTargetFiles().some((target) => 'Physical' in target.sd_path),
+				label: t('explorer.context.regenerateThumbnails'),
+				condition: () =>
+					getTargetFiles().some(
+						(target) => 'Physical' in target.sd_path
+					),
 				onClick: async () => {
 					try {
 						for (const target of getTargetFiles()) {
@@ -134,15 +149,19 @@ export function useFileContextMenu({
 								mode: 'force'
 							});
 						}
-						toast.success('Thumbnail regeneration started');
+						toast.success(t('explorer.context.thumbnailStarted'));
 					} catch (error) {
-						toast.error(`Could not regenerate thumbnails: ${error}`);
+						toast.error(
+							t('explorer.context.thumbnailError', {
+								error: String(error)
+							})
+						);
 					}
 				}
 			},
 			{
 				icon: Eye,
-				label: 'Quick Look',
+				label: t('explorer.context.quickLook'),
 				onClick: () => {
 					if (!file) return;
 					console.log('Quick Look:', file.name);
@@ -153,7 +172,7 @@ export function useFileContextMenu({
 			},
 			{
 				icon: FolderOpen,
-				label: 'Open',
+				label: t('context.open'),
 				onClick: async () => {
 					if (!file) return;
 					if (file.kind === 'Directory') {
@@ -169,7 +188,7 @@ export function useFileContextMenu({
 			},
 			{
 				icon: Browsers,
-				label: 'Open in New Tab',
+				label: t('explorer.context.openNewTab'),
 				onClick: () => {
 					if (!file) return;
 					createTab(
@@ -303,7 +322,8 @@ export function useFileContextMenu({
 							.map((target) => target.sd_path)
 					}),
 				keybindId: 'explorer.renameFile',
-				condition: () => selected && selectedFiles.length > 1 && !hasVirtualFiles
+				condition: () =>
+					selected && selectedFiles.length > 1 && !hasVirtualFiles
 			},
 			{
 				icon: FolderPlus,
@@ -449,7 +469,7 @@ export function useFileContextMenu({
 			},
 			{
 				icon: FolderSimplePlus,
-				label: `Merge into '${file?.name ?? ''}'`,
+				label: t('explorer.context.mergeInto', {name: file?.name ?? ''}),
 				// Paste lands the clipboard in the current directory; this
 				// folds the held folders into the folder under the pointer,
 				// after showing what that would do. A cut consumes them.
@@ -476,34 +496,39 @@ export function useFileContextMenu({
 				icon: Copy,
 				label:
 					selected && selectedFiles.length > 1
-						? `Duplicate ${selectedFiles.length} items`
-						: 'Duplicate',
+						? t('explorer.context.duplicateItems', {count: selectedFiles.length})
+						: t('explorer.context.duplicate'),
 				// A numbered copy beside each file, after the copy's validation
 				// and with nothing to choose, so no dialog.
 				onClick: () => void duplicate(getTargetFiles()),
 				keybindId: 'explorer.duplicate',
 				condition: () =>
 					!hasVirtualFiles &&
-					getTargetFiles().some((target) => 'Physical' in target.sd_path)
+					getTargetFiles().some(
+						(target) => 'Physical' in target.sd_path
+					)
 			},
 			{
 				icon: TagIconComponent,
 				label:
 					selected && selectedFiles.length > 1
-						? `Remove tag from ${selectedFiles.length} items`
-						: 'Remove tag',
+						? t('explorer.context.removeTagItems', {count: selectedFiles.length})
+						: t('explorer.context.removeTag'),
 				onClick: async () => {
 					if (mode.type !== 'tag') return;
 					const targets = getTargetFiles();
 					if (targets.length === 0) return;
 					try {
 						await unapplyTags.mutateAsync({
-							targets: { type: 'File', ids: targets.map((f) => f.id) },
+							targets: {
+								type: 'File',
+								ids: targets.map((f) => f.id)
+							},
 							tag_ids: [mode.tagId]
 						});
 					} catch (err) {
 						console.error('Failed to remove tag:', err);
-						toast.error(`Failed to remove tag: ${err}`);
+						toast.error(t('explorer.context.removeTagError', {error: String(err)}));
 					}
 				},
 				condition: () => mode.type === 'tag' && !hasVirtualFiles
@@ -511,14 +536,14 @@ export function useFileContextMenu({
 			{type: 'separator'},
 			{
 				icon: Stack,
-				label: 'Remove duplicates inside',
+				label: t('explorer.context.removeDuplicatesInside'),
 				// Of each content held more than once under this folder, the
 				// first copy in walk order stays; the plan shows both before
 				// anything goes.
 				onClick: () => {
 					if (!file) return;
 					openDelete({
-						title: `Remove duplicate copies inside '${file.name}'`,
+						title: t('explorer.context.removeDuplicateCopiesInside', {name: file.name}),
 						targets: {
 							kind: 'duplicates',
 							duplicates: {
@@ -538,13 +563,13 @@ export function useFileContextMenu({
 			},
 			{
 				icon: Stack,
-				label: 'Remove other copies',
+				label: t('explorer.context.removeOtherCopies'),
 				// This file stays; every other copy of its content, anywhere
 				// attached, goes.
 				onClick: () => {
 					if (!file) return;
 					openDelete({
-						title: `Remove the other copies of '${file.name}'`,
+						title: t('explorer.context.removeOtherCopiesTitle', {name: file.name}),
 						targets: {
 							kind: 'duplicates',
 							duplicates: {
@@ -564,7 +589,7 @@ export function useFileContextMenu({
 			},
 			{
 				icon: TreeStructure,
-				label: 'Organize…',
+				label: t('explorer.context.organize'),
 				// Subfolders by date, kind or extension, previewed as moves.
 				onClick: () => {
 					if (!file) return;
@@ -579,7 +604,7 @@ export function useFileContextMenu({
 			},
 			{
 				icon: FolderSimple,
-				label: 'Flatten…',
+				label: t('explorer.context.flatten'),
 				onClick: () => {
 					if (!file) return;
 					openFlatten({scope: file.sd_path});
@@ -595,8 +620,8 @@ export function useFileContextMenu({
 				icon: FileZip,
 				label:
 					selected && selectedFiles.length > 1
-						? `Compress ${selectedFiles.length} items…`
-						: 'Compress…',
+						? t('explorer.context.compressItems', {count: selectedFiles.length})
+						: t('explorer.context.compress'),
 				onClick: () => {
 					if (!currentPath) return;
 					const sources = getTargetFiles()
@@ -609,10 +634,13 @@ export function useFileContextMenu({
 			},
 			{
 				icon: FileArchive,
-				label: 'Extract here…',
+				label: t('explorer.context.extractHere'),
 				onClick: () => {
 					if (!file || !currentPath) return;
-					openExtract({archive: file.sd_path, directory: currentPath});
+					openExtract({
+						archive: file.sd_path,
+						directory: currentPath
+					});
 				},
 				condition: () =>
 					!!file &&
@@ -621,13 +649,15 @@ export function useFileContextMenu({
 					selectedFiles.length <= 1 &&
 					'Physical' in file.sd_path &&
 					isArchiveName(
-						file.extension ? `${file.name}.${file.extension}` : file.name
+						file.extension
+							? `${file.name}.${file.extension}`
+							: file.name
 					) &&
 					!hasVirtualFiles
 			},
 			{
 				icon: SlidersHorizontal,
-				label: 'Attributes…',
+				label: t('explorer.context.attributes'),
 				onClick: () => {
 					const paths = getTargetFiles()
 						.filter((target) => 'Physical' in target.sd_path)
@@ -639,7 +669,7 @@ export function useFileContextMenu({
 			},
 			{
 				icon: LinkSimple,
-				label: 'Make link',
+				label: t('explorer.context.makeLink'),
 				// A symlink beside the file, named after it, after validation.
 				onClick: () => {
 					if (!file) return;
@@ -653,13 +683,13 @@ export function useFileContextMenu({
 			},
 			{
 				icon: Trash,
-				label: `Delete what '${clipboardFolderName}' already holds`,
+				label: t('explorer.context.deleteWhatFolderHolds', {folder: clipboardFolderName}),
 				// Removes from this folder the files whose bytes the folder on
 				// the clipboard already holds, wherever they sit in it.
 				onClick: () => {
 					if (!file || clipboard.files.length !== 1) return;
 					openDelete({
-						title: `Delete from '${file.name}' what '${clipboardFolderName}' already holds`,
+						title: t('explorer.context.deleteFromFileWhatFolderHolds', {file: file.name, folder: clipboardFolderName}),
 						targets: {
 							kind: 'comparison',
 							comparison: {
@@ -680,14 +710,15 @@ export function useFileContextMenu({
 					file.kind === 'Directory' &&
 					'Physical' in file.sd_path &&
 					!hasVirtualFiles &&
-					JSON.stringify(clipboard.files[0]) !== JSON.stringify(file.sd_path)
+					JSON.stringify(clipboard.files[0]) !==
+						JSON.stringify(file.sd_path)
 			},
 			{
 				icon: Trash,
 				label:
 					selected && selectedFiles.length > 1
-						? `Delete ${selectedFiles.length} items`
-						: 'Delete',
+						? t('explorer.context.deleteItems', {count: selectedFiles.length})
+						: t('explorer.context.delete'),
 				// The delete dialog on preflight: the last-copy warning, the
 				// rows that go, and the trash or permanent switch.
 				onClick: () => {
@@ -698,8 +729,8 @@ export function useFileContextMenu({
 					openDelete({
 						title:
 							targets.length === 1
-								? `Trash '${targets[0].name}'`
-								: `Trash ${targets.length} items`,
+								? t('explorer.context.trashName', {name: targets[0].name})
+								: t('explorer.context.trashItems', {count: targets.length}),
 						targets: {
 							kind: 'paths',
 							paths: targets.map((target) => target.sd_path)

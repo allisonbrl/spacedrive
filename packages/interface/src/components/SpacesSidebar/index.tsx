@@ -38,6 +38,7 @@ import {
 	useSpacedriveClient
 } from '../../contexts/SpacedriveContext';
 import {useLibraries} from '../../hooks/useLibraries';
+import {useI18n} from '../../i18n';
 import {
 	getSpaceItemKeyFromRoute,
 	useExplorer
@@ -51,7 +52,7 @@ import {
 	sourceAvailability
 } from '../Sources/sourceAvailability';
 import {useSyncCount} from '../SyncMonitor/hooks/useSyncCount';
-import {TagDot, tagColor} from '../Tags';
+import {tagColor, TagDot} from '../Tags';
 import {resolveItemMetadata} from './hooks/spaceItemUtils';
 import {useSpaceItemContextMenu} from './hooks/useSpaceItemContextMenu';
 import {useSpaceLayout, useSpaces} from './hooks/useSpaces';
@@ -106,7 +107,8 @@ function isSeededDestination(item: SpaceItemType): boolean {
 
 function StoredItem({item, spaceId}: {item: SpaceItemType; spaceId: string}) {
 	const {loadPreferencesForSpaceItem} = useExplorer();
-	const {icon, label, path} = resolveItemMetadata(item);
+	const {t} = useI18n();
+	const {icon, label, path} = resolveItemMetadata(item, {t});
 	const contextMenu = useSpaceItemContextMenu({item, path, spaceId});
 	const iconNode = item.resolved_file ? (
 		<Thumb file={item.resolved_file} size={16} className="shrink-0" />
@@ -176,6 +178,7 @@ export function SpacesSidebar({
 	isPreviewActive = false,
 	presentation = 'floating'
 }: SpacesSidebarProps) {
+	const {t} = useI18n();
 	const client = useSpacedriveClient();
 	const platform = usePlatform();
 	const navigate = useNavigate();
@@ -289,7 +292,10 @@ export function SpacesSidebar({
 	};
 
 	const occupiedPlaceRoutes = useMemo(
-		() => new Set(systemFolders.map((folder) => routeForPath(folder.sd_path))),
+		() =>
+			new Set(
+				systemFolders.map((folder) => routeForPath(folder.sd_path))
+			),
 		[systemFolders]
 	);
 	const visibleSources = sources.filter(
@@ -316,8 +322,8 @@ export function SpacesSidebar({
 	const isActivityActive = ['/activity', '/jobs'].includes(location.pathname);
 	const activityLabel =
 		activityCount === undefined
-			? 'Activity'
-			: `Activity (${activityCount} active ${activityCount === 1 ? 'job' : 'jobs'})`;
+			? t('sidebar.activity')
+			: t('sidebar.activityCount', {count: activityCount});
 
 	return (
 		<div
@@ -338,7 +344,7 @@ export function SpacesSidebar({
 				)}
 			>
 				<nav
-					aria-label="Library"
+					aria-label={t('sidebar.library')}
 					className={clsx(
 						'relative z-[51] flex h-full flex-col p-2.5 pb-2',
 						platform.platform === 'tauri' && 'pt-[43px]'
@@ -360,33 +366,33 @@ export function SpacesSidebar({
 						<SidebarSection>
 							<SidebarItem
 								id="home"
-								label="Home"
+								label={t('sidebar.home')}
 								icon={House}
 								href="/"
 							/>
 							<SidebarItem
 								id="recents"
-								label="Recents"
+								label={t('sidebar.recents')}
 								icon={Clock}
 								href="/recents"
 							/>
 							{photoSource && (
 								<SidebarItem
 									id="photos"
-									label="Photos"
+									label={t('sidebar.photos')}
 									icon={Images}
 									href={`/sources/${photoSource.id}`}
 								/>
 							)}
 							<SidebarItem
 								id="screenshots"
-								label="Screenshots"
+								label={t('sidebar.screenshots')}
 								icon={Camera}
 								href="/collection/screenshots"
 							/>
 							<SidebarItem
 								id="storage"
-								label="Storage"
+								label={t('sidebar.storage')}
 								icon={HardDrives}
 								href="/sources"
 								activePathPrefixes={[
@@ -396,14 +402,14 @@ export function SpacesSidebar({
 							/>
 							<SidebarItem
 								id="protection"
-								label="Protection"
+								label={t('sidebar.protection')}
 								icon={ShieldCheck}
 								href="/redundancy"
 								activePathPrefixes={['/redundancy']}
 							/>
 							<SidebarItem
 								id="trash"
-								label="Trash"
+								label={t('sidebar.trash')}
 								icon={Trash}
 								href="/trash"
 								activePathPrefixes={['/trash']}
@@ -411,7 +417,7 @@ export function SpacesSidebar({
 						</SidebarSection>
 
 						{hasPlaces && (
-							<SidebarSection title="Places">
+							<SidebarSection title={t('sidebar.places')}>
 								{systemFolders.map((folder) => {
 									const href = routeForPath(folder.sd_path);
 									return (
@@ -451,8 +457,10 @@ export function SpacesSidebar({
 									);
 									const availability =
 										sourceAvailability(source);
-									const badge =
-										availabilityBadge(availability);
+									const badge = availabilityBadge(
+										availability,
+										t
+									);
 									return (
 										<SidebarItem
 											key={source.id}
@@ -478,12 +486,19 @@ export function SpacesSidebar({
 											}
 											badgeLabel={
 												badge &&
-												`${source.name} is ${badge.toLowerCase()}`
+												t(
+													'source.availability.announce',
+													{
+														source: source.name,
+														state: badge.toLowerCase()
+													}
+												)
 											}
 											title={
 												availabilityDescription(
 													availability,
-													undefined
+													undefined,
+													t
 												) ??
 												source.root ??
 												source.name
@@ -507,7 +522,7 @@ export function SpacesSidebar({
 						)}
 
 						{tags.length > 0 && (
-							<SidebarSection title="Tags">
+							<SidebarSection title={t('sidebar.tags')}>
 								{tags.map((tag) => {
 									const href = `/tag/${tag.id}`;
 									return (
@@ -538,7 +553,7 @@ export function SpacesSidebar({
 						)}
 
 						{currentSpace && customRootItems.length > 0 && (
-							<SidebarSection title="Pinned">
+							<SidebarSection title={t('sidebar.pinned')}>
 								{customRootItems.map((item) => (
 									<StoredItem
 										key={item.id}
@@ -600,8 +615,8 @@ export function SpacesSidebar({
 							type="button"
 							size="lg"
 							icon={GearSix}
-							title="Settings"
-							aria-label="Settings"
+							title={t('settings.title')}
+							aria-label={t('settings.title')}
 							onClick={() => openSettings('general')}
 							className="focus-visible:ring-accent/70 outline-none focus-visible:ring-2"
 						/>

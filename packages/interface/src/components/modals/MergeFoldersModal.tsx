@@ -18,6 +18,7 @@ import {
 	useLibraryValidate,
 } from "../../contexts/SpacedriveContext";
 import { usePlanPreviewStore } from "../../routes/explorer/hooks/usePlanPreview";
+import { useI18n } from "../../i18n";
 import { hasErrors, pathName, PreflightPanel } from "./PreflightPanel";
 
 interface MergeFoldersDialogProps {
@@ -33,11 +34,41 @@ interface MergeFoldersDialogProps {
 	onComplete?: () => void;
 }
 
-const POLICIES: { value: MergeConflictPolicy; label: string; hint: string }[] = [
-	{ value: "skip", label: "Keep existing", hint: "a file that differs stays as it is" },
-	{ value: "overwrite", label: "Overwrite", hint: "the incoming file replaces it" },
-	{ value: "keep_both", label: "Keep both", hint: "the incoming file is written beside it, numbered" },
-	{ value: "keep_newer", label: "Keep newer", hint: "the later modification time wins" },
+const POLICIES: {
+	value: MergeConflictPolicy;
+	labelKey: string;
+	hintKey: string;
+	defaultLabel: string;
+	defaultHint: string;
+}[] = [
+	{
+		value: "skip",
+		labelKey: "modals.mergeFolders.policy.skip",
+		hintKey: "modals.mergeFolders.policy.skipHint",
+		defaultLabel: "Keep existing",
+		defaultHint: "a file that differs stays as it is",
+	},
+	{
+		value: "overwrite",
+		labelKey: "modals.mergeFolders.policy.overwrite",
+		hintKey: "modals.mergeFolders.policy.overwriteHint",
+		defaultLabel: "Overwrite",
+		defaultHint: "the incoming file replaces it",
+	},
+	{
+		value: "keep_both",
+		labelKey: "modals.mergeFolders.policy.keepBoth",
+		hintKey: "modals.mergeFolders.policy.keepBothHint",
+		defaultLabel: "Keep both",
+		defaultHint: "the incoming file is written beside it, numbered",
+	},
+	{
+		value: "keep_newer",
+		labelKey: "modals.mergeFolders.policy.keepNewer",
+		hintKey: "modals.mergeFolders.policy.keepNewerHint",
+		defaultLabel: "Keep newer",
+		defaultHint: "the later modification time wins",
+	},
 ];
 
 /**
@@ -53,6 +84,7 @@ export function useMergeFoldersDialog() {
 }
 
 function MergeFoldersDialog(props: MergeFoldersDialogProps) {
+	const { t } = useI18n();
 	const dialog = useDialog(props);
 	const form = useForm();
 	const [policy, setPolicy] = useState<MergeConflictPolicy>(props.policy ?? "skip");
@@ -83,7 +115,7 @@ function MergeFoldersDialog(props: MergeFoldersDialogProps) {
 		setFailure(null);
 		try {
 			await merge.mutateAsync(input);
-			toast.success(`Merging into ${pathName(props.destination)}`);
+			toast.success(t("modals.mergeFolders.toast", { name: pathName(props.destination) }));
 			close();
 			props.onComplete?.();
 		} catch (error) {
@@ -100,7 +132,10 @@ function MergeFoldersDialog(props: MergeFoldersDialogProps) {
 		enterPreview({
 			source: { type: "files.merge", input },
 			plan: preview.data,
-			label: `Merge ${props.sources.map(pathName).join(", ")} into ${pathName(props.destination)}`,
+			label: t("modals.mergeFolders.previewLabel", {
+				sources: props.sources.map(pathName).join(", "),
+				destination: pathName(props.destination),
+			}),
 		});
 		close();
 	};
@@ -119,16 +154,20 @@ function MergeFoldersDialog(props: MergeFoldersDialogProps) {
 
 	const summary = preview.data?.summary;
 	const cta = summary
-		? `Merge ${summary.creates.files + summary.replaces.files} files${
-				removeExtras && summary.deletes.files > 0 ? `, remove ${summary.deletes.files}` : ""
+		? `${t("modals.mergeFolders.cta", {
+				count: summary.creates.files + summary.replaces.files,
+			})}${
+				removeExtras && summary.deletes.files > 0
+					? t("modals.mergeFolders.ctaRemove", { count: summary.deletes.files })
+					: ""
 			}`
-		: "Merge";
+		: t("modals.mergeFolders.ctaMerge");
 
 	return (
 		<Dialog
 			dialog={dialog}
 			form={form}
-			title="Merge folders"
+			title={t("modals.mergeFolders.title")}
 			icon={<FolderSimplePlus size={20} weight="bold" />}
 			ctaLabel={cta}
 			submitDisabled={refused || validation.isLoading || merge.isPending}
@@ -140,7 +179,7 @@ function MergeFoldersDialog(props: MergeFoldersDialogProps) {
 			<div className="space-y-4 py-1">
 				<div className="flex items-center gap-3 text-sm">
 					<div className="min-w-0 flex-1">
-						<div className="text-xs text-ink-dull">Merge</div>
+						<div className="text-xs text-ink-dull">{t("modals.mergeFolders.merge")}</div>
 						{props.sources.map((source) => (
 							<div key={JSON.stringify(source)} className="truncate font-medium text-ink">
 								{pathName(source)}
@@ -149,7 +188,7 @@ function MergeFoldersDialog(props: MergeFoldersDialogProps) {
 					</div>
 					<ArrowRight className="size-5 flex-shrink-0 text-accent" weight="bold" />
 					<div className="min-w-0 flex-1">
-						<div className="text-xs text-ink-dull">Into</div>
+						<div className="text-xs text-ink-dull">{t("modals.mergeFolders.into")}</div>
 						<div className="flex items-center gap-1.5 truncate font-medium text-ink">
 							<FolderOpen className="size-4 flex-shrink-0 text-accent" weight="fill" />
 							{pathName(props.destination)}
@@ -158,7 +197,7 @@ function MergeFoldersDialog(props: MergeFoldersDialogProps) {
 				</div>
 
 				<div className="space-y-1">
-					<div className="text-xs font-medium text-ink-dull">When a file differs at the same path</div>
+					<div className="text-xs font-medium text-ink-dull">{t("modals.mergeFolders.whenDiffers")}</div>
 					<div className="grid grid-cols-2 gap-1">
 						{POLICIES.map((option) => (
 							<button
@@ -171,8 +210,12 @@ function MergeFoldersDialog(props: MergeFoldersDialogProps) {
 										: "rounded-md bg-app-box px-2.5 py-1.5 text-left text-ink hover:bg-app-hover"
 								}
 							>
-								<div className="text-sm font-medium">{option.label}</div>
-								<div className="text-[11px] opacity-70">{option.hint}</div>
+								<div className="text-sm font-medium">
+									{(t(option.labelKey as any) as string) || option.defaultLabel}
+								</div>
+								<div className="text-[11px] opacity-70">
+									{(t(option.hintKey as any) as string) || option.defaultHint}
+								</div>
 							</button>
 						))}
 					</div>
@@ -180,10 +223,9 @@ function MergeFoldersDialog(props: MergeFoldersDialogProps) {
 
 				<label className="flex cursor-pointer items-center justify-between gap-3 rounded-md bg-app-box px-3 py-2">
 					<div>
-						<div className="text-sm text-ink">Consume the sources</div>
+						<div className="text-sm text-ink">{t("modals.mergeFolders.consume")}</div>
 						<div className="text-[11px] text-ink-dull">
-							Remove each file once it is merged and prune emptied folders. What the merge
-							does not settle stays.
+							{t("modals.mergeFolders.consumeDesc")}
 						</div>
 					</div>
 					<Switch checked={consume} onCheckedChange={setConsume} size="sm" />
@@ -191,10 +233,9 @@ function MergeFoldersDialog(props: MergeFoldersDialogProps) {
 
 				<label className="flex cursor-pointer items-center justify-between gap-3 rounded-md bg-app-box px-3 py-2">
 					<div>
-						<div className="text-sm text-ink">Remove what the sources lack</div>
+						<div className="text-sm text-ink">{t("modals.mergeFolders.removeExtras")}</div>
 						<div className="text-[11px] text-ink-dull">
-							The destination ends up matching the sources: files it holds that no source
-							does go to the trash, and the plan flags the last copies among them.
+							{t("modals.mergeFolders.removeExtrasDesc")}
 						</div>
 					</div>
 					<Switch checked={removeExtras} onCheckedChange={setRemoveExtras} size="sm" />
@@ -223,7 +264,7 @@ function MergeFoldersDialog(props: MergeFoldersDialogProps) {
 						onClick={browse}
 					>
 						<Eye className="mr-1.5 size-4" weight="bold" />
-						Browse the result
+						{t("modals.mergeFolders.browseResult")}
 					</Button>
 				</div>
 			</div>

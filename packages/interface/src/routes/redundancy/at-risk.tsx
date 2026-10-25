@@ -14,6 +14,7 @@ import {useEffect, useMemo, useRef} from 'react';
 import {useNavigate, useSearchParams} from 'react-router-dom';
 import {TopBarItem, TopBarPortal} from '../../TopBar';
 import {ExplorerView, useExplorer} from '../explorer';
+import {useI18n} from '../../i18n';
 
 const EMPTY_FILTERS: SearchFilters = {
 	file_types: null,
@@ -32,6 +33,7 @@ const EMPTY_FILTERS: SearchFilters = {
 
 export function AtRiskFiles() {
 	const navigate = useNavigate();
+	const {t} = useI18n();
 	const [searchParams] = useSearchParams();
 	const volumeFilter = searchParams.get('volume');
 	const atRiskParam = searchParams.get('at_risk');
@@ -39,7 +41,7 @@ export function AtRiskFiles() {
 
 	const {enterFilteredMode, exitFilteredMode, setSortBy} = useExplorer();
 
-	const label = isAtRisk ? 'At-Risk Files' : 'Redundant Files';
+	const label = isAtRisk ? t('redundancy.atRisk.title') : t('redundancy.atRisk.redundantTitle');
 
 	const filters = useMemo<SearchFilters>(
 		() => ({
@@ -75,7 +77,7 @@ export function AtRiskFiles() {
 			<div className="flex items-center gap-2">
 				<CircleButton
 					icon={ArrowLeft}
-					title="Back to Protection"
+					title={t('redundancy.atRisk.back')}
 					onClick={() => navigate('/redundancy')}
 				/>
 				<ShieldWarning
@@ -86,7 +88,7 @@ export function AtRiskFiles() {
 				<span className="text-ink text-sm font-semibold">{label}</span>
 			</div>
 		),
-		[navigate, label]
+		[navigate, label, t]
 	);
 
 	return (

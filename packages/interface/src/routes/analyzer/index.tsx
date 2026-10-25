@@ -5,6 +5,7 @@ import {useNavigate, useSearchParams} from 'react-router-dom';
 import {useCoreQuery} from '../../contexts/SpacedriveContext';
 import {formatBytes} from '../overview/DevicePanel';
 import {Sunburst} from './Sunburst';
+import {useI18n} from '../../i18n';
 
 /**
  * The storage analyzer. `/analyzer` renders every indexed source as a small
@@ -29,6 +30,7 @@ export function AnalyzerView() {
 
 function AnalyzerGrid({onOpen}: {onOpen: (path: string) => void}) {
 	const navigate = useNavigate();
+	const {t} = useI18n();
 	const {data: status} = useCoreQuery({
 		type: 'core.index_status',
 		input: {}
@@ -43,19 +45,18 @@ function AnalyzerGrid({onOpen}: {onOpen: (path: string) => void}) {
 					onClick={() => navigate('/sources')}
 					className="text-ink-dull hover:bg-app-hover hover:text-ink rounded-md px-2 py-1 text-sm"
 				>
-					Storage
+					{t('analyzer.storage')}
 				</button>
 				<span className="text-ink-faint">/</span>
-				<h1 className="text-ink text-xl font-semibold">Usage</h1>
+				<h1 className="text-ink text-xl font-semibold">{t('analyzer.usage')}</h1>
 			</div>
 			<p className="text-ink-faint mt-1 text-sm">
-				See what occupies each indexed source, including sources that
-				are offline.
+				{t('analyzer.description')}
 			</p>
 
 			{sources.length === 0 && (
 				<div className="text-ink-faint mt-16 text-center text-sm">
-					Nothing indexed yet. Track storage and it appears here.
+					{t('analyzer.empty')}
 				</div>
 			)}
 
@@ -79,6 +80,7 @@ function SourceCard({
 	source: IndexSourceInfo;
 	onOpen: () => void;
 }) {
+	const {t, formatNumber} = useI18n();
 	const {data} = useCoreQuery({
 		type: 'files.size_tree',
 		input: {path: source.root, depth: 2, top: 8}
@@ -107,7 +109,7 @@ function SourceCard({
 					{name}
 				</span>
 				{!source.attached && (
-					<span title="Not plugged in">
+					<span title={t('analyzer.notPluggedIn')}>
 						<Plugs className="text-ink-faint size-3.5 shrink-0" />
 					</span>
 				)}
@@ -117,7 +119,7 @@ function SourceCard({
 					? formatBytes(source.total_bytes)
 					: '—'}
 				{source.entry_count != null &&
-					` · ${source.entry_count.toLocaleString()} items`}
+					` · ${t('analyzer.items', { count: formatNumber(source.entry_count) })}`}
 			</div>
 		</button>
 	);
@@ -131,6 +133,7 @@ function AnalyzerDetail({
 	onNavigate: (path: string | null) => void;
 }) {
 	const navigate = useNavigate();
+	const {t} = useI18n();
 	const [hovered, setHovered] = useState<{
 		label: string;
 		size: number;
@@ -152,14 +155,14 @@ function AnalyzerDetail({
 					onClick={() => onNavigate(null)}
 					className="text-ink-dull hover:bg-app-hover hover:text-ink flex items-center gap-1 rounded-md px-2 py-1 text-sm"
 				>
-					<ArrowLeft className="size-4" /> All drives
+					<ArrowLeft className="size-4" /> {t('analyzer.allDrives')}
 				</button>
 				{parent && (
 					<button
 						onClick={() => onNavigate(parent)}
 						className="text-ink-dull hover:bg-app-hover hover:text-ink rounded-md px-2 py-1 text-sm"
 					>
-						Up
+						{t('analyzer.up')}
 					</button>
 				)}
 				<span className="text-ink-faint min-w-0 flex-1 truncate text-sm">
@@ -232,7 +235,7 @@ function AnalyzerDetail({
 						{root.other_size > 0 && (
 							<div className="flex w-full items-center gap-2 px-2 py-1">
 								<span className="text-ink-faint min-w-0 flex-1 truncate text-sm">
-									everything else
+									{t('analyzer.everythingElse')}
 								</span>
 								<span className="text-ink-faint shrink-0 text-xs tabular-nums">
 									{formatBytes(root.other_size)}

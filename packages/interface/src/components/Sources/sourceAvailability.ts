@@ -1,4 +1,5 @@
 import type {VolumeState} from '@sd/ts-client';
+import type {TranslationKey} from '../../i18n';
 
 /**
  * What stands between the library and a source's files right now, as the
@@ -9,7 +10,32 @@ import type {VolumeState} from '@sd/ts-client';
  * for (a drive that vanished, a replica whose owner is away). A mounted
  * drive and an adapter, whose origin is a service, are `available`.
  */
-export type SourceAvailability = 'available' | 'unmounted' | 'locked' | 'offline';
+export type SourceAvailability =
+	| 'available'
+	| 'unmounted'
+	| 'locked'
+	| 'offline';
+
+const defaultTranslate = (
+	key: TranslationKey,
+	variables?: Record<string, string | number>
+) => {
+	const values: Partial<Record<TranslationKey, string>> = {
+		'source.availability.locked': 'Locked',
+		'source.availability.unmounted': 'Unmounted',
+		'source.availability.offline': 'Offline',
+		'source.availability.lockedDescription':
+			'{{volume}} is locked: its encryption key is not loaded. Files stay listed from the last index and cannot be opened until the key is loaded.',
+		'source.availability.unmountedDescription':
+			'{{volume}} is not mounted. Files stay listed from the last index and cannot be opened until it mounts.',
+		'source.availability.offlineDescription':
+			'The drive is not connected. Files stay listed from the last index.',
+		'source.availability.announce': '{{source}} is {{state}}'
+	};
+	return (values[key] ?? key).replace(/\{\{(\w+)\}\}/g, (_, name) =>
+		String(variables?.[name] ?? '')
+	);
+};
 
 export function sourceAvailability(source: {
 	attached: boolean;
@@ -29,15 +55,16 @@ export function sourceAvailability(source: {
 
 /** The badge a row or card wears, or nothing while the source is available. */
 export function availabilityBadge(
-	availability: SourceAvailability
+	availability: SourceAvailability,
+	t: (key: TranslationKey) => string = defaultTranslate
 ): string | undefined {
 	switch (availability) {
 		case 'locked':
-			return 'Locked';
+			return t('source.availability.locked');
 		case 'unmounted':
-			return 'Unmounted';
+			return t('source.availability.unmounted');
 		case 'offline':
-			return 'Offline';
+			return t('source.availability.offline');
 		default:
 			return undefined;
 	}
@@ -50,16 +77,20 @@ export function availabilityBadge(
  */
 export function availabilityDescription(
 	availability: SourceAvailability,
-	volumeName: string | undefined
+	volumeName: string | undefined,
+	t: (
+		key: TranslationKey,
+		variables?: Record<string, string | number>
+	) => string = defaultTranslate
 ): string | undefined {
 	const volume = volumeName ?? 'Its volume';
 	switch (availability) {
 		case 'locked':
-			return `${volume} is locked: its encryption key is not loaded. Files stay listed from the last index and cannot be opened until the key is loaded.`;
+			return t('source.availability.lockedDescription', {volume});
 		case 'unmounted':
-			return `${volume} is not mounted. Files stay listed from the last index and cannot be opened until it mounts.`;
+			return t('source.availability.unmountedDescription', {volume});
 		case 'offline':
-			return 'The drive is not connected. Files stay listed from the last index.';
+			return t('source.availability.offlineDescription');
 		default:
 			return undefined;
 	}

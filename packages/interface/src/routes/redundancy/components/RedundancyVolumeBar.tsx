@@ -1,5 +1,6 @@
 import {motion} from 'framer-motion';
 import {useNavigate} from 'react-router-dom';
+import {useI18n} from '../../../i18n';
 
 interface RedundancyVolumeBarProps {
 	volumeUuid: string;
@@ -31,6 +32,7 @@ export function RedundancyVolumeBar({
 	totalFileCount
 }: RedundancyVolumeBarProps) {
 	const navigate = useNavigate();
+	const {t, formatNumber} = useI18n();
 
 	const redundantPercent =
 		totalBytes > 0 ? (redundantBytes / totalBytes) * 100 : 0;
@@ -46,10 +48,10 @@ export function RedundancyVolumeBar({
 			{/* Header */}
 			<div className="mb-2 flex items-center justify-between">
 				<span className="text-ink truncate text-sm font-medium">
-					{displayName || 'Unknown Volume'}
+					{displayName || t('redundancy.volume.unknown')}
 				</span>
 				<span className="text-ink-dull text-xs">
-					{totalFileCount.toLocaleString()} files
+					{t('redundancy.volume.files', { count: formatNumber(totalFileCount) })}
 				</span>
 			</div>
 
@@ -65,7 +67,10 @@ export function RedundancyVolumeBar({
 							duration: 0.6,
 							ease: [0.25, 1, 0.5, 1]
 						}}
-						title={`Redundant: ${formatBytes(redundantBytes)} (${redundantFileCount} files) — safely backed up on other volumes`}
+						title={t('redundancy.volume.tooltipRedundant', {
+							size: formatBytes(redundantBytes),
+							count: formatNumber(redundantFileCount)
+						})}
 						onClick={() =>
 							navigate(
 								`/redundancy/at-risk?volume=${volumeUuid}&at_risk=false`
@@ -84,7 +89,10 @@ export function RedundancyVolumeBar({
 							ease: [0.25, 1, 0.5, 1],
 							delay: 0.1
 						}}
-						title={`At risk: ${formatBytes(atRiskBytes)} (${atRiskFileCount} files) — only copy, not backed up`}
+						title={t('redundancy.volume.tooltipAtRisk', {
+							size: formatBytes(atRiskBytes),
+							count: formatNumber(atRiskFileCount)
+						})}
 						onClick={() =>
 							navigate(
 								`/redundancy/at-risk?volume=${volumeUuid}&at_risk=true`
@@ -111,11 +119,19 @@ export function RedundancyVolumeBar({
 			<div className="text-ink-dull mt-2 flex gap-4 text-xs">
 				<div className="flex items-center gap-1.5">
 					<div className="bg-status-success/70 size-2 rounded-full" />
-					<span>Redundant ({formatBytes(redundantBytes)})</span>
+					<span>
+						{t('redundancy.volume.legendRedundant', {
+							size: formatBytes(redundantBytes)
+						})}
+					</span>
 				</div>
 				<div className="flex items-center gap-1.5">
 					<div className="bg-status-warning/70 size-2 rounded-full" />
-					<span>At Risk ({formatBytes(atRiskBytes)})</span>
+					<span>
+						{t('redundancy.volume.legendAtRisk', {
+							size: formatBytes(atRiskBytes)
+						})}
+					</span>
 				</div>
 			</div>
 		</div>

@@ -1,11 +1,13 @@
 import { CircleNotch } from "@phosphor-icons/react";
 import type { JobListItem } from "@sd/ts-client";
+import { useI18n } from "../../i18n";
 
 interface DeviceJobActivityProps {
 	jobs: JobListItem[];
 }
 
 export function DeviceJobActivity({ jobs }: DeviceJobActivityProps) {
+	const { t } = useI18n();
 	const activeJobs = jobs.filter(
 		(j) => j.status === "running" || j.status === "paused"
 	);
@@ -30,7 +32,7 @@ export function DeviceJobActivity({ jobs }: DeviceJobActivityProps) {
 			</div>
 			{remainingCount > 0 && (
 				<span className="text-xs text-ink-dull">
-					+{remainingCount} more
+					{t('overview.deviceJob.more', { count: remainingCount })}
 				</span>
 			)}
 		</div>

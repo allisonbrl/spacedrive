@@ -1,7 +1,9 @@
+import type { TranslateFn } from '../../i18n';
+
 /**
  * Formats a date to time ago (e.g., "2m ago", "1h ago")
  */
-export function timeAgo(date: string | Date | undefined): string {
+export function timeAgo(date: string | Date | undefined, t?: TranslateFn): string {
 	if (!date) return '—';
 
 	const now = new Date();
@@ -16,8 +18,8 @@ export function timeAgo(date: string | Date | undefined): string {
 	const diffHours = Math.floor(diffMinutes / 60);
 	const diffDays = Math.floor(diffHours / 24);
 
-	if (diffDays > 0) return `${diffDays}d ago`;
-	if (diffHours > 0) return `${diffHours}h ago`;
-	if (diffMinutes > 0) return `${diffMinutes}m ago`;
-	return 'just now';
+	if (diffDays > 0) return t ? t('sync.time.days', { count: diffDays }) : `${diffDays}d ago`;
+	if (diffHours > 0) return t ? t('sync.time.hours', { count: diffHours }) : `${diffHours}h ago`;
+	if (diffMinutes > 0) return t ? t('sync.time.minutes', { count: diffMinutes }) : `${diffMinutes}m ago`;
+	return t ? t('sync.time.justNow') : 'just now';
 }

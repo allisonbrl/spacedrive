@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import type { ChangeKind } from "@sd/ts-client";
 import { changeLabel } from "../../../components/modals/PreflightPanel";
+import {useI18n} from '../../../i18n';
 
 /**
  * How a listing row reads under a browsed plan: a row the plan would create
@@ -30,6 +31,7 @@ export function PlanBadge({
 	change: ChangeKind | undefined;
 	className?: string;
 }) {
+	const {t} = useI18n();
 	if (!change) return null;
 	const tone =
 		change.type === "conflict" || (change.type === "delete" && change.last_copy)
@@ -47,7 +49,7 @@ export function PlanBadge({
 				className,
 			)}
 		>
-			{changeLabel(change)}
+			{changeLabel(change, t)}
 		</span>
 	);
 }

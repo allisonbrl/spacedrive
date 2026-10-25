@@ -39,6 +39,7 @@ import {isPathItem, useSpaceLayout, useSpaces} from '../../../components/SpacesS
 import {useExplorer} from '../context';
 import {sdPathToUri} from '../utils';
 import {useAddToLibraryDialog} from './AddToLibraryModal';
+import {useI18n} from '../../../i18n';
 
 interface PathBarProps {
 	path: SdPath;
@@ -179,6 +180,7 @@ function PathStatusSkeleton() {
 }
 
 function PathStatusButton({path}: {path: SdPath}) {
+	const {t} = useI18n();
 	const popover = usePopover();
 	const [showDetails, setShowDetails] = useState(false);
 	const navigate = useNavigate();
@@ -277,10 +279,10 @@ function PathStatusButton({path}: {path: SdPath}) {
 	};
 	const watcherLabel =
 		context?.watcher_state === 'active'
-			? 'Watching'
+			? t('explorer.path.watching')
 			: context?.watcher_state === 'inactive'
-				? 'Not watching'
-				: 'Watch unavailable';
+				? t('explorer.path.notWatching')
+				: t('explorer.path.watchUnavailable');
 	const watcherTone =
 		context?.watcher_state === 'active'
 			? 'active'
@@ -289,21 +291,21 @@ function PathStatusButton({path}: {path: SdPath}) {
 				: 'muted';
 	const watcherDetail =
 		context?.watcher_state === 'active'
-			? `Watching changes from ${context.watcher_root ?? pathDetail}.`
+			? t('explorer.path.watchingDetail', {root: context.watcher_root ?? pathDetail})
 			: context?.watcher_state === 'inactive'
-				? 'Changes under this path are not being watched.'
-				: 'Live updates are unavailable for this path.';
+				? t('explorer.path.notWatchingDetail')
+				: t('explorer.path.watchUnavailableDetail');
 	const storageLabel = context?.storage.source_record
-		? 'Source records'
+		? t('explorer.path.sourceRecords')
 		: context?.storage.source_store && context.map_state === 'indexing'
-			? 'Recording'
+			? t('explorer.path.recording')
 			: context?.storage.restart_cache && context.storage.memory
-				? 'Restart cache'
+				? t('explorer.path.restartCache')
 				: context?.storage.memory
-					? 'Memory only'
+					? t('explorer.path.memoryOnly')
 					: context?.storage.source_store
-						? 'Not recorded'
-						: 'Not indexed';
+						? t('explorer.path.notRecorded')
+						: t('explorer.path.notIndexed');
 	const storageTone = context?.storage.source_record
 		? 'active'
 		: storageLabel === 'Not recorded'
@@ -312,23 +314,23 @@ function PathStatusButton({path}: {path: SdPath}) {
 				? 'neutral'
 				: 'muted';
 	const storageDetail = context?.storage.source_record
-		? `This path has committed records in ${context.source?.name ?? 'the source'} database.`
+		? t('explorer.path.sourceRecordDetail', {source: context.source?.name ?? t('explorer.path.theSource')})
 		: context?.storage.source_store && context.map_state === 'indexing'
-			? 'This source is being walked. Records appear here as its batches commit.'
+			? t('explorer.path.recordingDetail')
 			: context?.storage.restart_cache && context.storage.memory
-				? 'A rebuildable cache is available on this device after restart.'
+				? t('explorer.path.restartCacheDetail')
 				: context?.storage.memory
-					? 'This path exists only in the live arena until the daemon stops.'
+					? t('explorer.path.memoryOnlyDetail')
 					: context?.storage.source_store
-						? 'The source database exists, but this path has no committed record.'
-						: 'Spacedrive has not indexed this path.';
+						? t('explorer.path.notRecordedDetail')
+						: t('explorer.path.notIndexedDetail');
 	const placeLabel = context?.system_place
-		? `${context.system_place} is a system Place`
+		? t('explorer.path.systemPlace', {place: context.system_place})
 		: pinnedItem
-			? `Unpin ${pathLabel}`
+			? t('explorer.path.unpin', {name: pathLabel})
 			: canPin
-				? 'Pin this folder'
-				: 'This folder is unavailable';
+				? t('explorer.path.pinFolder')
+				: t('explorer.path.folderUnavailable');
 	const canChangePlace = Boolean(pinnedItem || canPin);
 	const sourceRoot = context?.source?.root;
 	const canReindex = Boolean(
@@ -352,7 +354,7 @@ function PathStatusButton({path}: {path: SdPath}) {
 							context.watcher_state === 'active' &&
 							'!text-accent'
 					)}
-					title="Path status"
+					title={t('explorer.path.status')}
 				/>
 			</Popover.Trigger>
 			<Popover.Content
@@ -415,13 +417,13 @@ function PathStatusButton({path}: {path: SdPath}) {
 						<div className="px-4 py-4 text-xs">
 							<div className="flex items-center gap-2 text-amber-400">
 								<WarningCircle size={16} />
-								Path status is unavailable
+								{t('explorer.path.statusUnavailable')}
 							</div>
 							<button
 								onClick={() => void refetch()}
 								className="text-accent mt-1 font-medium hover:underline"
 							>
-								Try again
+								{t('explorer.path.tryAgain')}
 							</button>
 						</div>
 					) : isLoading || !context ? (
@@ -447,7 +449,7 @@ function PathStatusButton({path}: {path: SdPath}) {
 												{storageLabel}
 											</div>
 											<div className="text-ink-faint text-[10px]">
-												Not kept by a source
+												{t('explorer.path.notKeptBySource')}
 											</div>
 										</div>
 									</div>
@@ -465,7 +467,7 @@ function PathStatusButton({path}: {path: SdPath}) {
 												{context.volume.name}
 											</div>
 											<div className="text-ink-faint text-[9px] font-semibold uppercase tracking-wider">
-												Volume
+												{t('explorer.path.volume')}
 											</div>
 										</div>
 									</div>
@@ -525,7 +527,7 @@ function PathStatusButton({path}: {path: SdPath}) {
 										<Tooltip
 											label={
 												canReindex
-													? `Reindex ${context.source.name}`
+													? t('explorer.path.reindex', {name: context.source.name})
 													: 'Source is unavailable'
 											}
 											asChild
@@ -569,28 +571,28 @@ function PathStatusButton({path}: {path: SdPath}) {
 											/>
 										</Tooltip>
 										<Tooltip
-											label="Open source"
+											label={t('explorer.path.openSource')}
 											asChild
 											tooltipClassName="!z-[1000]"
 										>
 											<CircleButton
 												icon={Database}
 												size="lg"
-												title="Open source"
+												title={t('explorer.path.openSource')}
 												onClick={openSource}
 											/>
 										</Tooltip>
 									</>
 								) : canAddSource ? (
 									<Tooltip
-										label="Add as a source"
+										label={t('explorer.path.addSource')}
 										asChild
 										tooltipClassName="!z-[1000]"
 									>
 										<CircleButton
 											icon={Plus}
 											size="lg"
-											title="Add as a source"
+											title={t('explorer.path.addSource')}
 											onClick={addSource}
 										/>
 									</Tooltip>
@@ -614,8 +616,8 @@ function PathStatusButton({path}: {path: SdPath}) {
 								<Tooltip
 									label={
 										showDetails
-											? 'Hide details'
-											: 'Show details'
+											? t('explorer.path.hideDetails')
+											: t('explorer.path.showDetails')
 									}
 									asChild
 									tooltipClassName="!z-[1000]"
@@ -626,8 +628,8 @@ function PathStatusButton({path}: {path: SdPath}) {
 										active={showDetails}
 										title={
 											showDetails
-												? 'Hide details'
-												: 'Show details'
+												? t('explorer.path.hideDetails')
+												: t('explorer.path.showDetails')
 										}
 										onClick={() =>
 											setShowDetails(
@@ -641,7 +643,7 @@ function PathStatusButton({path}: {path: SdPath}) {
 							{showDetails && (
 								<div className="border-app-line grid grid-cols-[88px_1fr] gap-x-3 gap-y-1.5 border-t px-4 py-3 text-[9px]">
 									<span className="text-ink-faint">
-										Source root
+										{t('explorer.path.sourceRoot')}
 									</span>
 									<span
 										className="text-ink-dull truncate text-right"
@@ -649,18 +651,18 @@ function PathStatusButton({path}: {path: SdPath}) {
 											context.source?.root ?? undefined
 										}
 									>
-										{context.source?.root ?? 'None'}
+										{context.source?.root ?? t('explorer.path.none')}
 									</span>
 									<span className="text-ink-faint">
-										Source record
+										{t('explorer.path.sourceRecord')}
 									</span>
 									<span className="text-ink-dull text-right">
 										{context.storage.source_record
-											? 'Committed'
-											: 'None'}
+											? t('explorer.path.committed')
+											: t('explorer.path.none')}
 									</span>
 									<span className="text-ink-faint">
-										Watch root
+										{t('explorer.path.watchRoot')}
 									</span>
 									<span
 										className="text-ink-dull truncate text-right"
@@ -668,10 +670,10 @@ function PathStatusButton({path}: {path: SdPath}) {
 											context.watcher_root ?? undefined
 										}
 									>
-										{context.watcher_root ?? 'None'}
+										{context.watcher_root ?? t('explorer.path.none')}
 									</span>
 									<span className="text-ink-faint">
-										Volume mount
+										{t('explorer.path.volumeMount')}
 									</span>
 									<span
 										className="text-ink-dull truncate text-right"
@@ -683,18 +685,18 @@ function PathStatusButton({path}: {path: SdPath}) {
 										{context.volume?.mount_point ?? 'None'}
 									</span>
 									<span className="text-ink-faint">
-										Arena
+										{t('explorer.path.arena')}
 									</span>
 									<span className="text-ink-dull text-right">
 										{statusLabel(context.map_state)}
 									</span>
 									<span className="text-ink-faint">
-										Restart cache
+										{t('explorer.path.restartCache')}
 									</span>
 									<span className="text-ink-dull text-right">
 										{context.storage.restart_cache
-											? 'Available'
-											: 'None'}
+											? t('explorer.path.available')
+											: t('explorer.path.none')}
 									</span>
 								</div>
 							)}
@@ -707,6 +709,7 @@ function PathStatusButton({path}: {path: SdPath}) {
 }
 
 export function PathBar({path, devices, onNavigate}: PathBarProps) {
+	const {t} = useI18n();
 	const [isExpanded, setIsExpanded] = useState(false);
 	const [isShiftHeld, setIsShiftHeld] = useState(false);
 	const [isEditing, setIsEditing] = useState(false);
@@ -714,7 +717,8 @@ export function PathBar({path, devices, onNavigate}: PathBarProps) {
 	const [editingAsUri, setEditingAsUri] = useState(false);
 	const {navigateToView} = useExplorer();
 	const uri = sdPathToUri(path);
-	const currentDir = getCurrentDirectoryName(path);
+	const currentDirName = getCurrentDirectoryName(path);
+	const currentDir = currentDirName === 'Content' ? t('explorer.path.content') : currentDirName;
 	const segments = parsePathSegments(path);
 
 	// Get device icon and device info based on the device_slug
@@ -873,8 +877,8 @@ export function PathBar({path, devices, onNavigate}: PathBarProps) {
 					disabled={!deviceInfo.device}
 					title={
 						deviceInfo.device
-							? `Go to ${deviceInfo.device.name}`
-							: 'Device'
+							? t('explorer.path.goToDevice', {device: deviceInfo.device.name})
+							: t('explorer.path.device')
 					}
 					className={clsx(
 						'size-5 flex-shrink-0 transition-opacity',
@@ -885,7 +889,7 @@ export function PathBar({path, devices, onNavigate}: PathBarProps) {
 				>
 					<img
 						src={deviceInfo.icon}
-						alt="Device"
+						alt={t('explorer.path.device')}
 						className="size-full"
 					/>
 				</button>
@@ -907,8 +911,8 @@ export function PathBar({path, devices, onNavigate}: PathBarProps) {
 						)}
 						placeholder={
 							editingAsUri
-								? 'Enter SdPath JSON...'
-								: 'Enter path...'
+								? t('explorer.path.enterSdPath')
+								: t('explorer.path.enterPath')
 						}
 					/>
 				) : showUri ? (
@@ -923,7 +927,7 @@ export function PathBar({path, devices, onNavigate}: PathBarProps) {
 							'cursor-text select-all',
 							'focus:outline-none focus:ring-0'
 						)}
-						placeholder="No path selected"
+						placeholder={t('explorer.path.noPath')}
 					/>
 				) : isExpanded ? (
 					<div className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden">
@@ -983,7 +987,7 @@ export function PathBar({path, devices, onNavigate}: PathBarProps) {
 							'cursor-text select-all',
 							'focus:outline-none focus:ring-0'
 						)}
-						placeholder="No path selected"
+						placeholder={t('explorer.path.noPath')}
 					/>
 				)}
 			</motion.div>

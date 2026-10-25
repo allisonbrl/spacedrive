@@ -7,6 +7,7 @@ import {
 	availabilityDescription,
 	sourceAvailability
 } from './sourceAvailability';
+import {useI18n, type TranslateFn} from '../../i18n';
 
 /**
  * A paired device's source, replicated through the peer-mount plane — same
@@ -17,14 +18,17 @@ import {
  * rather than as a replica that stopped updating.
  */
 
-function syncedLabel(iso: string): string {
+function syncedLabel(iso: string, t?: TranslateFn): string {
 	const elapsed = Math.max(0, Date.now() - new Date(iso).getTime());
 	const minutes = Math.floor(elapsed / 60000);
-	if (minutes < 1) return 'synced just now';
-	if (minutes < 60) return `synced ${minutes}m ago`;
+	if (minutes < 1) return t ? t('sources.card.synced.justNow') : 'synced just now';
+	if (minutes < 60)
+		return t ? t('sources.card.synced.minutes', {count: minutes}) : `synced ${minutes}m ago`;
 	const hours = Math.floor(minutes / 60);
-	if (hours < 24) return `synced ${hours}h ago`;
-	return `synced ${Math.floor(hours / 24)}d ago`;
+	if (hours < 24)
+		return t ? t('sources.card.synced.hours', {count: hours}) : `synced ${hours}h ago`;
+	const days = Math.floor(hours / 24);
+	return t ? t('sources.card.synced.days', {count: days}) : `synced ${days}d ago`;
 }
 
 export function ReplicaSourceCard({
@@ -35,8 +39,9 @@ export function ReplicaSourceCard({
 	deviceSlug: string | undefined;
 }) {
 	const navigate = useNavigate();
+	const {t, formatNumber} = useI18n();
 	const availability = sourceAvailability(source);
-	const badge = availabilityBadge(availability);
+	const badge = availabilityBadge(availability, t);
 
 	const open = () => {
 		if (!deviceSlug || !source.root) return;
@@ -50,7 +55,7 @@ export function ReplicaSourceCard({
 		<button
 			onClick={open}
 			title={
-				availabilityDescription(availability, undefined) ??
+				availabilityDescription(availability, undefined, t) ??
 				source.root ??
 				source.name
 			}
@@ -73,7 +78,7 @@ export function ReplicaSourceCard({
 						{source.name}
 					</h3>
 					<p className="text-ink-faint text-xs">
-						{source.device_label ?? 'paired device'}
+						{source.device_label ?? t('sources.card.pairedDevice')}
 					</p>
 				</div>
 				{badge && (
@@ -85,20 +90,20 @@ export function ReplicaSourceCard({
 					</span>
 				)}
 				<span className="bg-app-selected/40 text-ink-faint rounded-full px-2 py-0.5 text-[10px] font-medium">
-					replica
+					{t('sources.card.replica')}
 				</span>
 			</div>
 
 			<div className="text-ink-faint flex items-center justify-between text-xs">
 				<span>
-					{source.item_count.toLocaleString()} items
+					{t('sources.card.items', {count: formatNumber(source.item_count)})}
 					{source.total_bytes != null &&
 						` · ${formatBytes(source.total_bytes)}`}
 				</span>
 				<span>
 					{source.last_synced
-						? syncedLabel(source.last_synced)
-						: 'never synced'}
+						? syncedLabel(source.last_synced, t)
+						: t('sources.card.neverSynced')}
 				</span>
 			</div>
 		</button>

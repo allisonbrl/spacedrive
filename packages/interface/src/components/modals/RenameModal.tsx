@@ -21,6 +21,7 @@ import {
 	useLibraryValidate,
 } from "../../contexts/SpacedriveContext";
 import { usePlanPreviewStore } from "../../routes/explorer/hooks/usePlanPreview";
+import { useI18n } from "../../i18n";
 import { hasErrors, pathName, PreflightPanel } from "./PreflightPanel";
 
 interface RenameDialogProps {
@@ -32,12 +33,12 @@ interface RenameDialogProps {
 type RuleKind = RenameRule["kind"];
 type CaseValue = Extract<RenameRule, { kind: "case" }>["stem"];
 
-const KINDS: { value: RuleKind; label: string }[] = [
-	{ value: "replace", label: "Replace text" },
-	{ value: "case", label: "Change case" },
-	{ value: "affix", label: "Add text" },
-	{ value: "sequence", label: "Number" },
-	{ value: "template", label: "Format" },
+const KINDS: { value: RuleKind; labelKey: string; defaultLabel: string }[] = [
+	{ value: "replace", labelKey: "modals.rename.kind.replace", defaultLabel: "Replace text" },
+	{ value: "case", labelKey: "modals.rename.kind.case", defaultLabel: "Change case" },
+	{ value: "affix", labelKey: "modals.rename.kind.affix", defaultLabel: "Add text" },
+	{ value: "sequence", labelKey: "modals.rename.kind.sequence", defaultLabel: "Number" },
+	{ value: "template", labelKey: "modals.rename.kind.template", defaultLabel: "Format" },
 ];
 
 const TOKENS = "{name} {ext} {n} {n:04} {parent} {date:%Y-%m-%d} {captured:%Y-%m-%d}";
@@ -71,6 +72,7 @@ export function useBatchRenameDialog() {
 }
 
 function RenameDialog(props: RenameDialogProps) {
+	const { t } = useI18n();
 	const dialog = useDialog(props);
 	const form = useForm();
 	const [rules, setRules] = useState<RenameRule[]>([blank("replace")]);
@@ -108,7 +110,7 @@ function RenameDialog(props: RenameDialogProps) {
 		setFailure(null);
 		try {
 			await rename.mutateAsync(input);
-			toast.success(`Renaming ${props.targets.length} items`);
+			toast.success(t("modals.rename.toast", { count: props.targets.length }));
 			close();
 			props.onComplete?.();
 		} catch (error) {
@@ -125,7 +127,7 @@ function RenameDialog(props: RenameDialogProps) {
 		enterPreview({
 			source: { type: "files.rename_batch", input },
 			plan: preview.data,
-			label: `Rename ${props.targets.length} items`,
+			label: t("modals.rename.title", { count: props.targets.length }),
 		});
 		close();
 	};
@@ -163,9 +165,13 @@ function RenameDialog(props: RenameDialogProps) {
 		<Dialog
 			dialog={dialog}
 			form={form}
-			title={`Rename ${props.targets.length} items`}
+			title={t("modals.rename.title", { count: props.targets.length })}
 			icon={<TextAa size={20} weight="bold" />}
-			ctaLabel={summary ? `Rename ${summary.moves.files} files` : "Rename"}
+			ctaLabel={
+				summary
+					? t("modals.rename.cta", { count: summary.moves.files })
+					: t("modals.rename.ctaFallback")
+			}
 			submitDisabled={refused || nothing || validation.isLoading || rename.isPending}
 			loading={rename.isPending}
 			onSubmit={form.handleSubmit(submit)}
@@ -191,18 +197,20 @@ function RenameDialog(props: RenameDialogProps) {
 							value={"replace"}
 							size="sm"
 							onChange={(kind) => setRules((state) => [...state, blank(kind)])}
-							placeholder="Add a rule"
+							placeholder={t("modals.rename.addRule")}
 						>
 							{KINDS.map((kind) => (
 								<SelectOption key={kind.value} value={kind.value}>
 									<span className="flex items-center gap-1.5">
 										<Plus className="size-3" weight="bold" />
-										{kind.label}
+										{(t(kind.labelKey as any) as string) || kind.defaultLabel}
 									</span>
 								</SelectOption>
 							))}
 						</Select>
-						<span className="text-[10px] text-ink-faint">Tokens: {TOKENS}</span>
+						<span className="text-[10px] text-ink-faint">
+							{t("modals.rename.tokens", { tokens: TOKENS })}
+						</span>
 					</div>
 				</div>
 
@@ -217,7 +225,9 @@ function RenameDialog(props: RenameDialogProps) {
 								)}
 							>
 								{entry.conflict ? (
-									<span className="truncate">two files want {entry.to}</span>
+									<span className="truncate">
+										{t("modals.rename.conflict", { name: entry.to })}
+									</span>
 								) : (
 									<>
 										<span className="truncate text-ink-dull">{entry.from}</span>
@@ -228,7 +238,9 @@ function RenameDialog(props: RenameDialogProps) {
 							</div>
 						))}
 						{renames.length > 200 && (
-							<div className="text-ink-faint">and {renames.length - 200} more</div>
+							<div className="text-ink-faint">
+								{t("modals.rename.andMore", { count: renames.length - 200 })}
+							</div>
 						)}
 					</div>
 				)}
@@ -242,7 +254,9 @@ function RenameDialog(props: RenameDialogProps) {
 				/>
 
 				{nothing && (
-					<div className="text-xs text-ink-faint">No name changes with these rules.</div>
+					<div className="text-xs text-ink-faint">
+						{t("modals.rename.nothing")}
+					</div>
 				)}
 
 				{failure && (
@@ -260,7 +274,7 @@ function RenameDialog(props: RenameDialogProps) {
 						onClick={browse}
 					>
 						<Eye className="mr-1.5 size-4" weight="bold" />
-						Browse the result
+						{t("modals.rename.browseResult")}
 					</Button>
 				</div>
 			</div>
@@ -285,10 +299,14 @@ function RuleRow({
 	onUp: () => void;
 	onDown: () => void;
 }) {
+	const { t } = useI18n();
+	const kindItem = KINDS.find((kind) => kind.value === rule.kind);
+	const kindLabel = kindItem ? ((t(kindItem.labelKey as any) as string) || kindItem.defaultLabel) : rule.kind;
+
 	return (
 		<div className="flex items-center gap-2 rounded-md bg-app-box px-2 py-1.5">
 			<span className="w-20 flex-shrink-0 text-xs font-medium text-ink">
-				{KINDS.find((kind) => kind.value === rule.kind)?.label}
+				{kindLabel}
 			</span>
 			<div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
 				<RuleFields rule={rule} onChange={onChange} />
@@ -298,7 +316,7 @@ function RuleRow({
 				className="rounded p-0.5 text-ink-faint hover:text-ink disabled:opacity-30"
 				disabled={first}
 				onClick={onUp}
-				title="Apply earlier"
+				title={t("modals.rename.applyEarlier")}
 			>
 				<ArrowUp className="size-3.5" weight="bold" />
 			</button>
@@ -307,7 +325,7 @@ function RuleRow({
 				className="rounded p-0.5 text-ink-faint hover:text-ink disabled:opacity-30"
 				disabled={last}
 				onClick={onDown}
-				title="Apply later"
+				title={t("modals.rename.applyLater")}
 			>
 				<ArrowDown className="size-3.5" weight="bold" />
 			</button>
@@ -315,7 +333,7 @@ function RuleRow({
 				type="button"
 				className="rounded p-0.5 text-ink-faint hover:text-red-500"
 				onClick={onRemove}
-				title="Remove the rule"
+				title={t("modals.rename.removeRule")}
 			>
 				<X className="size-3.5" weight="bold" />
 			</button>
@@ -330,6 +348,8 @@ function RuleFields({
 	rule: RenameRule;
 	onChange: (rule: RenameRule) => void;
 }) {
+	const { t } = useI18n();
+
 	switch (rule.kind) {
 		case "replace":
 			return (
@@ -337,24 +357,24 @@ function RuleFields({
 					<Input
 						size="xs"
 						className="w-32"
-						placeholder="find"
+						placeholder={t("modals.rename.find")}
 						value={rule.find}
 						onChange={(event) => onChange({ ...rule, find: event.target.value })}
 					/>
 					<Input
 						size="xs"
 						className="w-32"
-						placeholder="with"
+						placeholder={t("modals.rename.with")}
 						value={rule.with}
 						onChange={(event) => onChange({ ...rule, with: event.target.value })}
 					/>
 					<Check
-						label="regex"
+						label={t("modals.rename.regex")}
 						checked={rule.regex ?? false}
 						onChange={(regex) => onChange({ ...rule, regex })}
 					/>
 					<Check
-						label="whole name"
+						label={t("modals.rename.wholeName")}
 						checked={rule.whole_name ?? false}
 						onChange={(whole_name) => onChange({ ...rule, whole_name })}
 					/>
@@ -368,13 +388,13 @@ function RuleFields({
 						size="sm"
 						onChange={(stem) => onChange({ ...rule, stem })}
 					>
-						<SelectOption value="lower">lowercase</SelectOption>
-						<SelectOption value="upper">UPPERCASE</SelectOption>
-						<SelectOption value="title">Title Case</SelectOption>
-						<SelectOption value="keep">keep the stem</SelectOption>
+						<SelectOption value="lower">{t("modals.rename.lowercase")}</SelectOption>
+						<SelectOption value="upper">{t("modals.rename.uppercase")}</SelectOption>
+						<SelectOption value="title">{t("modals.rename.titleCase")}</SelectOption>
+						<SelectOption value="keep">{t("modals.rename.keepStem")}</SelectOption>
 					</Select>
 					<Check
-						label="lowercase extension"
+						label={t("modals.rename.lowercaseExt")}
 						checked={rule.extension === "lower"}
 						onChange={(lower) => onChange({ ...rule, extension: lower ? "lower" : "keep" })}
 					/>
@@ -386,14 +406,14 @@ function RuleFields({
 					<Input
 						size="xs"
 						className="w-32"
-						placeholder="before"
+						placeholder={t("modals.rename.before")}
 						value={rule.prefix}
 						onChange={(event) => onChange({ ...rule, prefix: event.target.value })}
 					/>
 					<Input
 						size="xs"
 						className="w-32"
-						placeholder="after"
+						placeholder={t("modals.rename.after")}
 						value={rule.suffix}
 						onChange={(event) => onChange({ ...rule, suffix: event.target.value })}
 					/>
@@ -409,8 +429,16 @@ function RuleFields({
 						value={rule.pattern}
 						onChange={(event) => onChange({ ...rule, pattern: event.target.value })}
 					/>
-					<Counter label="from" value={rule.start ?? 1} onChange={(start) => onChange({ ...rule, start })} />
-					<Counter label="step" value={rule.step ?? 1} onChange={(step) => onChange({ ...rule, step })} />
+					<Counter
+						label={t("modals.rename.from")}
+						value={rule.start ?? 1}
+						onChange={(start) => onChange({ ...rule, start })}
+					/>
+					<Counter
+						label={t("modals.rename.step")}
+						value={rule.step ?? 1}
+						onChange={(step) => onChange({ ...rule, step })}
+					/>
 				</>
 			);
 		case "template":

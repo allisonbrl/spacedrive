@@ -28,6 +28,7 @@ import {
 	useLibraryValidate,
 } from "../../contexts/SpacedriveContext";
 import { usePlanPreviewStore } from "../../routes/explorer/hooks/usePlanPreview";
+import { useI18n } from "../../i18n";
 import { hasErrors, pathName, PreflightPanel } from "./PreflightPanel";
 
 type RuleKind = OrganizeRule["kind"];
@@ -51,6 +52,7 @@ export function useOrganizeDialog() {
 }
 
 function OrganizeDialog(props: OrganizeDialogProps) {
+	const { t } = useI18n();
 	const dialog = useDialog(props);
 	const form = useForm();
 	const [kind, setKind] = useState<RuleKind>("by_date");
@@ -83,7 +85,7 @@ function OrganizeDialog(props: OrganizeDialogProps) {
 		setFailure(null);
 		try {
 			await organize.mutateAsync(input);
-			toast.success(`Organizing ${pathName(props.scope)}`);
+			toast.success(t("modals.rearrange.toastOrganizing", { name: pathName(props.scope) }));
 			close();
 			props.onComplete?.();
 		} catch (error) {
@@ -96,7 +98,7 @@ function OrganizeDialog(props: OrganizeDialogProps) {
 		enterPreview({
 			source: { type: "files.organize", input },
 			plan: preview.data,
-			label: `Organize ${pathName(props.scope)}`,
+			label: t("modals.rearrange.organizeTitle", { name: pathName(props.scope) }),
 		});
 		close();
 	};
@@ -107,9 +109,13 @@ function OrganizeDialog(props: OrganizeDialogProps) {
 		<Dialog
 			dialog={dialog}
 			form={form}
-			title={`Organize ${pathName(props.scope)}`}
+			title={t("modals.rearrange.organizeTitle", { name: pathName(props.scope) })}
 			icon={<TreeStructure size={20} weight="bold" />}
-			ctaLabel={summary ? `Move ${summary.moves.files} files` : "Organize"}
+			ctaLabel={
+				summary
+					? t("modals.rearrange.organizeCta", { count: summary.moves.files })
+					: t("modals.rearrange.organizeCtaFallback")
+			}
 			submitDisabled={refused || nothing || validation.isLoading || organize.isPending}
 			loading={organize.isPending}
 			onSubmit={form.handleSubmit(submit)}
@@ -118,19 +124,21 @@ function OrganizeDialog(props: OrganizeDialogProps) {
 		>
 			<div className="space-y-4 py-1">
 				<div className="space-y-2">
-					<div className="text-xs font-medium text-ink-dull">Subfolders named by</div>
+					<div className="text-xs font-medium text-ink-dull">
+						{t("modals.rearrange.subfoldersNamedBy")}
+					</div>
 					<div className="flex flex-wrap items-center gap-2">
 						<Select<RuleKind> value={kind} size="sm" onChange={setKind}>
-							<SelectOption value="by_date">Date</SelectOption>
-							<SelectOption value="by_kind">Kind</SelectOption>
-							<SelectOption value="by_extension">Extension</SelectOption>
+							<SelectOption value="by_date">{t("modals.rearrange.byDate")}</SelectOption>
+							<SelectOption value="by_kind">{t("modals.rearrange.byKind")}</SelectOption>
+							<SelectOption value="by_extension">{t("modals.rearrange.byExtension")}</SelectOption>
 						</Select>
 						{kind === "by_date" && (
 							<>
 								<Select<OrganizeDateField> value={field} size="sm" onChange={setField}>
-									<SelectOption value="modified">modified</SelectOption>
-									<SelectOption value="created">created</SelectOption>
-									<SelectOption value="captured">captured</SelectOption>
+									<SelectOption value="modified">{t("modals.rearrange.modified")}</SelectOption>
+									<SelectOption value="created">{t("modals.rearrange.created")}</SelectOption>
+									<SelectOption value="captured">{t("modals.rearrange.captured")}</SelectOption>
 								</Select>
 								<Select<Granularity> value={granularity} size="sm" onChange={setGranularity}>
 									<SelectOption value="year">2024</SelectOption>
@@ -142,18 +150,16 @@ function OrganizeDialog(props: OrganizeDialogProps) {
 					</div>
 					{kind === "by_date" && field === "captured" && (
 						<div className="text-[11px] text-ink-dull">
-							The capture time from photos and videos, or the modification time where
-							none is known.
+							{t("modals.rearrange.captureNote")}
 						</div>
 					)}
 				</div>
 
 				<label className="flex cursor-pointer items-center justify-between gap-3 rounded-md bg-app-box px-3 py-2">
 					<div>
-						<div className="text-sm text-ink">Include files in subfolders</div>
+						<div className="text-sm text-ink">{t("modals.rearrange.includeSubfolders")}</div>
 						<div className="text-[11px] text-ink-dull">
-							Every file beneath the folder, at any depth, ends up directly under its
-							new subfolder.
+							{t("modals.rearrange.includeSubfoldersDesc")}
 						</div>
 					</div>
 					<Switch checked={recursive} onCheckedChange={setRecursive} size="sm" />
@@ -168,7 +174,7 @@ function OrganizeDialog(props: OrganizeDialogProps) {
 				/>
 
 				{nothing && (
-					<div className="text-xs text-ink-faint">Nothing moves with this rule.</div>
+					<div className="text-xs text-ink-faint">{t("modals.rearrange.nothingMoves")}</div>
 				)}
 				{failure && <Failure message={failure} />}
 				<BrowseButton disabled={!preview.data} onClick={browse} />
@@ -196,6 +202,7 @@ export function useFlattenDialog() {
 }
 
 function FlattenDialog(props: FlattenDialogProps) {
+	const { t } = useI18n();
 	const dialog = useDialog(props);
 	const form = useForm();
 	const [policy, setPolicy] = useState<FlattenPolicy>("keep_both");
@@ -219,7 +226,7 @@ function FlattenDialog(props: FlattenDialogProps) {
 		setFailure(null);
 		try {
 			await flatten.mutateAsync(input);
-			toast.success(`Flattening ${pathName(props.scope)}`);
+			toast.success(t("modals.rearrange.toastFlattening", { name: pathName(props.scope) }));
 			close();
 			props.onComplete?.();
 		} catch (error) {
@@ -232,20 +239,37 @@ function FlattenDialog(props: FlattenDialogProps) {
 		enterPreview({
 			source: { type: "files.flatten", input },
 			plan: preview.data,
-			label: `Flatten ${pathName(props.scope)}`,
+			label: t("modals.rearrange.flattenTitle", { name: pathName(props.scope) }),
 		});
 		close();
 	};
 
 	useSubmitOnEnter(() => void submit(), !refused && !nothing && !flatten.isPending);
 
+	const flattenOptions = [
+		{
+			value: "keep_both" as const,
+			label: t("modals.rearrange.policy.keepBoth"),
+			hint: t("modals.rearrange.policy.keepBothHint"),
+		},
+		{
+			value: "skip" as const,
+			label: t("modals.rearrange.policy.skip"),
+			hint: t("modals.rearrange.policy.skipHint"),
+		},
+	];
+
 	return (
 		<Dialog
 			dialog={dialog}
 			form={form}
-			title={`Flatten ${pathName(props.scope)}`}
+			title={t("modals.rearrange.flattenTitle", { name: pathName(props.scope) })}
 			icon={<FolderSimple size={20} weight="bold" />}
-			ctaLabel={summary ? `Move ${summary.moves.files} files up` : "Flatten"}
+			ctaLabel={
+				summary
+					? t("modals.rearrange.flattenCta", { count: summary.moves.files })
+					: t("modals.rearrange.flattenCtaFallback")
+			}
 			submitDisabled={refused || nothing || validation.isLoading || flatten.isPending}
 			loading={flatten.isPending}
 			onSubmit={form.handleSubmit(submit)}
@@ -254,18 +278,14 @@ function FlattenDialog(props: FlattenDialogProps) {
 		>
 			<div className="space-y-4 py-1">
 				<div className="text-sm text-ink-dull">
-					Every file beneath the folder moves up to it, and the folders left empty are
-					removed.
+					{t("modals.rearrange.flattenDesc")}
 				</div>
 				<div className="space-y-1">
-					<div className="text-xs font-medium text-ink-dull">When a name is already taken</div>
+					<div className="text-xs font-medium text-ink-dull">
+						{t("modals.rearrange.whenNameTaken")}
+					</div>
 					<div className="grid grid-cols-2 gap-1">
-						{(
-							[
-								{ value: "keep_both", label: "Keep both", hint: "the deeper file is numbered" },
-								{ value: "skip", label: "Leave it", hint: "the deeper file stays where it is" },
-							] as { value: FlattenPolicy; label: string; hint: string }[]
-						).map((option) => (
+						{flattenOptions.map((option) => (
 							<button
 								key={option.value}
 								type="button"
@@ -292,7 +312,9 @@ function FlattenDialog(props: FlattenDialogProps) {
 				/>
 
 				{nothing && (
-					<div className="text-xs text-ink-faint">Nothing beneath the folder to move up.</div>
+					<div className="text-xs text-ink-faint">
+						{t("modals.rearrange.nothingBeneath")}
+					</div>
 				)}
 				{failure && <Failure message={failure} />}
 				<BrowseButton disabled={!preview.data} onClick={browse} />
@@ -333,11 +355,12 @@ export function Failure({ message }: { message: string }) {
 }
 
 export function BrowseButton({ disabled, onClick }: { disabled: boolean; onClick: () => void }) {
+	const { t } = useI18n();
 	return (
 		<div className="flex justify-end">
 			<Button type="button" variant="outline" size="sm" disabled={disabled} onClick={onClick}>
 				<Eye className="mr-1.5 size-4" weight="bold" />
-				Browse the result
+				{t("modals.rearrange.browseResult")}
 			</Button>
 		</div>
 	);

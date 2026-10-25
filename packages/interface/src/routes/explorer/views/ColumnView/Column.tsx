@@ -8,6 +8,7 @@ import { useExplorer } from "../../context";
 import { usePlanPreviewStore } from "../../hooks/usePlanPreview";
 import { useFileContextMenu } from "../../hooks/useFileContextMenu";
 import { useSelection } from "../../SelectionContext";
+import { useI18n } from "../../../../i18n";
 
 /**
  * Memoized wrapper for ColumnItem to prevent re-renders when selection changes elsewhere.
@@ -126,6 +127,7 @@ export const Column = memo(function Column({
 	isActive,
 	virtualFiles,
 }: ColumnProps) {
+	const { t } = useI18n();
 	const parentRef = useRef<HTMLDivElement>(null);
 	const { viewSettings, sortBy } = useExplorer();
 	const { selectedFiles } = useSelection();
@@ -163,7 +165,7 @@ export const Column = memo(function Column({
 				className="shrink-0 border-r border-app-line flex items-center justify-center"
 				style={{ width: `${viewSettings.columnWidth}px` }}
 			>
-				<div className="text-sm text-ink-dull">Loading...</div>
+				<div className="text-sm text-ink-dull">{t('explorer.views.loading')}</div>
 			</div>
 		);
 	}

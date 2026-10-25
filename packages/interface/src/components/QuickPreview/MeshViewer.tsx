@@ -16,6 +16,7 @@ import {
 	ArrowCounterClockwise,
 	Sliders,
 } from "@phosphor-icons/react";
+import { useI18n } from "../../i18n";
 
 interface MeshViewerProps {
 	file: File;
@@ -791,18 +792,19 @@ export function MeshViewerUI({
 	isGaussianSplat,
 	onResetFocalPoint,
 }: MeshViewerUIProps) {
+	const { t } = useI18n();
 	const [showSettings, setShowSettings] = useState(false);
 
 	if (!isGaussianSplat) {
 		return (
 			<>
 				<div className="pointer-events-none absolute left-4 top-4 rounded-lg bg-black/80 px-3 py-1.5 text-sm font-medium text-white backdrop-blur-xl">
-					3D Mesh
+					{t("quickPreview.mesh.title")}
 				</div>
 				<div className="pointer-events-none absolute bottom-4 left-4 rounded-lg bg-black/80 px-3 py-2 text-xs text-white/70 backdrop-blur-xl">
-					<div>Left drag: Rotate</div>
-					<div>Right drag: Pan</div>
-					<div>Scroll: Zoom</div>
+					<div>{t("quickPreview.mesh.dragRotate")}</div>
+					<div>{t("quickPreview.mesh.dragPan")}</div>
+					<div>{t("quickPreview.mesh.scrollZoom")}</div>
 				</div>
 			</>
 		);
@@ -815,7 +817,7 @@ export function MeshViewerUI({
 				<CircleButton
 					icon={Sliders}
 					onClick={() => setShowSettings(!showSettings)}
-					title="Settings"
+					title={t("quickPreview.mesh.settings")}
 					active={showSettings}
 					activeAccent={true}
 				/>
@@ -823,13 +825,13 @@ export function MeshViewerUI({
 					<CircleButton
 						icon={ArrowCounterClockwise}
 						onClick={onResetFocalPoint}
-						title="Reset focal point"
+						title={t("quickPreview.mesh.resetFocal")}
 					/>
 				)}
 				<CircleButton
 					icon={autoRotate ? Pause : Play}
 					onClick={() => setAutoRotate(!autoRotate)}
-					title={autoRotate ? "Pause" : "Play"}
+					title={autoRotate ? t("quickPreview.mesh.pause") : t("quickPreview.mesh.play")}
 					active={autoRotate}
 					activeAccent={true}
 				/>
@@ -842,7 +844,7 @@ export function MeshViewerUI({
 					<div className="flex flex-col gap-1">
 						<div className="flex items-center justify-between">
 							<label className="text-xs text-ink-dull">
-								Sway Amount
+								{t("quickPreview.mesh.swayAmount")}
 							</label>
 							<span className="text-xs text-ink-dull font-mono">
 								{swayAmount.toFixed(2)}
@@ -865,7 +867,7 @@ export function MeshViewerUI({
 					<div className="flex flex-col gap-1">
 						<div className="flex items-center justify-between">
 							<label className="text-xs text-ink-dull">
-								Speed
+								{t("quickPreview.mesh.speed")}
 							</label>
 							<span className="text-xs text-ink-dull font-mono">
 								{swaySpeed.toFixed(2)}
@@ -888,7 +890,7 @@ export function MeshViewerUI({
 					<div className="flex flex-col gap-1">
 						<div className="flex items-center justify-between">
 							<label className="text-xs text-ink-dull">
-								Distance
+								{t("quickPreview.mesh.distance")}
 							</label>
 							<span className="text-xs text-ink-dull font-mono">
 								{cameraDistance.toFixed(2)}
@@ -923,6 +925,7 @@ export function MeshViewer({
 	cameraDistance: cameraDistanceProp = 0.5,
 	onControlsChange,
 }: MeshViewerProps) {
+	const { t } = useI18n();
 	const [meshUrl, setMeshUrl] = useState<string | null>(splatUrl || null);
 	const [isGaussianSplat, setIsGaussianSplat] = useState(!!splatUrl);
 	const [splatFailed, setSplatFailed] = useState(false);
@@ -1040,7 +1043,7 @@ export function MeshViewer({
 					<FileComponent.Thumb file={file} size={200} />
 					{loading && (
 						<div className="mt-4 text-sm text-ink-dull">
-							Loading 3D model...
+							{t("quickPreview.mesh.loading")}
 						</div>
 					)}
 				</div>

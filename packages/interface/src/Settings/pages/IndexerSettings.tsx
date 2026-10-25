@@ -1,26 +1,28 @@
+import {useI18n} from '../../i18n';
 import {
 	Section,
 	SectionRows,
 	SettingsEmptyState,
 	SettingsPageContent,
 	SettingsSkeleton,
-	ToggleSettingItem,
-} from "../Layout";
-import { useLibraryConfig } from "../useConfig";
+	ToggleSettingItem
+} from '../Layout';
+import {useLibraryConfig} from '../useConfig';
 
 export function IndexerSettings() {
-	const { libraryId, config, isLoading, update } = useLibraryConfig();
+	const {t} = useI18n();
+	const {libraryId, config, isLoading, update} = useLibraryConfig();
 
 	if (!libraryId) {
 		return (
 			<SettingsPageContent>
 				<Section
-					title="Indexer"
-					description="Configure what files are indexed in your library."
+					title={t('settings.indexer.title')}
+					description={t('settings.indexer.description')}
 				>
 					<SettingsEmptyState
-						title="No library selected"
-						description="Open or create a library to configure its indexer."
+						title={t('settings.library.empty')}
+						description={t('settings.indexer.emptyDescription')}
 					/>
 				</Section>
 			</SettingsPageContent>
@@ -34,53 +36,55 @@ export function IndexerSettings() {
 	return (
 		<SettingsPageContent>
 			<Section
-				title="Exclusions"
-				description="Paths the indexer walks past without recording."
+				title={t('settings.indexer.exclusions')}
+				description={t('settings.indexer.exclusionsDescription')}
 			>
 				<SectionRows>
 					<ToggleSettingItem
-						label="Skip System Files"
-						description="Ignore OS system files and directories"
+						label={t('settings.indexer.system')}
+						description={t('settings.indexer.systemDescription')}
 						value={indexer.no_system_files}
-						onChange={(no_system_files) => update({ no_system_files })}
+						onChange={(no_system_files) =>
+							update({no_system_files})
+						}
 					/>
 					<ToggleSettingItem
-						label="Skip Git Repositories"
-						description="Ignore .git directories"
+						label={t('settings.indexer.git')}
+						description={t('settings.indexer.gitDescription')}
 						value={indexer.no_git}
-						onChange={(no_git) => update({ no_git })}
+						onChange={(no_git) => update({no_git})}
 					/>
 					<ToggleSettingItem
-						label="Skip Dev Directories"
-						description="Ignore node_modules, vendor, target, etc."
+						label={t('settings.indexer.dev')}
+						description={t('settings.indexer.devDescription')}
 						value={indexer.no_dev_dirs}
-						onChange={(no_dev_dirs) => update({ no_dev_dirs })}
+						onChange={(no_dev_dirs) => update({no_dev_dirs})}
 					/>
 					<ToggleSettingItem
-						label="Skip Hidden Files"
-						description="Ignore files starting with a dot"
+						label={t('settings.indexer.hidden')}
+						description={t('settings.indexer.hiddenDescription')}
 						value={indexer.no_hidden}
-						onChange={(no_hidden) => update({ no_hidden })}
+						onChange={(no_hidden) => update({no_hidden})}
 					/>
 				</SectionRows>
 			</Section>
 
 			<Section
-				title="Filters"
-				description="Narrow what gets indexed within the paths above."
+				title={t('settings.indexer.filters')}
+				description={t('settings.indexer.filtersDescription')}
 			>
 				<SectionRows>
 					<ToggleSettingItem
-						label="Respect .gitignore"
-						description="Honor .gitignore files when indexing"
+						label={t('settings.indexer.gitignore')}
+						description={t('settings.indexer.gitignoreDescription')}
 						value={indexer.gitignore}
-						onChange={(gitignore) => update({ gitignore })}
+						onChange={(gitignore) => update({gitignore})}
 					/>
 					<ToggleSettingItem
-						label="Only Index Images"
-						description="Only index image files (photos, graphics)"
+						label={t('settings.indexer.images')}
+						description={t('settings.indexer.imagesDescription')}
 						value={indexer.only_images}
-						onChange={(only_images) => update({ only_images })}
+						onChange={(only_images) => update({only_images})}
 					/>
 				</SectionRows>
 			</Section>

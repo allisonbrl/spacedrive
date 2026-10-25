@@ -17,6 +17,8 @@ import {
 	type KeyboardEvent
 } from 'react';
 import {useLocation} from 'react-router-dom';
+import {useKeybind} from '../../hooks/useKeybind';
+import {useI18n} from '../../i18n';
 import {TopBarItem, TopBarPortal} from '../../TopBar';
 import {
 	ExpandableSearchField,
@@ -32,7 +34,6 @@ import {
 	useExplorer,
 	type ViewMode
 } from './context';
-import {useKeybind} from '../../hooks/useKeybind';
 import {useVirtualListing} from './hooks/useVirtualListing';
 import {SearchToolbar} from './SearchToolbar';
 import {SortMenu, SortMenuPanel} from './SortMenu';
@@ -53,6 +54,7 @@ export function ExplorerView({
 }: {
 	defaultViewMode?: ViewMode;
 }) {
+	const {t} = useI18n();
 	const location = useLocation();
 	const {
 		sidebarVisible,
@@ -260,7 +262,7 @@ export function ExplorerView({
 						<>
 							<TopBarItem
 								id="sidebar-toggle"
-								label="Sidebar"
+								label={t('explorer.topbar.sidebar')}
 								priority="normal"
 								onClick={() =>
 									setSidebarVisible(!sidebarVisible)
@@ -276,7 +278,7 @@ export function ExplorerView({
 							</TopBarItem>
 							<TopBarItem
 								id="navigation"
-								label="Navigation"
+								label={t('explorer.topbar.navigation')}
 								priority="high"
 							>
 								<CircleButtonGroup>
@@ -295,7 +297,7 @@ export function ExplorerView({
 							{pathBarPath && (
 								<TopBarItem
 									id="path-bar"
-									label="Path"
+									label={t('explorer.topbar.path')}
 									priority="high"
 								>
 									<PathBar
@@ -308,7 +310,7 @@ export function ExplorerView({
 							{currentView && (
 								<TopBarItem
 									id="virtual-path-bar"
-									label="Path"
+									label={t('explorer.topbar.path')}
 									priority="high"
 								>
 									<VirtualPathBar
@@ -323,7 +325,7 @@ export function ExplorerView({
 						<>
 							<TopBarItem
 								id="search"
-								label="Search"
+								label={t('explorer.topbar.search')}
 								priority="high"
 							>
 								<div ref={searchFieldRef}>
@@ -349,7 +351,7 @@ export function ExplorerView({
 							</TopBarItem>
 							<TopBarItem
 								id="tag-mode"
-								label="Tags"
+								label={t('explorer.topbar.tags')}
 								priority="low"
 								onClick={() => setTagModeActive(!tagModeActive)}
 							>
@@ -363,7 +365,7 @@ export function ExplorerView({
 							</TopBarItem>
 							<TopBarItem
 								id="view-mode"
-								label="Views"
+								label={t('explorer.topbar.views')}
 								priority="normal"
 								submenuContent={viewModeSubmenu}
 							>
@@ -374,7 +376,7 @@ export function ExplorerView({
 							</TopBarItem>
 							<TopBarItem
 								id="view-settings"
-								label="View Settings"
+								label={t('explorer.topbar.viewSettings')}
 								priority="low"
 								submenuContent={viewSettingsSubmenu}
 							>
@@ -384,7 +386,7 @@ export function ExplorerView({
 							</TopBarItem>
 							<TopBarItem
 								id="sort"
-								label="Sort"
+								label={t('explorer.topbar.sort')}
 								priority="low"
 								submenuContent={sortSubmenu}
 							>
@@ -396,7 +398,7 @@ export function ExplorerView({
 							</TopBarItem>
 							<TopBarItem
 								id="inspector-toggle"
-								label="Inspector"
+								label={t('explorer.topbar.inspector')}
 								priority="high"
 								onClick={() =>
 									setInspectorVisible(!inspectorVisible)

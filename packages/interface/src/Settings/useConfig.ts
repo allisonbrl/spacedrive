@@ -35,6 +35,7 @@ export function useAppConfig() {
 		isLoading: query.isLoading,
 		isSaving: mutation.isPending,
 		update,
+		refetch: query.refetch,
 	};
 }
 

@@ -13,6 +13,7 @@ import clsx from 'clsx';
 import {AnimatePresence, motion} from 'framer-motion';
 import {useEffect, useRef, useState} from 'react';
 import {createPortal} from 'react-dom';
+import {useI18n} from '../../i18n';
 
 type ViewMode = 'list' | 'grid' | 'column' | 'media' | 'size' | 'knowledge';
 
@@ -87,6 +88,19 @@ export function ViewModeMenuPanel({
 	onViewModeChange,
 	onClose
 }: ViewModeMenuPanelProps) {
+	const {t} = useI18n();
+	const labels: Record<ViewMode, string> = {
+		grid: t('explorer.view.grid'),
+		list: t('explorer.view.list'),
+		media: t('explorer.view.media'),
+		column: t('explorer.view.column'),
+		size: t('explorer.view.size'),
+		knowledge: t('explorer.view.knowledge')
+	};
+	const localizedOptions = viewOptions.map((option) => ({
+		...option,
+		label: labels[option.id as ViewMode] ?? option.label
+	}));
 	const availableViews = viewOptions.filter(
 		(option) => option.id !== 'knowledge' || import.meta.env.DEV
 	);
@@ -118,7 +132,11 @@ export function ViewModeMenuPanel({
 						/>
 						<div className="flex flex-col items-center gap-0.5">
 							<div className="text-menu-ink text-xs font-medium">
-								{option.label}
+								{
+									localizedOptions.find(
+										(item) => item.id === option.id
+									)?.label
+								}
 							</div>
 							<div className="text-menu-faint text-[10px]">
 								{option.keybind}
@@ -137,6 +155,7 @@ interface ViewModeMenuProps {
 }
 
 export function ViewModeMenu({viewMode, onViewModeChange}: ViewModeMenuProps) {
+	const {t} = useI18n();
 	const [isOpen, setIsOpen] = useState(false);
 	const buttonRef = useRef<HTMLButtonElement>(null);
 	const panelRef = useRef<HTMLDivElement>(null);
@@ -179,7 +198,7 @@ export function ViewModeMenu({viewMode, onViewModeChange}: ViewModeMenuProps) {
 				onClick={() => setIsOpen(!isOpen)}
 				active={isOpen}
 			>
-				Views
+				{t('explorer.view.heading')}
 			</CircleButton>
 
 			{isOpen &&

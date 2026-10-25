@@ -6,6 +6,7 @@ import { CARD_HEIGHT, getStatusBadge } from "../types";
 import { JobStatusIndicator } from "./JobStatusIndicator";
 import { JobProgressBar } from "./JobProgressBar";
 import { getJobRenderer } from "../renderers";
+import { useI18n } from "../../../i18n";
 
 interface JobCardProps {
   job: JobListItem;
@@ -16,12 +17,13 @@ interface JobCardProps {
 }
 
 export function JobCard({ job, onPause, onResume, onCancel, getSpeedHistory }: JobCardProps) {
+  const { t } = useI18n();
   const [isHovered, setIsHovered] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Get the renderer for this job type
   const renderer = getJobRenderer(job.name);
-  const statusBadge = getStatusBadge(job);
+  const statusBadge = getStatusBadge(job, t);
 
   const showActionButton = job.status === "running" || job.status === "paused";
   const canPause = job.status === "running" && !!onPause;

@@ -34,6 +34,7 @@ import {
 	resolvePreview,
 	type ContentRendererProps,
 } from "./renderers";
+import { useI18n } from "../../i18n";
 
 const MeshViewer = lazy(() =>
 	import("./MeshViewer").then((m) => ({ default: m.MeshViewer })),
@@ -45,6 +46,7 @@ const MeshViewerUI = lazy(() =>
 export type { ContentRendererProps } from "./renderers";
 
 function ImageRenderer({ file, onZoomChange }: ContentRendererProps) {
+	const { t } = useI18n();
 	const { buildSidecarUrl } = useServer();
 	const containerRef = useRef<HTMLDivElement>(null);
 	const [originalLoaded, setOriginalLoaded] = useState(false);
@@ -230,7 +232,7 @@ function ImageRenderer({ file, onZoomChange }: ContentRendererProps) {
 								setShowSplat(false);
 								setSplatLoaded(false);
 							}}
-							title="Show Image"
+							title={t("quickPreview.content.showImage")}
 							active={true}
 							activeAccent={true}
 						/>
@@ -291,7 +293,7 @@ function ImageRenderer({ file, onZoomChange }: ContentRendererProps) {
 							sounds.splatTrigger();
 							setShowSplat(true);
 						}}
-						title="Show 3D Splat"
+						title={t("quickPreview.content.showSplat")}
 					/>
 				</div>
 			)}
@@ -301,14 +303,14 @@ function ImageRenderer({ file, onZoomChange }: ContentRendererProps) {
 				<button
 					onClick={zoomIn}
 					className="rounded-lg bg-app-box/80 p-2 text-ink backdrop-blur-xl transition-colors hover:bg-app-hover"
-					title="Zoom in (+)"
+					title={t("quickPreview.zoom.zoomIn")}
 				>
 					<MagnifyingGlassPlus size={20} weight="bold" />
 				</button>
 				<button
 					onClick={zoomOut}
 					className="rounded-lg bg-app-box/80 p-2 text-ink backdrop-blur-xl transition-colors hover:bg-app-hover"
-					title="Zoom out (-)"
+					title={t("quickPreview.zoom.zoomOut")}
 				>
 					<MagnifyingGlassMinus size={20} weight="bold" />
 				</button>
@@ -316,7 +318,7 @@ function ImageRenderer({ file, onZoomChange }: ContentRendererProps) {
 					<button
 						onClick={reset}
 						className="rounded-lg bg-app-box/80 p-2 text-ink backdrop-blur-xl transition-colors hover:bg-app-hover"
-						title="Reset zoom (0)"
+						title={t("quickPreview.zoom.reset")}
 					>
 						<ArrowCounterClockwise size={20} weight="bold" />
 					</button>
@@ -423,6 +425,12 @@ function AudioRenderer({ file }: ContentRendererProps) {
 }
 
 function DocumentRenderer({ file }: ContentRendererProps) {
+	const { t } = useI18n();
+	const rawKind = getContentKind(file);
+	const kindText = rawKind
+		? t(`contentKinds.${rawKind}` as any)
+		: t("contentKinds.unknown");
+
 	return (
 		<div className="w-full h-full flex items-center justify-center">
 			<div className="text-center">
@@ -431,7 +439,7 @@ function DocumentRenderer({ file }: ContentRendererProps) {
 					{file.name}
 				</div>
 				<div className="text-ink-dull text-sm mt-2 capitalize">
-					{getContentKind(file) ?? "unknown"}
+					{kindText}
 				</div>
 				<div className="text-ink-dull text-xs mt-1">
 					{formatBytes(file.size || 0)}
@@ -442,6 +450,7 @@ function DocumentRenderer({ file }: ContentRendererProps) {
 }
 
 function TextRenderer({ file }: ContentRendererProps) {
+	const { t } = useI18n();
 	const textUrl = useOriginalUrl(file);
 
 	const extension = file.name.split(".").pop()?.toLowerCase();
@@ -454,7 +463,9 @@ function TextRenderer({ file }: ContentRendererProps) {
 					<div className="mt-4 text-ink text-lg font-medium">
 						{file.name}
 					</div>
-					<div className="text-ink-dull text-sm mt-2">Loading...</div>
+					<div className="text-ink-dull text-sm mt-2">
+						{t("quickPreview.loading")}
+					</div>
 				</div>
 			</div>
 		);
@@ -473,6 +484,12 @@ function TextRenderer({ file }: ContentRendererProps) {
 }
 
 function DefaultRenderer({ file }: ContentRendererProps) {
+	const { t } = useI18n();
+	const rawKind = getContentKind(file);
+	const kindText = rawKind
+		? t(`contentKinds.${rawKind}` as any)
+		: t("contentKinds.unknown");
+
 	return (
 		<div className="w-full h-full flex items-center justify-center">
 			<div className="text-center">
@@ -481,7 +498,7 @@ function DefaultRenderer({ file }: ContentRendererProps) {
 					{file.name}
 				</div>
 				<div className="text-ink-dull text-sm mt-2 capitalize">
-					{getContentKind(file) ?? "unknown"}
+					{kindText}
 				</div>
 				<div className="text-ink-dull text-xs mt-1">
 					{formatBytes(file.size || 0)}

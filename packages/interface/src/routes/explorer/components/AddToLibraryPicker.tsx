@@ -5,6 +5,7 @@ import type { Volume } from "@sd/ts-client";
 import clsx from "clsx";
 import { useLibraryQuery } from "../../../contexts/SpacedriveContext";
 import { usePlatform } from "../../../contexts/PlatformContext";
+import { useI18n } from "../../../i18n";
 import { inclusionOf } from "./addToLibrary";
 
 import FolderIcon from "@sd/assets/icons/Folder.webp";
@@ -57,6 +58,7 @@ export function CategoryGrid({
 }: {
 	onSelect: (category: StorageCategory) => void;
 }) {
+	const {t} = useI18n();
 	return (
 		<div className="grid grid-cols-2 gap-3">
 			{categories.map((category) => (
@@ -72,8 +74,8 @@ export function CategoryGrid({
 				>
 					<img src={category.icon} className="size-12" alt="" />
 					<div className="text-center">
-						<div className="text-sm font-medium text-ink">{category.label}</div>
-						<div className="mt-1 text-xs text-ink-faint">{category.description}</div>
+						<div className="text-sm font-medium text-ink">{t(`explorer.add.category.${category.id}.label` as never)}</div>
+						<div className="mt-1 text-xs text-ink-faint">{t(`explorer.add.category.${category.id}.description` as never)}</div>
 					</div>
 				</button>
 			))}
@@ -83,6 +85,7 @@ export function CategoryGrid({
 
 /** Browse, type, or pick a suggested folder; any of them selects the path. */
 export function FolderPicker({ onPick }: { onPick: (path: string) => void }) {
+	const {t} = useI18n();
 	const platform = usePlatform();
 	const [typed, setTyped] = useState("");
 	const { data: systemFolders } = useLibraryQuery({
@@ -104,7 +107,7 @@ export function FolderPicker({ onPick }: { onPick: (path: string) => void }) {
 	const browse = async () => {
 		if (!platform.openDirectoryPickerDialog) return;
 		const selected = await platform.openDirectoryPickerDialog({
-			title: "Choose a folder to add",
+			title: t('explorer.add.folder.choose'),
 			multiple: false,
 		});
 		if (selected && typeof selected === "string") onPick(selected);
@@ -128,14 +131,14 @@ export function FolderPicker({ onPick }: { onPick: (path: string) => void }) {
 				>
 					<FolderOpen size={24} className="text-accent" weight="fill" />
 					<div className="text-left">
-						<div className="text-sm font-medium text-ink">Browse for a folder</div>
-						<div className="text-xs text-ink-faint">Choose any folder on this computer</div>
+						<div className="text-sm font-medium text-ink">{t('explorer.add.folder.browse')}</div>
+						<div className="text-xs text-ink-faint">{t('explorer.add.folder.chooseAny')}</div>
 					</div>
 				</button>
 			)}
 
 			<div className="space-y-2">
-				<Label>Folder path</Label>
+				<Label>{t('explorer.add.folder.path')}</Label>
 				<div className="flex gap-2">
 					<Input
 						size="md"
@@ -157,14 +160,14 @@ export function FolderPicker({ onPick }: { onPick: (path: string) => void }) {
 						disabled={!typed.trim()}
 						onClick={submitTyped}
 					>
-						Continue
+						{t('explorer.add.continue')}
 					</Button>
 				</div>
 			</div>
 
 			{suggested.length > 0 && (
 				<div className="space-y-2">
-					<Label>Suggested</Label>
+					<Label>{t('explorer.add.suggested')}</Label>
 					<div className="max-h-[260px] space-y-1 overflow-y-auto pr-1">
 						{suggested.map((folder) => (
 							<button
@@ -198,6 +201,7 @@ export function FolderPicker({ onPick }: { onPick: (path: string) => void }) {
 
 /** Connected drives the library does not track yet. */
 export function DrivePicker({ onPick }: { onPick: (volume: Volume) => void }) {
+	const {t} = useI18n();
 	const { data } = useLibraryQuery({
 		type: "volumes.list",
 		input: { filter: "UntrackedOnly" },
@@ -208,7 +212,7 @@ export function DrivePicker({ onPick }: { onPick: (volume: Volume) => void }) {
 		return (
 			<div className="rounded-lg border border-app-line bg-app-box p-6 text-center">
 				<p className="text-sm text-ink-dull">
-					No untracked drives are connected. Plug one in and it appears here.
+					{t('explorer.add.drive.none')}
 				</p>
 			</div>
 		);
@@ -251,13 +255,13 @@ export function fileSystemLabel(volume: Volume): string {
 }
 
 export function NetworkComingSoon() {
+	const {t} = useI18n();
 	return (
 		<div className="space-y-3">
 			<div className="rounded-lg border border-accent/20 bg-accent/10 p-4 text-sm text-ink">
-				<strong>Coming soon</strong>
+				<strong>{t('explorer.add.network.comingSoon')}</strong>
 				<p className="mt-1 text-ink-dull">
-					Network protocols (SMB, NFS, SFTP, WebDAV) are in development. A share
-					mounted by the operating system can be added as a local folder today.
+					{t('explorer.add.network.description')}
 				</p>
 			</div>
 		</div>

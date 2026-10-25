@@ -6,6 +6,7 @@ import DocumentIcon from "@sd/assets/icons/Document.webp";
 import CodeIcon from "@sd/assets/icons/Code-20.webp";
 import AudioIcon from "@sd/assets/icons/Audio.webp";
 import FolderIcon from "@sd/assets/icons/Folder.webp";
+import { useI18n } from "../../i18n";
 
 interface ContentBreakdownProps {
 	totalFiles: number;
@@ -22,45 +23,47 @@ interface ContentType {
 }
 
 export function ContentBreakdown({ totalFiles }: ContentBreakdownProps) {
+	const { t, formatNumber } = useI18n();
+
 	// MOCK DATA - Simulates content type aggregation
 	const mockContentTypes: ContentType[] = [
 		{
-			type: "Images",
+			type: t('overview.contentBreakdown.type.images'),
 			count: Math.floor(totalFiles * 0.35),
 			percentage: 35,
 			color: "from-purple-500 to-pink-500",
 			icon: ImageIcon,
 		},
 		{
-			type: "Documents",
+			type: t('overview.contentBreakdown.type.documents'),
 			count: Math.floor(totalFiles * 0.25),
 			percentage: 25,
 			color: "from-accent to-cyan-500",
 			icon: DocumentIcon,
 		},
 		{
-			type: "Code",
+			type: t('overview.contentBreakdown.type.code'),
 			count: Math.floor(totalFiles * 0.15),
 			percentage: 15,
 			color: "from-green-500 to-emerald-500",
 			icon: CodeIcon,
 		},
 		{
-			type: "Videos",
+			type: t('overview.contentBreakdown.type.videos'),
 			count: Math.floor(totalFiles * 0.12),
 			percentage: 12,
 			color: "from-red-500 to-orange-500",
 			icon: VideoIcon,
 		},
 		{
-			type: "Audio",
+			type: t('overview.contentBreakdown.type.audio'),
 			count: Math.floor(totalFiles * 0.08),
 			percentage: 8,
 			color: "from-yellow-500 to-amber-500",
 			icon: AudioIcon,
 		},
 		{
-			type: "Other",
+			type: t('overview.contentBreakdown.type.other'),
 			count: Math.floor(totalFiles * 0.05),
 			percentage: 5,
 			color: "from-gray-500 to-slate-500",
@@ -72,12 +75,12 @@ export function ContentBreakdown({ totalFiles }: ContentBreakdownProps) {
 		<div className="bg-app-box border border-app-line rounded-xl overflow-hidden">
 			<div className="px-6 py-4 border-b border-app-line">
 				<h2 className="text-base font-semibold text-ink">
-					Content Breakdown
+					{t('overview.contentBreakdown.title')}
 				</h2>
 				<p className="text-sm text-ink-dull mt-1">
-					File types across your library
+					{t('overview.contentBreakdown.subtitle')}
 					<span className="ml-2 px-2 py-0.5 bg-sidebar-box text-sidebar-ink-dull text-xs rounded-md font-medium border border-sidebar-line">
-						PREVIEW
+						{t('overview.contentBreakdown.preview')}
 					</span>
 				</p>
 			</div>
@@ -103,7 +106,10 @@ export function ContentBreakdown({ totalFiles }: ContentBreakdownProps) {
 									contentType.color,
 									"first:rounded-l-full last:rounded-r-full",
 								)}
-								title={`${contentType.type}: ${contentType.count.toLocaleString()} files`}
+								title={t('overview.contentBreakdown.tooltip', {
+									type: contentType.type,
+									count: formatNumber(contentType.count)
+								})}
 							/>
 						))}
 					</div>
@@ -130,7 +136,7 @@ export function ContentBreakdown({ totalFiles }: ContentBreakdownProps) {
 							<div className="flex-1 min-w-0">
 								<div className="flex items-baseline gap-2">
 									<span className="text-sm font-semibold text-ink">
-										{contentType.count.toLocaleString()}
+										{formatNumber(contentType.count)}
 									</span>
 									<span className="text-xs text-ink-faint">
 										{contentType.percentage}%

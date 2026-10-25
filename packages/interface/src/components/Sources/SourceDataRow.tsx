@@ -1,22 +1,10 @@
+import { useI18n } from "../../i18n";
+
 interface SourceDataRowProps {
 	title: string;
 	preview?: string | null;
 	subtitle?: string | null;
 	date?: string | null;
-}
-
-function formatDate(iso: string): string {
-	try {
-		const d = new Date(iso);
-		if (isNaN(d.getTime())) return iso;
-		return d.toLocaleDateString(undefined, {
-			year: "numeric",
-			month: "short",
-			day: "numeric",
-		});
-	} catch {
-		return iso;
-	}
 }
 
 function cleanPreview(text: string): string {
@@ -29,6 +17,22 @@ export function SourceDataRow({
 	subtitle,
 	date,
 }: SourceDataRowProps) {
+	const { formatDate } = useI18n();
+
+	const renderDate = (iso: string) => {
+		try {
+			const d = new Date(iso);
+			if (isNaN(d.getTime())) return iso;
+			return formatDate(d, {
+				year: "numeric",
+				month: "short",
+				day: "numeric",
+			});
+		} catch {
+			return iso;
+		}
+	};
+
 	return (
 		<div className="hover:bg-app-hover flex min-w-0 flex-col gap-0.5 overflow-hidden rounded-lg px-3 py-2.5 transition-colors">
 			{/* Title row */}
@@ -38,7 +42,7 @@ export function SourceDataRow({
 				</span>
 				{date && (
 					<span className="text-ink-faint shrink-0 text-[11px]">
-						{formatDate(date)}
+						{renderDate(date)}
 					</span>
 				)}
 			</div>

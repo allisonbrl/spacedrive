@@ -9,12 +9,15 @@ import {
 import clsx from "clsx";
 import type { SyncActivity } from "../types";
 import { timeAgo } from "../utils";
+import { useI18n } from "../../../i18n";
 
 interface ActivityFeedProps {
 	activities: SyncActivity[];
 }
 
 export function ActivityFeed({ activities }: ActivityFeedProps) {
+	const { t } = useI18n();
+
 	if (activities.length === 0) {
 		return (
 			<div className="flex flex-col items-center justify-center py-12 px-4">
@@ -23,10 +26,10 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
 					weight="duotone"
 				/>
 				<p className="text-sm text-ink-dull text-center">
-					No recent activity
+					{t("sync.feed.noActivity")}
 				</p>
 				<p className="text-xs text-ink-faint text-center mt-1">
-					Activity will appear here when syncing
+					{t("sync.feed.activityHint")}
 				</p>
 			</div>
 		);
@@ -45,6 +48,7 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
 }
 
 function ActivityItem({ activity }: { activity: SyncActivity }) {
+	const { t } = useI18n();
 	const getIcon = () => {
 		switch (activity.eventType) {
 			case "broadcast":
@@ -91,7 +95,7 @@ function ActivityItem({ activity }: { activity: SyncActivity }) {
 					{activity.description}
 				</p>
 				<p className="text-xs text-ink-faint">
-					{timeAgo(activity.timestamp)}
+					{timeAgo(activity.timestamp, t)}
 				</p>
 			</div>
 		</div>

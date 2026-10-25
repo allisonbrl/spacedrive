@@ -9,6 +9,7 @@ import {
 import clsx from 'clsx';
 import {useState} from 'react';
 import {useForm} from 'react-hook-form';
+import {useI18n} from '../../i18n';
 
 interface FormData {
 	name: string;
@@ -41,6 +42,7 @@ export function useCreateSpaceDialog() {
 }
 
 function CreateSpaceDialog(props: {id: number}) {
+	const {t} = useI18n();
 	const dialog = useDialog(props);
 	const [selectedColor, setSelectedColor] = useState(PRESET_COLORS[0]);
 	const [selectedIcon, setSelectedIcon] = useState(PRESET_ICONS[0]);
@@ -69,22 +71,22 @@ function CreateSpaceDialog(props: {id: number}) {
 		<Dialog
 			form={form}
 			dialog={dialog}
-			title="Create Workspace"
+			title={t('space.create.title')}
 			onSubmit={onSubmit}
-			ctaLabel="Create"
+			ctaLabel={t('space.create.submit')}
 		>
 			<div className="space-y-4">
 				<div>
-					<Label>Workspace Name</Label>
+					<Label>{t('space.create.name')}</Label>
 					<Input
 						{...form.register('name', {required: true})}
-						placeholder="e.g., Work Files, Personal Photos"
+						placeholder={t('space.create.namePlaceholder')}
 						autoFocus
 					/>
 				</div>
 
 				<div>
-					<Label>Color</Label>
+					<Label>{t('space.create.color')}</Label>
 					<div className="flex flex-wrap gap-2">
 						{PRESET_COLORS.map((color) => (
 							<button
@@ -104,7 +106,7 @@ function CreateSpaceDialog(props: {id: number}) {
 				</div>
 
 				<div>
-					<Label>Icon</Label>
+					<Label>{t('space.create.icon')}</Label>
 					<div className="flex flex-wrap gap-2">
 						{PRESET_ICONS.map((icon) => (
 							<button

@@ -5,10 +5,11 @@ import {
 } from '@dnd-kit/sortable';
 import {CSS} from '@dnd-kit/utilities';
 import {Plus, X} from '@phosphor-icons/react';
-import {TabBar as TabBarPrimitive, TabBarItem} from '@spacedrive/primitives';
+import {TabBarItem, TabBar as TabBarPrimitive} from '@spacedrive/primitives';
 import clsx from 'clsx';
 import {useMemo} from 'react';
 import type {Tab} from '.';
+import {useI18n} from '../../i18n';
 import {useTabManager} from './useTabManager';
 
 interface SortableTabProps {
@@ -57,6 +58,7 @@ function SortableTab({tab, isActive, onSwitch, onClose}: SortableTabProps) {
 
 export function TabBar() {
 	const {tabs, activeTabId, switchTab, closeTab, createTab} = useTabManager();
+	const {t} = useI18n();
 
 	// Ensure activeTabId exists in tabs array, fallback to first tab
 	// Memoize to prevent unnecessary rerenders during rapid state updates
@@ -75,7 +77,7 @@ export function TabBar() {
 				<button
 					onClick={() => createTab()}
 					className="hover:bg-app-hover text-ink-dull hover:text-ink flex size-7 shrink-0 items-center justify-center rounded-full transition-colors"
-					title="New tab (⌘T)"
+					title={t('tab.new')}
 				>
 					<Plus size={14} weight="bold" />
 				</button>

@@ -7,6 +7,7 @@ import {
 	availabilityDescription,
 	sourceAvailability,
 } from "./sourceAvailability";
+import { useI18n, type TranslateFn } from "../../i18n";
 
 /**
  * A filesystem source on the Sources page — same card language as adapter
@@ -15,14 +16,17 @@ import {
  * browse read-only from their snapshots and say so on the card.
  */
 
-function lastSeenLabel(lastSeenSecs: number): string {
+function lastSeenLabel(lastSeenSecs: number, t?: TranslateFn): string {
 	const elapsed = Math.max(0, Math.floor(Date.now() / 1000) - lastSeenSecs);
-	if (elapsed < 60) return "just now";
+	if (elapsed < 60) return t ? t('sources.card.lastSeen.justNow') : "just now";
 	const minutes = Math.floor(elapsed / 60);
-	if (minutes < 60) return `${minutes}m ago`;
+	if (minutes < 60)
+		return t ? t('sources.card.lastSeen.minutes', { count: minutes }) : `${minutes}m ago`;
 	const hours = Math.floor(minutes / 60);
-	if (hours < 24) return `${hours}h ago`;
-	return `${Math.floor(hours / 24)}d ago`;
+	if (hours < 24)
+		return t ? t('sources.card.lastSeen.hours', { count: hours }) : `${hours}h ago`;
+	const days = Math.floor(hours / 24);
+	return t ? t('sources.card.lastSeen.days', { count: days }) : `${days}d ago`;
 }
 
 export function DriveSourceCard({
@@ -33,18 +37,19 @@ export function DriveSourceCard({
 	deviceSlug: string | undefined;
 }) {
 	const navigate = useNavigate();
+	const { t, formatNumber } = useI18n();
 	const name =
 		source.root.split(/[/\\]/).filter(Boolean).pop() ?? source.root;
 	const availability = sourceAvailability(source);
-	const badge = availabilityBadge(availability);
+	const badge = availabilityBadge(availability, t);
 	// Where the catalog is read from is a fact about the source, not the
 	// drive: a mounted drive whose tracked folder is gone has no badge and
 	// still serves from the copy or from nothing.
 	const catalogHint =
 		source.catalog === "offline_copy"
-			? "offline copy"
+			? t('sources.card.offlineCopy')
 			: source.catalog === "away"
-				? "catalog on the drive"
+				? t('sources.card.catalogOnDrive')
 				: undefined;
 
 	const open = () => {
@@ -58,7 +63,7 @@ export function DriveSourceCard({
 	return (
 		<button
 			onClick={open}
-			title={availabilityDescription(availability, undefined) ?? source.root}
+			title={availabilityDescription(availability, undefined, t) ?? source.root}
 			className="border-app-line bg-app-box hover:border-app-line/80 hover:bg-app-hover group relative rounded-lg border p-4 text-left transition-all"
 		>
 			<div className="mb-3 flex items-center gap-3">
@@ -77,7 +82,7 @@ export function DriveSourceCard({
 					<h3 className="text-ink truncate text-sm font-medium">
 						{name}
 					</h3>
-					<p className="text-ink-faint text-xs">filesystem</p>
+					<p className="text-ink-faint text-xs">{t('sources.card.filesystem')}</p>
 				</div>
 				{(badge || catalogHint) && (
 					<span className="bg-app-selected/40 text-ink-faint flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium">
@@ -94,12 +99,12 @@ export function DriveSourceCard({
 			<div className="text-ink-faint flex items-center justify-between text-xs">
 				<span>
 					{source.entry_count != null
-						? `${source.entry_count.toLocaleString()} items`
-						: "indexing"}
+						? t('sources.card.items', { count: formatNumber(source.entry_count) })
+						: t('sources.card.indexing')}
 					{source.total_bytes != null &&
 						` · ${formatBytes(source.total_bytes)}`}
 				</span>
-				<span>{lastSeenLabel(source.last_seen_secs)}</span>
+				<span>{lastSeenLabel(source.last_seen_secs, t)}</span>
 			</div>
 		</button>
 	);

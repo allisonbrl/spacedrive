@@ -13,12 +13,14 @@ import { PeerList } from "./components/PeerList";
 import { ActivityFeed } from "./components/ActivityFeed";
 import { useSyncCount } from "./hooks/useSyncCount";
 import { useSyncMonitor } from "./hooks/useSyncMonitor";
+import { useI18n } from "../../i18n";
 
 interface SyncMonitorPopoverProps {
 	className?: string;
 }
 
 export function SyncMonitorPopover({ className }: SyncMonitorPopoverProps) {
+	const { t } = useI18n();
 	const navigate = useNavigate();
 	const popover = usePopover();
 	const [showActivityFeed, setShowActivityFeed] = useState(false);
@@ -52,7 +54,7 @@ export function SyncMonitorPopover({ className }: SyncMonitorPopoverProps) {
 							<ArrowsClockwise weight="bold" size={16} />
 						)}
 					</div>
-					<span>Sync</span>
+					<span>{t("sync.popover.trigger")}</span>
 					{onlinePeerCount > 0 && (
 						<span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-accent rounded-full">
 							{onlinePeerCount}
@@ -62,20 +64,19 @@ export function SyncMonitorPopover({ className }: SyncMonitorPopoverProps) {
 			</Popover.Trigger>
 			<Popover.Content side="top" align="start" sideOffset={8} className="w-[380px] max-h-[520px] z-50 !p-0 !bg-app !rounded-xl">
 				<div className="flex items-center justify-between px-4 py-3 border-b border-app-line">
-					<h3 className="text-sm font-semibold text-ink">Sync Monitor</h3>
+					<h3 className="text-sm font-semibold text-ink">{t("sync.popover.title")}</h3>
 
 					<div className="flex items-center gap-2">
 						{onlinePeerCount > 0 && (
 							<span className="text-xs text-ink-dull">
-								{onlinePeerCount}{" "}
-								{onlinePeerCount === 1 ? "peer" : "peers"} online
+								{t("sync.popover.peersOnline", { count: onlinePeerCount })}
 							</span>
 						)}
 
 						<CircleButton
 							icon={ArrowsOut}
 							onClick={() => navigate("/sync")}
-							title="Open full sync monitor"
+							title={t("sync.popover.openFull")}
 						/>
 
 						<CircleButton
@@ -84,8 +85,8 @@ export function SyncMonitorPopover({ className }: SyncMonitorPopoverProps) {
 							onClick={() => setShowActivityFeed(!showActivityFeed)}
 							title={
 								showActivityFeed
-									? "Show peers"
-									: "Show activity feed"
+									? t("sync.popover.showPeers")
+									: t("sync.popover.showActivityFeed")
 							}
 						/>
 					</div>
@@ -104,6 +105,7 @@ function SyncMonitorContent({
 }: {
 	showActivityFeed: boolean;
 }) {
+	const { t } = useI18n();
 	const sync = useSyncMonitor();
 
 	const getStateColor = (state: string) => {
@@ -123,6 +125,23 @@ function SyncMonitorContent({
 		}
 	};
 
+	const getStateLabel = (state: string) => {
+		switch (state) {
+			case "Ready":
+				return t("sync.state.ready");
+			case "Backfilling":
+				return t("sync.state.backfilling");
+			case "CatchingUp":
+				return t("sync.state.catchingUp");
+			case "Uninitialized":
+				return t("sync.state.uninitialized");
+			case "Paused":
+				return t("sync.state.paused");
+			default:
+				return state;
+		}
+	};
+
 	return (
 		<>
 			<div className="px-4 py-2 border-b border-app-line bg-app-box/50">
@@ -131,7 +150,7 @@ function SyncMonitorContent({
 						className={`size-2 rounded-full ${getStateColor(sync.currentState)}`}
 					/>
 					<span className="text-xs font-medium text-ink-dull">
-						{sync.currentState}
+						{getStateLabel(sync.currentState)}
 					</span>
 				</div>
 			</div>

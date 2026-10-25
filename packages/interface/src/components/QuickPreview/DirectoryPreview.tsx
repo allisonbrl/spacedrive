@@ -3,12 +3,14 @@ import type { File } from "@sd/ts-client";
 import { File as FileComponent } from "../../routes/explorer/File";
 import { useNormalizedQuery } from "../../contexts/SpacedriveContext";
 import { Folder } from "@sd/assets/icons";
+import { useI18n } from "../../i18n";
 
 interface DirectoryPreviewProps {
 	file: File;
 }
 
 export function DirectoryPreview({ file }: DirectoryPreviewProps) {
+	const { t } = useI18n();
 	const directoryQuery = useNormalizedQuery({
 		query: "files.directory_listing",
 		input: {
@@ -45,7 +47,7 @@ export function DirectoryPreview({ file }: DirectoryPreviewProps) {
 						{file.name}
 					</div>
 					<div className="text-sm text-ink-dull mt-2">
-						Loading directories...
+						{t("quickPreview.directory.loading")}
 					</div>
 				</div>
 			</div>
@@ -65,7 +67,7 @@ export function DirectoryPreview({ file }: DirectoryPreviewProps) {
 						{file.name}
 					</div>
 					<div className="text-sm text-ink-dull mt-2">
-						No subdirectories
+						{t("quickPreview.directory.empty")}
 					</div>
 				</div>
 			</div>

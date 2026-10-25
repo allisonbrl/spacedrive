@@ -1,28 +1,29 @@
 import {
-	House,
-	Clock,
 	Camera as CameraIcon,
 	ChartPieSlice,
-	Heart,
-	HardDrive,
-	Tag as TagIcon,
-	Folders,
+	Clock,
 	Database,
+	Folders,
+	HardDrive,
+	Heart,
+	House,
 	ShieldCheck,
-} from "@phosphor-icons/react";
-import { Folder } from "@sd/assets/icons";
+	Tag as TagIcon
+} from '@phosphor-icons/react';
+import type {Icon} from '@phosphor-icons/react';
+import {Folder} from '@sd/assets/icons';
 import type {
-	SpaceItem as SpaceItemType,
-	ItemType,
 	File,
+	ItemType,
 	SdPath,
-} from "@sd/ts-client";
-import type { Icon } from "@phosphor-icons/react";
+	SpaceItem as SpaceItemType
+} from '@sd/ts-client';
+import type {TranslationKey} from '../../../i18n';
 
 // Icon data returned from metadata resolution
 export type IconData =
-	| { type: "component"; icon: Icon }
-	| { type: "image"; icon: string };
+	| {type: 'component'; icon: Icon}
+	| {type: 'image'; icon: string};
 
 // Metadata resolved for a space item
 export interface ItemMetadata {
@@ -32,125 +33,135 @@ export interface ItemMetadata {
 }
 
 // Type guards for ItemType discrimination
-export function isOverviewItem(t: ItemType): t is "Overview" {
-	return t === "Overview";
+export function isOverviewItem(t: ItemType): t is 'Overview' {
+	return t === 'Overview';
 }
 
-export function isRecentsItem(t: ItemType): t is "Recents" {
-	return t === "Recents";
+export function isRecentsItem(t: ItemType): t is 'Recents' {
+	return t === 'Recents';
 }
 
-export function isFavoritesItem(t: ItemType): t is "Favorites" {
-	return t === "Favorites";
+export function isFavoritesItem(t: ItemType): t is 'Favorites' {
+	return t === 'Favorites';
 }
 
-export function isFileKindsItem(t: ItemType): t is "FileKinds" {
-	return t === "FileKinds";
+export function isFileKindsItem(t: ItemType): t is 'FileKinds' {
+	return t === 'FileKinds';
 }
 
-export function isVolumeItem(
-	t: ItemType,
-): t is { Volume: { volume_id: string } } {
-	return typeof t === "object" && "Volume" in t;
+export function isVolumeItem(t: ItemType): t is {Volume: {volume_id: string}} {
+	return typeof t === 'object' && 'Volume' in t;
 }
 
-export function isTagItem(t: ItemType): t is { Tag: { tag_id: string } } {
-	return typeof t === "object" && "Tag" in t;
+export function isTagItem(t: ItemType): t is {Tag: {tag_id: string}} {
+	return typeof t === 'object' && 'Tag' in t;
 }
 
-export function isPathItem(t: ItemType): t is { Path: { sd_path: SdPath } } {
-	return typeof t === "object" && "Path" in t;
+export function isPathItem(t: ItemType): t is {Path: {sd_path: SdPath}} {
+	return typeof t === 'object' && 'Path' in t;
 }
 
-export function isSourcesItem(t: ItemType): t is "Sources" {
-	return t === "Sources";
+export function isSourcesItem(t: ItemType): t is 'Sources' {
+	return t === 'Sources';
 }
 
-export function isRedundancyItem(t: ItemType): t is "Redundancy" {
-	return t === "Redundancy";
+export function isRedundancyItem(t: ItemType): t is 'Redundancy' {
+	return t === 'Redundancy';
 }
 
-export function isAnalyzerItem(t: ItemType): t is "Analyzer" {
-	return t === "Analyzer";
+export function isAnalyzerItem(t: ItemType): t is 'Analyzer' {
+	return t === 'Analyzer';
 }
 
 export function isCollectionItem(
-	t: ItemType,
-): t is { Collection: { slug: string } } {
-	return typeof t === "object" && "Collection" in t;
+	t: ItemType
+): t is {Collection: {slug: string}} {
+	return typeof t === 'object' && 'Collection' in t;
 }
 
-export function isSourceItem(
-	t: ItemType,
-): t is { Source: { source_id: string } } {
-	return typeof t === "object" && "Source" in t;
+export function isSourceItem(t: ItemType): t is {Source: {source_id: string}} {
+	return typeof t === 'object' && 'Source' in t;
 }
 
 // Get icon data for an item type
 function getItemIcon(itemType: ItemType): IconData {
-	if (isOverviewItem(itemType)) return { type: "component", icon: House };
-	if (isRecentsItem(itemType)) return { type: "component", icon: Clock };
-	if (isFavoritesItem(itemType)) return { type: "component", icon: Heart };
-	if (isFileKindsItem(itemType)) return { type: "component", icon: Folders };
-	if (isSourcesItem(itemType)) return { type: "component", icon: Database };
-	if (isRedundancyItem(itemType)) return { type: "component", icon: ShieldCheck };
-	if (isCollectionItem(itemType)) return { type: "component", icon: CameraIcon };
-	if (isAnalyzerItem(itemType)) return { type: "component", icon: ChartPieSlice };
-	if (isVolumeItem(itemType)) return { type: "component", icon: HardDrive };
-	if (isTagItem(itemType)) return { type: "component", icon: TagIcon };
-	if (isPathItem(itemType)) return { type: "image", icon: Folder };
-	if (isSourceItem(itemType)) return { type: "component", icon: Database };
-	return { type: "image", icon: Folder };
+	if (isOverviewItem(itemType)) return {type: 'component', icon: House};
+	if (isRecentsItem(itemType)) return {type: 'component', icon: Clock};
+	if (isFavoritesItem(itemType)) return {type: 'component', icon: Heart};
+	if (isFileKindsItem(itemType)) return {type: 'component', icon: Folders};
+	if (isSourcesItem(itemType)) return {type: 'component', icon: Database};
+	if (isRedundancyItem(itemType))
+		return {type: 'component', icon: ShieldCheck};
+	if (isCollectionItem(itemType))
+		return {type: 'component', icon: CameraIcon};
+	if (isAnalyzerItem(itemType))
+		return {type: 'component', icon: ChartPieSlice};
+	if (isVolumeItem(itemType)) return {type: 'component', icon: HardDrive};
+	if (isTagItem(itemType)) return {type: 'component', icon: TagIcon};
+	if (isPathItem(itemType)) return {type: 'image', icon: Folder};
+	if (isSourceItem(itemType)) return {type: 'component', icon: Database};
+	return {type: 'image', icon: Folder};
 }
 
 // Get label for an item type
-function getItemLabel(itemType: ItemType, resolvedFile?: File | null): string {
-	if (isOverviewItem(itemType)) return "Overview";
-	if (isRecentsItem(itemType)) return "Recents";
-	if (isFavoritesItem(itemType)) return "Favorites";
-	if (isFileKindsItem(itemType)) return "File Kinds";
-	if (isSourcesItem(itemType)) return "Sources";
-	if (isRedundancyItem(itemType)) return "Redundancy";
-	if (isAnalyzerItem(itemType)) return "Analyzer";
+function getItemLabel(
+	itemType: ItemType,
+	resolvedFile: File | null | undefined,
+	t: (key: TranslationKey) => string
+): string {
+	if (isOverviewItem(itemType)) return t('space.item.overview');
+	if (isRecentsItem(itemType)) return t('space.item.recents');
+	if (isFavoritesItem(itemType)) return t('space.item.favorites');
+	if (isFileKindsItem(itemType)) return t('space.item.fileKinds');
+	if (isSourcesItem(itemType)) return t('space.item.sources');
+	if (isRedundancyItem(itemType)) return t('space.item.redundancy');
+	if (isAnalyzerItem(itemType)) return t('space.item.analyzer');
 	if (isCollectionItem(itemType)) {
 		const slug = itemType.Collection.slug;
 		return slug
-			.split("-")
+			.split('-')
 			.map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-			.join(" ");
+			.join(' ');
 	}
-	if (isVolumeItem(itemType)) return resolvedFile?.name || (itemType as { Volume: { volume_id: string; name?: string } }).Volume.name || "Unnamed Volume";
-	if (isTagItem(itemType)) return resolvedFile?.name || "Unnamed Tag";
+	if (isVolumeItem(itemType))
+		return (
+			resolvedFile?.name ||
+			(itemType as {Volume: {volume_id: string; name?: string}}).Volume
+				.name ||
+			t('space.item.unnamedVolume')
+		);
+	if (isTagItem(itemType))
+		return resolvedFile?.name || t('space.item.unnamedTag');
 	if (isPathItem(itemType)) {
 		// Use resolved file name if available, otherwise extract from path
 		if (resolvedFile?.name) return resolvedFile.name;
 		const sdPath = itemType.Path.sd_path;
-		if (typeof sdPath === "object" && "Physical" in sdPath) {
+		if (typeof sdPath === 'object' && 'Physical' in sdPath) {
 			const parts = (
-				sdPath as { Physical: { path: string } }
-			).Physical.path.split("/");
-			return parts[parts.length - 1] || "Path";
+				sdPath as {Physical: {path: string}}
+			).Physical.path.split('/');
+			return parts[parts.length - 1] || 'Path';
 		}
-		return "Path";
+		return t('space.item.path');
 	}
-	if (isSourceItem(itemType)) return "Source";
-	return "Unknown";
+	if (isSourceItem(itemType)) return t('space.item.source');
+	return t('space.item.unknown');
 }
 
 // Build navigation path for an item
 function getItemPath(
 	itemType: ItemType,
-	volumeData?: { device_slug: string; mount_path: string },
+	volumeData?: {device_slug: string; mount_path: string}
 ): string | null {
-	if (isOverviewItem(itemType)) return "/";
-	if (isRecentsItem(itemType)) return "/collection/recent";
-	if (isFavoritesItem(itemType)) return "/favorites";
-	if (isFileKindsItem(itemType)) return "/file-kinds";
-	if (isSourcesItem(itemType)) return "/sources";
-	if (isRedundancyItem(itemType)) return "/redundancy";
+	if (isOverviewItem(itemType)) return '/';
+	if (isRecentsItem(itemType)) return '/collection/recent';
+	if (isFavoritesItem(itemType)) return '/favorites';
+	if (isFileKindsItem(itemType)) return '/file-kinds';
+	if (isSourcesItem(itemType)) return '/sources';
+	if (isRedundancyItem(itemType)) return '/redundancy';
 	if (isCollectionItem(itemType))
 		return `/collection/${itemType.Collection.slug}`;
-	if (isAnalyzerItem(itemType)) return "/analyzer";
+	if (isAnalyzerItem(itemType)) return '/analyzer';
 
 	if (isVolumeItem(itemType)) {
 		// Navigate to explorer with volume's root path
@@ -158,8 +169,8 @@ function getItemPath(
 			const sdPath = {
 				Physical: {
 					device_slug: volumeData.device_slug,
-					path: volumeData.mount_path || "/",
-				},
+					path: volumeData.mount_path || '/'
+				}
 			};
 			return `/explorer?path=${encodeURIComponent(JSON.stringify(sdPath))}`;
 		}
@@ -184,29 +195,48 @@ function getItemPath(
 
 // Options for resolving item metadata
 export interface ResolveMetadataOptions {
-	volumeData?: { device_slug: string; mount_path: string };
+	volumeData?: {device_slug: string; mount_path: string};
 	customIcon?: string;
 	customLabel?: string;
+	t?: (key: TranslationKey) => string;
 }
+
+const defaultTranslate = (key: TranslationKey): string => {
+	const values: Partial<Record<TranslationKey, string>> = {
+		'space.item.overview': 'Overview',
+		'space.item.recents': 'Recents',
+		'space.item.favorites': 'Favorites',
+		'space.item.fileKinds': 'File Kinds',
+		'space.item.sources': 'Sources',
+		'space.item.redundancy': 'Redundancy',
+		'space.item.analyzer': 'Analyzer',
+		'space.item.unnamedVolume': 'Unnamed Volume',
+		'space.item.unnamedTag': 'Unnamed Tag',
+		'space.item.path': 'Path',
+		'space.item.source': 'Source',
+		'space.item.unknown': 'Unknown'
+	};
+	return values[key] ?? key;
+};
 
 // Resolve all metadata for a space item in one call
 export function resolveItemMetadata(
 	item: SpaceItemType,
-	options: ResolveMetadataOptions = {},
+	options: ResolveMetadataOptions = {}
 ): ItemMetadata {
-	const { volumeData, customIcon, customLabel } = options;
+	const {volumeData, customIcon, customLabel, t = defaultTranslate} = options;
 	const resolvedFile = item.resolved_file;
 
 	const icon: IconData = customIcon
-		? { type: "image", icon: customIcon }
+		? {type: 'image', icon: customIcon}
 		: getItemIcon(item.item_type);
 
 	const label =
 		customLabel ||
 		resolvedFile?.name ||
-		getItemLabel(item.item_type, resolvedFile);
+		getItemLabel(item.item_type, resolvedFile, t);
 
 	const path = getItemPath(item.item_type, volumeData);
 
-	return { icon, label, path };
+	return {icon, label, path};
 }

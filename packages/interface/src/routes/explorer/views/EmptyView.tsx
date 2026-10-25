@@ -1,11 +1,14 @@
+import {useI18n} from '../../../i18n';
+
 export function EmptyView() {
-  return (
-    <div className="flex items-center justify-center h-full">
-      <div className="text-center">
-        <div className="text-ink-dull text-sm">
-          Select a place from the sidebar to browse files
-        </div>
-      </div>
-    </div>
-  );
+	const {t} = useI18n();
+	return (
+		<div className="flex h-full items-center justify-center">
+			<div className="text-center">
+				<div className="text-ink-dull text-sm">
+					{t('explorer.empty.selectPlace')}
+				</div>
+			</div>
+		</div>
+	);
 }

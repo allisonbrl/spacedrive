@@ -19,6 +19,7 @@ import {
 } from "../../contexts/SpacedriveContext";
 import { usePlanPreviewStore } from "../../routes/explorer/hooks/usePlanPreview";
 import { formatBytes } from "../../routes/explorer/utils";
+import { useI18n, type TranslateFn } from "../../i18n";
 import { hasErrors, pathName, PreflightPanel } from "./PreflightPanel";
 
 interface DeleteDialogProps {
@@ -45,24 +46,48 @@ export function useDeleteDialog() {
 		));
 }
 
-function describe(targets: DeleteTargets): string {
+function describe(targets: DeleteTargets, t?: TranslateFn): string {
 	switch (targets.kind) {
 		case "duplicates": {
 			const { scope, keep } = targets.duplicates;
 			if (keep.kind === "first") {
-				return `Of each content held more than once under ${
-					scope ? pathName(scope) : "the library"
-				}, the first copy stays and the others go.`;
+				return t
+					? t("modals.delete.duplicatesFirst", {
+							scope: scope ? pathName(scope) : t("modals.delete.theLibrary"),
+						})
+					: `Of each content held more than once under ${
+							scope ? pathName(scope) : "the library"
+						}, the first copy stays and the others go.`;
+			}
+			if (t) {
+				return keep.paths.length === 1
+					? t("modals.delete.duplicatesChosen_one", {
+							scope: scope ? t("modals.delete.underScope", { scope: pathName(scope) }) : "",
+						})
+					: t("modals.delete.duplicatesChosen_other", {
+							count: keep.paths.length,
+							scope: scope ? t("modals.delete.underScope", { scope: pathName(scope) }) : "",
+						});
 			}
 			return `${keep.paths.length === 1 ? "The chosen copy stays" : `${keep.paths.length} chosen copies stay`}; every other copy of ${
 				keep.paths.length === 1 ? "its" : "their"
 			} content${scope ? ` under ${pathName(scope)}` : ""} goes.`;
 		}
 		case "comparison":
-			return `Removes from ${pathName(targets.comparison.a)} the files whose bytes ${pathName(
-				targets.comparison.b,
-			)} already holds, wherever they sit in it.`;
+			return t
+				? t("modals.delete.comparison", {
+						a: pathName(targets.comparison.a),
+						b: pathName(targets.comparison.b),
+					})
+				: `Removes from ${pathName(targets.comparison.a)} the files whose bytes ${pathName(
+						targets.comparison.b,
+					)} already holds, wherever they sit in it.`;
 		case "paths":
+			if (t) {
+				return targets.paths.length === 1
+					? t("modals.delete.paths_one", { name: pathName(targets.paths[0]) })
+					: t("modals.delete.paths_other", { count: targets.paths.length });
+			}
 			return targets.paths.length === 1
 				? `Removes ${pathName(targets.paths[0])}.`
 				: `Removes ${targets.paths.length} items.`;
@@ -70,6 +95,7 @@ function describe(targets: DeleteTargets): string {
 }
 
 function DeleteDialog(props: DeleteDialogProps) {
+	const { t } = useI18n();
 	const dialog = useDialog(props);
 	const form = useForm();
 	const [permanent, setPermanent] = useState(props.permanent ?? false);
@@ -135,14 +161,22 @@ function DeleteDialog(props: DeleteDialogProps) {
 		return () => window.removeEventListener("keydown", onKey);
 	});
 
-	const [one, many] = duplicates ? ["copy", "copies"] : ["item", "items"];
+	const [one, many] = duplicates
+		? [t("modals.delete.copy"), t("modals.delete.copies")]
+		: [t("modals.delete.item"), t("modals.delete.items")];
 	const cta = summary
-		? `${permanent ? "Delete" : "Trash"} ${summary.deletes.files} ${
-				summary.deletes.files === 1 ? one : many
-			} (${formatBytes(summary.deletes.bytes)})`
-		: permanent
-			? "Delete"
-			: "Trash";
+		? (permanent
+				? t("modals.delete.ctaDeleteCount", {
+						count: summary.deletes.files,
+						itemType: summary.deletes.files === 1 ? one : many,
+						size: formatBytes(summary.deletes.bytes),
+					})
+				: t("modals.delete.ctaTrashCount", {
+						count: summary.deletes.files,
+						itemType: summary.deletes.files === 1 ? one : many,
+						size: formatBytes(summary.deletes.bytes),
+					}))
+		: (permanent ? t("modals.delete.delete") : t("modals.delete.trash"));
 
 	return (
 		<Dialog
@@ -159,13 +193,13 @@ function DeleteDialog(props: DeleteDialogProps) {
 			formClassName="!min-w-[520px] !max-w-[520px]"
 		>
 			<div className="space-y-4 py-1">
-				<div className="text-sm text-ink-dull">{describe(props.targets)}</div>
+				<div className="text-sm text-ink-dull">{describe(props.targets, t)}</div>
 
 				<label className="flex cursor-pointer items-center justify-between gap-3 rounded-md bg-app-box px-3 py-2">
 					<div>
-						<div className="text-sm text-ink">Delete permanently</div>
+						<div className="text-sm text-ink">{t("modals.delete.permanent")}</div>
 						<div className="text-[11px] text-ink-dull">
-							Off, the {many} go to the trash.
+							{t("modals.delete.permanentDesc", { many })}
 						</div>
 					</div>
 					<Switch checked={permanent} onCheckedChange={setPermanent} size="sm" />
@@ -181,7 +215,8 @@ function DeleteDialog(props: DeleteDialogProps) {
 
 				{nothing && (
 					<div className="text-xs text-ink-faint">
-						Nothing to remove{duplicates ? ": no surplus copies" : ""}.
+						{t("modals.delete.nothing")}
+						{duplicates ? t("modals.delete.noSurplusCopies") : ""}.
 					</div>
 				)}
 
@@ -200,7 +235,7 @@ function DeleteDialog(props: DeleteDialogProps) {
 						onClick={browse}
 					>
 						<Eye className="mr-1.5 size-4" weight="bold" />
-						Browse the result
+						{t("modals.delete.browseResult")}
 					</Button>
 				</div>
 			</div>

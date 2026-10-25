@@ -21,6 +21,7 @@ import {
 import {useDaemonStatus} from './hooks/useDaemonStatus';
 import {useLibraries} from './hooks/useLibraries';
 import {useTheme} from './hooks/useTheme';
+import {I18nProvider} from './i18n';
 import {explorerRoutes} from './router';
 
 interface ShellProps {
@@ -113,17 +114,19 @@ function ShellWithDaemonCheck() {
 			{isConnected ? (
 				// Daemon connected - render full app
 				<>
-					<DesktopStartupCoordinator />
-					<TabManagerProvider routes={explorerRoutes}>
-						<TabKeyboardHandler />
-						<ShellWithTabs />
-					</TabManagerProvider>
-					<Dialogs />
-					<Toaster />
-					<ReactQueryDevtools
-						initialIsOpen={false}
-						buttonPosition="bottom-right"
-					/>
+					<I18nProvider>
+						<DesktopStartupCoordinator />
+						<TabManagerProvider routes={explorerRoutes}>
+							<TabKeyboardHandler />
+							<ShellWithTabs />
+						</TabManagerProvider>
+						<Dialogs />
+						<Toaster />
+						<ReactQueryDevtools
+							initialIsOpen={false}
+							buttonPosition="bottom-right"
+						/>
+					</I18nProvider>
 				</>
 			) : (
 				// Daemon not connected - show appropriate overlay
@@ -153,18 +156,20 @@ export function Shell({client}: ShellProps) {
 						<ShellWithDaemonCheck />
 					) : (
 						// Web: Render immediately (daemon connection handled differently)
-						<>
-							<TabManagerProvider routes={explorerRoutes}>
-								<TabKeyboardHandler />
-								<ShellWithTabs />
-							</TabManagerProvider>
-							<Dialogs />
-							<Toaster />
-							<ReactQueryDevtools
-								initialIsOpen={false}
-								buttonPosition="bottom-right"
-							/>
-						</>
+						<I18nProvider>
+							<>
+								<TabManagerProvider routes={explorerRoutes}>
+									<TabKeyboardHandler />
+									<ShellWithTabs />
+								</TabManagerProvider>
+								<Dialogs />
+								<Toaster />
+								<ReactQueryDevtools
+									initialIsOpen={false}
+									buttonPosition="bottom-right"
+								/>
+							</>
+						</I18nProvider>
 					)}
 				</TooltipProvider>
 			</ServerProvider>

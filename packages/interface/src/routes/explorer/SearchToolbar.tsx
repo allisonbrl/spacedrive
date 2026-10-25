@@ -14,11 +14,12 @@ import {
 } from '@spacedrive/primitives';
 import clsx from 'clsx';
 import {useState, type Ref} from 'react';
+import {tagColor} from '../../components/Tags';
+import {useI18n} from '../../i18n';
 import {useExplorer} from './context';
 import type {SearchScope} from './context';
 import {useExplorerFiles} from './hooks/useExplorerFiles';
 
-import {tagColor} from '../../components/Tags';
 const SIZE_PRESETS: Array<{
 	label: string;
 	min: number | null;
@@ -62,6 +63,7 @@ const KIND_OPTION_LIMIT = 10;
  * so filters alone can start one.
  */
 export function SearchToolbar({ref}: {ref: Ref<HTMLDivElement>}) {
+	const {t, formatNumber} = useI18n();
 	const explorer = useExplorer();
 	const {totalFound, isLoading, facets} = useExplorerFiles();
 
@@ -81,9 +83,9 @@ export function SearchToolbar({ref}: {ref: Ref<HTMLDivElement>}) {
 	const filters = explorer.searchFilters;
 
 	const scopeOptions = [
-		{value: 'folder', label: 'This Folder'},
+		{value: 'folder', label: t('explorer.search.thisFolder')},
 		...(source ? [{value: 'source', label: source.name}] : []),
-		{value: 'library', label: 'Library'}
+		{value: 'library', label: t('explorer.search.library')}
 	];
 
 	return (
@@ -95,7 +97,7 @@ export function SearchToolbar({ref}: {ref: Ref<HTMLDivElement>}) {
 					explorer.exitSearchMode();
 				}
 			}}
-			className="flex flex-wrap items-center gap-2 px-3 py-1.5 border-b border-app-line/50"
+			className="border-app-line/50 flex flex-wrap items-center gap-2 border-b px-3 py-1.5"
 		>
 			<ToggleGroup
 				options={scopeOptions}
@@ -105,7 +107,7 @@ export function SearchToolbar({ref}: {ref: Ref<HTMLDivElement>}) {
 				}
 			/>
 
-			<div className="mx-1 h-4 w-px bg-app-line/60" />
+			<div className="bg-app-line/60 mx-1 h-4 w-px" />
 
 			<KindPill
 				filters={filters}
@@ -120,7 +122,7 @@ export function SearchToolbar({ref}: {ref: Ref<HTMLDivElement>}) {
 			/>
 			<TagsPill filters={filters} onChange={explorer.setSearchFilters} />
 
-			<label className="ml-1 flex items-center gap-1.5 text-xs text-ink-dull cursor-pointer">
+			<label className="text-ink-dull ml-1 flex cursor-pointer items-center gap-1.5 text-xs">
 				<Switch
 					size="sm"
 					checked={filters.include_hidden === true}
@@ -131,15 +133,19 @@ export function SearchToolbar({ref}: {ref: Ref<HTMLDivElement>}) {
 						})
 					}
 				/>
-				Hidden
+				{t('explorer.search.hidden')}
 			</label>
 
 			<div className="flex-1" />
 
 			{totalFound != null && !isLoading && (
-				<span className="text-xs text-ink-faint tabular-nums">
-					{totalFound.toLocaleString()} result
-					{totalFound === 1 ? '' : 's'}
+				<span className="text-ink-faint text-xs tabular-nums">
+					{formatNumber(totalFound)}{' '}
+					{t(
+						totalFound === 1
+							? 'explorer.search.results_one'
+							: 'explorer.search.results_other'
+					)}
 				</span>
 			)}
 
@@ -149,7 +155,7 @@ export function SearchToolbar({ref}: {ref: Ref<HTMLDivElement>}) {
 				onClick={explorer.exitSearchMode}
 			>
 				<X className="size-3" weight="bold" />
-				Close
+				{t('common.close')}
 			</Button>
 		</div>
 	);
@@ -170,6 +176,7 @@ function KindPill({
 	facets,
 	onChange
 }: PillProps & {facets?: SearchFacets}) {
+	const {t, formatNumber} = useI18n();
 	const popover = usePopover();
 	const selected = filters.content_types ?? [];
 	const counts = facets?.kinds ?? {};
@@ -187,10 +194,12 @@ function KindPill({
 
 	const label =
 		selected.length === 0
-			? 'Kind'
+			? t('explorer.search.kind')
 			: selected.length === 1
-				? selected[0]
-				: `${selected[0]} +${selected.length - 1}`;
+				? t(
+						`contentKinds.${selected[0]}` as import('../../i18n').TranslationKey
+					)
+				: `${t(`contentKinds.${selected[0]}` as import('../../i18n').TranslationKey)} +${selected.length - 1}`;
 
 	const toggle = (kind: ContentKind) => {
 		const next = selected.includes(kind)
@@ -202,7 +211,10 @@ function KindPill({
 	return (
 		<Popover.Root open={popover.open} onOpenChange={popover.setOpen}>
 			<Popover.Trigger asChild>
-				<SelectPill size="sm" className={pillClass(selected.length > 0)}>
+				<SelectPill
+					size="sm"
+					className={pillClass(selected.length > 0)}
+				>
 					{label}
 				</SelectPill>
 			</Popover.Trigger>
@@ -215,7 +227,7 @@ function KindPill({
 							popover.setOpen(false);
 						}}
 					>
-						Any kind
+						{t('explorer.search.anyKind')}
 					</OptionListItem>
 					{options.map((kind) => {
 						const count: number | undefined = counts[kind];
@@ -226,10 +238,12 @@ function KindPill({
 								onClick={() => toggle(kind)}
 							>
 								<span className="flex w-full items-center justify-between gap-4">
-									{kind}
+									{t(
+										`contentKinds.${kind}` as import('../../i18n').TranslationKey
+									)}
 									{count !== undefined && (
 										<span className="text-ink-faint tabular-nums">
-											{count.toLocaleString()}
+											{formatNumber(count)}
 										</span>
 									)}
 								</span>
@@ -243,6 +257,7 @@ function KindPill({
 }
 
 function TagsPill({filters, onChange}: PillProps) {
+	const {t} = useI18n();
 	const popover = usePopover();
 	const selected = filters.tags?.include ?? [];
 
@@ -252,10 +267,12 @@ function TagsPill({filters, onChange}: PillProps) {
 	);
 	const tags = tagsData?.tags ?? [];
 
-	const first = tags.find((tag) => tag.id === selected[0])?.name ?? 'Tag';
+	const first =
+		tags.find((tag) => tag.id === selected[0])?.name ??
+		t('explorer.search.tag');
 	const label =
 		selected.length === 0
-			? 'Tags'
+			? t('explorer.search.tags')
 			: selected.length === 1
 				? first
 				: `${first} +${selected.length - 1}`;
@@ -273,7 +290,10 @@ function TagsPill({filters, onChange}: PillProps) {
 	return (
 		<Popover.Root open={popover.open} onOpenChange={popover.setOpen}>
 			<Popover.Trigger asChild>
-				<SelectPill size="sm" className={pillClass(selected.length > 0)}>
+				<SelectPill
+					size="sm"
+					className={pillClass(selected.length > 0)}
+				>
 					{label}
 				</SelectPill>
 			</Popover.Trigger>
@@ -286,7 +306,7 @@ function TagsPill({filters, onChange}: PillProps) {
 							popover.setOpen(false);
 						}}
 					>
-						Any tag
+						{t('explorer.search.anyTag')}
 					</OptionListItem>
 					{tags.map((tag) => (
 						<OptionListItem
@@ -312,6 +332,7 @@ function TagsPill({filters, onChange}: PillProps) {
 }
 
 function SizePill({filters, onChange}: PillProps) {
+	const {t} = useI18n();
 	const popover = usePopover();
 	const activeIndex = filters.size_range
 		? SIZE_PRESETS.findIndex(
@@ -325,7 +346,11 @@ function SizePill({filters, onChange}: PillProps) {
 		<Popover.Root open={popover.open} onOpenChange={popover.setOpen}>
 			<Popover.Trigger asChild>
 				<SelectPill size="sm" className={pillClass(activeIndex > 0)}>
-					{activeIndex > 0 ? SIZE_PRESETS[activeIndex].label : 'Size'}
+					{activeIndex > 0
+						? t(
+								`explorer.search.sizePreset.${activeIndex}` as import('../../i18n').TranslationKey
+							)
+						: t('explorer.search.size')}
 				</SelectPill>
 			</Popover.Trigger>
 			<Popover.Content align="start" sideOffset={8}>
@@ -345,7 +370,9 @@ function SizePill({filters, onChange}: PillProps) {
 								popover.setOpen(false);
 							}}
 						>
-							{preset.label}
+							{t(
+								`explorer.search.sizePreset.${index}` as import('../../i18n').TranslationKey
+							)}
 						</OptionListItem>
 					))}
 				</OptionList>
@@ -355,6 +382,7 @@ function SizePill({filters, onChange}: PillProps) {
 }
 
 function DatePill({filters, onChange}: PillProps) {
+	const {t} = useI18n();
 	const popover = usePopover();
 
 	const activeDays = (() => {
@@ -373,8 +401,12 @@ function DatePill({filters, onChange}: PillProps) {
 					className={pillClass(filters.date_range !== null)}
 				>
 					{filters.date_range
-						? (activePreset?.label ?? 'Custom')
-						: 'Modified'}
+						? activePreset
+							? t(
+									`explorer.search.datePreset.${DATE_PRESETS.indexOf(activePreset)}` as import('../../i18n').TranslationKey
+								)
+							: t('explorer.search.custom')
+						: t('explorer.search.modified')}
 				</SelectPill>
 			</Popover.Trigger>
 			<Popover.Content align="start" sideOffset={8}>
@@ -406,7 +438,9 @@ function DatePill({filters, onChange}: PillProps) {
 								popover.setOpen(false);
 							}}
 						>
-							{preset.label}
+							{t(
+								`explorer.search.datePreset.${DATE_PRESETS.indexOf(preset)}` as import('../../i18n').TranslationKey
+							)}
 						</OptionListItem>
 					))}
 				</OptionList>
@@ -416,6 +450,7 @@ function DatePill({filters, onChange}: PillProps) {
 }
 
 function ExtensionPill({filters, onChange}: PillProps) {
+	const {t} = useI18n();
 	const popover = usePopover();
 	const [draft, setDraft] = useState(filters.file_types?.join(', ') ?? '');
 	const active = (filters.file_types?.length ?? 0) > 0;
@@ -438,7 +473,7 @@ function ExtensionPill({filters, onChange}: PillProps) {
 				<SelectPill size="sm" className={pillClass(active)}>
 					{active
 						? filters.file_types!.map((ext) => `.${ext}`).join(' ')
-						: 'Extension'}
+						: t('explorer.search.extension')}
 				</SelectPill>
 			</Popover.Trigger>
 			<Popover.Content align="start" sideOffset={8} className="p-2">

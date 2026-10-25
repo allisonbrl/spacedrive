@@ -17,6 +17,7 @@ import {
 	useLibraryPreview,
 	useLibraryValidate,
 } from "../../contexts/SpacedriveContext";
+import { useI18n } from "../../i18n";
 import { hasErrors, pathName, PreflightPanel } from "./PreflightPanel";
 import { describeError, Failure, useSubmitOnEnter } from "./RearrangeModal";
 
@@ -41,6 +42,7 @@ export function useAttributesDialog() {
 }
 
 function AttributesDialog(props: AttributesDialogProps) {
+	const { t } = useI18n();
 	const dialog = useDialog(props);
 	const form = useForm();
 	const [mode, setMode] = useState("");
@@ -77,7 +79,7 @@ function AttributesDialog(props: AttributesDialogProps) {
 		setFailure(null);
 		try {
 			await set.mutateAsync(input);
-			toast.success(`Setting attributes on ${props.paths.length} items`);
+			toast.success(t("modals.attributes.toast", { count: props.paths.length }));
 			close();
 			props.onComplete?.();
 		} catch (error) {
@@ -92,11 +94,11 @@ function AttributesDialog(props: AttributesDialogProps) {
 			form={form}
 			title={
 				props.paths.length === 1
-					? `Attributes of ${pathName(props.paths[0])}`
-					: `Attributes of ${props.paths.length} items`
+					? t("modals.attributes.title_one", { name: pathName(props.paths[0]) })
+					: t("modals.attributes.title_other", { count: props.paths.length })
 			}
 			icon={<SlidersHorizontal size={20} weight="bold" />}
-			ctaLabel="Apply"
+			ctaLabel={t("modals.attributes.apply")}
 			submitDisabled={!anything || refused || validation.isLoading || set.isPending}
 			loading={set.isPending}
 			onSubmit={form.handleSubmit(submit)}
@@ -105,12 +107,12 @@ function AttributesDialog(props: AttributesDialogProps) {
 		>
 			<div className="space-y-4 py-1">
 				<div className="text-sm text-ink-dull">
-					Each field left empty stays as it is.
+					{t("modals.attributes.description")}
 				</div>
 				<label className="flex items-center justify-between gap-3 rounded-md bg-app-box px-3 py-2 text-sm text-ink">
 					<div>
-						<div>Permission mode</div>
-						<div className="text-[11px] text-ink-dull">Octal, such as 644 or 755.</div>
+						<div>{t("modals.attributes.permissionMode")}</div>
+						<div className="text-[11px] text-ink-dull">{t("modals.attributes.permissionModeDesc")}</div>
 					</div>
 					<Input
 						size="xs"
@@ -121,7 +123,7 @@ function AttributesDialog(props: AttributesDialogProps) {
 					/>
 				</label>
 				<label className="flex items-center justify-between gap-3 rounded-md bg-app-box px-3 py-2 text-sm text-ink">
-					<div>Modified</div>
+					<div>{t("modals.attributes.modified")}</div>
 					<Input
 						size="xs"
 						type="datetime-local"
@@ -131,11 +133,11 @@ function AttributesDialog(props: AttributesDialogProps) {
 					/>
 				</label>
 				<label className="flex items-center justify-between gap-3 rounded-md bg-app-box px-3 py-2 text-sm text-ink">
-					<div>Hidden</div>
+					<div>{t("modals.attributes.hidden")}</div>
 					<Select<Hidden> value={hidden} size="sm" onChange={setHidden}>
-						<SelectOption value="keep">as it is</SelectOption>
-						<SelectOption value="hidden">hidden</SelectOption>
-						<SelectOption value="visible">visible</SelectOption>
+						<SelectOption value="keep">{t("modals.attributes.hiddenAsItIs")}</SelectOption>
+						<SelectOption value="hidden">{t("modals.attributes.hiddenHidden")}</SelectOption>
+						<SelectOption value="visible">{t("modals.attributes.hiddenVisible")}</SelectOption>
 					</Select>
 				</label>
 

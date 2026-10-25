@@ -2,6 +2,7 @@ import type { ContentKind, File, ListExtensionsOutput, ExtensionKindInfo } from 
 import { getContentKind } from "@sd/ts-client";
 import type { ReactNode } from "react";
 import type { VideoControlsCallbacks, VideoControlsState } from "./VideoControls";
+import type { TranslateFn } from "../../i18n";
 
 /**
  * The preview renderer registry. Built-in renderers register here by name at
@@ -161,10 +162,11 @@ export function resolvePreview(file: File, kinds: ExtensionKinds): Preview {
  * What to call a file's kind: the loaded extension's display name, the
  * stored kind id when its extension is gone, or the built-in kind.
  */
-export function kindLabel(file: File, kinds: ExtensionKinds): string {
+export function kindLabel(file: File, kinds: ExtensionKinds, t?: TranslateFn): string {
 	const name = file.content_kind_name;
 	if (!name) {
-		return getContentKind(file);
+		const kind = getContentKind(file);
+		return t ? t(`contentKinds.${kind}` as any) : kind;
 	}
 	return kinds.get(name)?.display_name ?? name;
 }

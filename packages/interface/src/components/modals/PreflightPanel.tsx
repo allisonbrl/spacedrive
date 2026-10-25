@@ -10,6 +10,7 @@ import type {
 	Validation,
 } from "@sd/ts-client";
 import { formatBytes } from "../../routes/explorer/utils";
+import { useI18n, type TranslateFn } from "../../i18n";
 
 /**
  * What validation and preview answered for an operation, rendered the same way in
@@ -29,16 +30,20 @@ export function PreflightPanel({
 	planning: boolean;
 	planError?: unknown;
 }) {
+	const { t } = useI18n();
+
 	return (
 		<div className="space-y-3">
-			<Findings validation={validation} validating={validating} />
+			<Findings validation={validation} validating={validating} t={t} />
 			{planning && !plan ? (
-				<Pending>Reading the plan from the index…</Pending>
+				<Pending>{t("modals.preflight.readingPlan")}</Pending>
 			) : plan ? (
-				<PlanSummaryView plan={plan} />
+				<PlanSummaryView plan={plan} t={t} />
 			) : planError ? (
 				<div className="text-xs text-ink-dull">
-					No plan: {planError instanceof Error ? planError.message : String(planError)}
+					{t("modals.preflight.noPlan", {
+						error: planError instanceof Error ? planError.message : String(planError),
+					})}
 				</div>
 			) : null}
 		</div>
@@ -61,24 +66,35 @@ function Pending({ children }: { children: React.ReactNode }) {
 function Findings({
 	validation,
 	validating,
+	t,
 }: {
 	validation: Validation | undefined;
 	validating: boolean;
+	t: TranslateFn;
 }) {
 	if (!validation) {
-		return validating ? <Pending>Checking…</Pending> : null;
+		return validating ? <Pending>{t("modals.preflight.checking")}</Pending> : null;
 	}
 	const facts = validation.facts;
-	const about: string[] = [`runs on ${facts.executes_on}`];
-	if (facts.strategy) about.push(`via ${facts.strategy}`);
+	const about: string[] = [t("modals.preflight.runsOn", { device: facts.executes_on })];
+	if (facts.strategy) about.push(t("modals.preflight.viaStrategy", { strategy: facts.strategy }));
 	if (facts.estimated_files != null && facts.estimated_bytes != null) {
-		about.push(`${facts.estimated_files} files, ${formatBytes(facts.estimated_bytes)} estimated`);
+		about.push(
+			t("modals.preflight.estimated", {
+				count: facts.estimated_files,
+				size: formatBytes(facts.estimated_bytes),
+			}),
+		);
 	}
 	if (facts.free_space_after != null) {
 		about.push(
 			facts.free_space_after < 0
-				? `${formatBytes(-facts.free_space_after)} short on the destination`
-				: `${formatBytes(facts.free_space_after)} free after`,
+				? t("modals.preflight.shortOnDestination", {
+						size: formatBytes(-facts.free_space_after),
+					})
+				: t("modals.preflight.freeAfter", {
+						size: formatBytes(facts.free_space_after),
+					}),
 		);
 	}
 	return (
@@ -115,17 +131,15 @@ function FindingRow({ finding }: { finding: Finding }) {
 	);
 }
 
-function PlanSummaryView({ plan }: { plan: FsPlan }) {
+function PlanSummaryView({ plan, t }: { plan: FsPlan; t: TranslateFn }) {
 	const summary = plan.summary;
-	const rows = summaryRows(summary);
+	const rows = summaryRows(summary, t);
 	const basis =
 		plan.basis.kind === "index"
-			? `from the index of ${plan.basis.revisions.length} ${
-					plan.basis.revisions.length === 1 ? "store" : "stores"
-				}`
+			? t("modals.preflight.fromIndex", { count: plan.basis.revisions.length })
 			: plan.basis.kind === "journal"
-				? "from the job's journal"
-				: `from the archive's directory of ${plan.basis.entries} entries`;
+				? t("modals.preflight.fromJournal")
+				: t("modals.preflight.fromArchive", { count: plan.basis.entries });
 	// The rows a person reads a plan for: conflicts, the last copies a
 	// deletion would remove, replacements, then everything else that goes.
 	const attention = plan.changes
@@ -134,8 +148,8 @@ function PlanSummaryView({ plan }: { plan: FsPlan }) {
 	return (
 		<div className="space-y-2">
 			<div className="text-xs font-medium text-ink-dull">
-				Plan, {basis}
-				{plan.truncated && " (first 5000 changes listed)"}
+				{t("modals.preflight.planBasis", { basis })}
+				{plan.truncated && t("modals.preflight.first5000")}
 			</div>
 			<div className="grid grid-cols-[auto_1fr_auto] gap-x-3 gap-y-0.5 text-xs">
 				{rows.map((row) => (
@@ -145,10 +159,12 @@ function PlanSummaryView({ plan }: { plan: FsPlan }) {
 			{attention.length > 0 && (
 				<div className="max-h-40 space-y-0.5 overflow-auto rounded-md bg-app-box p-2">
 					{attention.slice(0, 50).map((change) => (
-						<ChangeRow key={sdPathKey(change.path)} change={change} />
+						<ChangeRow key={sdPathKey(change.path)} change={change} t={t} />
 					))}
 					{attention.length > 50 && (
-						<div className="text-[10px] text-ink-faint">and {attention.length - 50} more</div>
+						<div className="text-[10px] text-ink-faint">
+							{t("modals.preflight.andMore", { count: attention.length - 50 })}
+						</div>
 					)}
 				</div>
 			)}
@@ -201,27 +217,27 @@ function Row({
 	);
 }
 
-function summaryRows(summary: FsPlanSummary) {
+function summaryRows(summary: FsPlanSummary, t?: TranslateFn) {
 	return [
-		{ label: "Create", files: summary.creates.files, bytes: summary.creates.bytes },
-		{ label: "New folders", files: summary.directories_created },
-		{ label: "Replace", files: summary.replaces.files, bytes: summary.replaces.bytes, tone: "warn" as const },
-		{ label: "Merge into", files: summary.merged_into },
-		{ label: "Move", files: summary.moves.files, bytes: summary.moves.bytes },
-		{ label: "Delete", files: summary.deletes.files, bytes: summary.deletes.bytes, tone: "danger" as const },
+		{ label: t?.("modals.preflight.summary.create") ?? "Create", files: summary.creates.files, bytes: summary.creates.bytes },
+		{ label: t?.("modals.preflight.summary.newFolders") ?? "New folders", files: summary.directories_created },
+		{ label: t?.("modals.preflight.summary.replace") ?? "Replace", files: summary.replaces.files, bytes: summary.replaces.bytes, tone: "warn" as const },
+		{ label: t?.("modals.preflight.summary.mergeInto") ?? "Merge into", files: summary.merged_into },
+		{ label: t?.("modals.preflight.summary.move") ?? "Move", files: summary.moves.files, bytes: summary.moves.bytes },
+		{ label: t?.("modals.preflight.summary.delete") ?? "Delete", files: summary.deletes.files, bytes: summary.deletes.bytes, tone: "danger" as const },
 		{
-			label: "Skip, same bytes",
+			label: t?.("modals.preflight.summary.skipSameBytes") ?? "Skip, same bytes",
 			files: summary.skips.duplicates_confirmed.files + summary.skips.duplicate_candidates.files,
 			bytes: summary.skips.duplicates_confirmed.bytes + summary.skips.duplicate_candidates.bytes,
 		},
-		{ label: "Skip, by policy", files: summary.skips.policy.files, bytes: summary.skips.policy.bytes },
-		{ label: "Skip, junk", files: summary.skips.junk },
-		{ label: "Conflicts", files: summary.conflicts, tone: "danger" as const },
-		{ label: "Attributes", files: summary.attributes },
+		{ label: t?.("modals.preflight.summary.skipPolicy") ?? "Skip, by policy", files: summary.skips.policy.files, bytes: summary.skips.policy.bytes },
+		{ label: t?.("modals.preflight.summary.skipJunk") ?? "Skip, junk", files: summary.skips.junk },
+		{ label: t?.("modals.preflight.summary.conflicts") ?? "Conflicts", files: summary.conflicts, tone: "danger" as const },
+		{ label: t?.("modals.preflight.summary.attributes") ?? "Attributes", files: summary.attributes },
 	];
 }
 
-function ChangeRow({ change }: { change: PlannedChange }) {
+function ChangeRow({ change, t }: { change: PlannedChange; t?: TranslateFn }) {
 	return (
 		<div className="flex items-center gap-2 text-[11px]">
 			<span
@@ -233,7 +249,7 @@ function ChangeRow({ change }: { change: PlannedChange }) {
 						: "bg-amber-500/15 text-amber-500",
 				)}
 			>
-				{changeLabel(change.change)}
+				{changeLabel(change.change, t)}
 			</span>
 			<span className="truncate text-ink-dull" title={pathString(change.path)}>
 				{pathName(change.path)}
@@ -243,44 +259,44 @@ function ChangeRow({ change }: { change: PlannedChange }) {
 }
 
 /** A short word for a change, as a row badge reads it. */
-export function changeLabel(change: ChangeKind): string {
+export function changeLabel(change: ChangeKind, t?: TranslateFn): string {
 	switch (change.type) {
 		case "create":
-			return "new";
+			return t?.("explorer.plan.newLabel") ?? "new";
 		case "create_directory":
-			return "new folder";
+			return t?.("explorer.plan.newFolder") ?? "new folder";
 		case "replace":
-			return change.reason === "newer" ? "replace, newer" : "replace";
+			return t?.(change.reason === "newer" ? "explorer.plan.replaceNewer" : "explorer.plan.replace") ?? (change.reason === "newer" ? "replace, newer" : "replace");
 		case "merge_into":
-			return "merge into";
+			return t?.("explorer.plan.mergeInto") ?? "merge into";
 		case "skip":
 			switch (change.reason) {
 				case "duplicate_confirmed":
-					return "same bytes";
+					return t?.("explorer.plan.sameBytes") ?? "same bytes";
 				case "duplicate_candidate":
-					return "same bytes, unverified";
+					return t?.("explorer.plan.sameBytesUnverified") ?? "same bytes, unverified";
 				case "junk":
-					return "junk";
+					return t?.("explorer.plan.junk") ?? "junk";
 				case "policy":
-					return "kept";
+					return t?.("explorer.plan.kept") ?? "kept";
 			}
-			return "skip";
+			return t?.("explorer.plan.skip") ?? "skip";
 		case "move":
-			return "move";
+			return t?.("explorer.plan.move") ?? "move";
 		case "delete":
-			return change.last_copy ? "delete, last copy" : "delete";
+			return t?.(change.last_copy ? "explorer.plan.deleteLastCopy" : "explorer.plan.delete") ?? (change.last_copy ? "delete, last copy" : "delete");
 		case "conflict":
 			switch (change.kind) {
 				case "file_vs_directory":
-					return "file vs folder";
+					return t?.("explorer.plan.fileVsFolder") ?? "file vs folder";
 				case "link_vs_file":
-					return "link vs file";
+					return t?.("explorer.plan.linkVsFile") ?? "link vs file";
 				case "sources":
-					return "two sources";
+					return t?.("explorer.plan.twoSources") ?? "two sources";
 			}
-			return "conflict";
+			return t?.("explorer.plan.conflict") ?? "conflict";
 		case "set_attributes":
-			return "attributes";
+			return t?.("explorer.plan.attributes") ?? "attributes";
 	}
 }
 

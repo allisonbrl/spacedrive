@@ -13,11 +13,13 @@ import { formatBytes } from "../../../routes/explorer/utils";
 import { File as FileComponent } from "../../../routes/explorer/File";
 
 import { tagColor } from "../../Tags";
+import {useI18n} from "../../../i18n";
 interface MultiFileInspectorProps {
 	files: File[];
 }
 
 export function MultiFileInspector({ files }: MultiFileInspectorProps) {
+	const {t, formatDate} = useI18n();
 	// Get last 3 files for thumbnail stacking (v1 style)
 	const thumbnailFiles = useMemo(() => {
 		return files.slice(-3).reverse();
@@ -126,7 +128,7 @@ export function MultiFileInspector({ files }: MultiFileInspectorProps) {
 			<div className="px-2 pb-3">
 				<div className="text-center">
 					<h2 className="text-lg font-semibold text-sidebar-ink">
-						{files.length} Items Selected
+						{t('inspector.multi.itemsSelected', {count: files.length})}
 					</h2>
 				</div>
 			</div>
@@ -134,18 +136,18 @@ export function MultiFileInspector({ files }: MultiFileInspectorProps) {
 			<Divider />
 
 			{/* Summary section */}
-			<Section title="Summary" icon={Files}>
-				<InfoRow label="Total Size" value={formatBytes(aggregatedData.totalSize)} />
-				<InfoRow label="Items" value={files.length} />
+			<Section title={t('inspector.summary')} icon={Files}>
+				<InfoRow label={t('inspector.totalSize')} value={formatBytes(aggregatedData.totalSize)} />
+				<InfoRow label={t('inspector.items')} value={files.length} />
 			</Section>
 
 			{/* File types breakdown */}
 			{aggregatedData.kindCounts.length > 0 && (
-				<Section title="Types" icon={Folder}>
+				<Section title={t('inspector.types')} icon={Folder}>
 					{aggregatedData.kindCounts.slice(0, 5).map(([kind, count]) => (
 						<InfoRow
 							key={kind}
-							label={kind.charAt(0).toUpperCase() + kind.slice(1)}
+							label={t(`contentKinds.${kind}` as never)}
 							value={count}
 						/>
 					))}
@@ -154,7 +156,7 @@ export function MultiFileInspector({ files }: MultiFileInspectorProps) {
 
 			{/* Tags with opacity based on coverage */}
 			{aggregatedData.tags.length > 0 && (
-				<Section title="Tags" icon={TagIcon}>
+				<Section title={t('inspector.tags')} icon={TagIcon}>
 					<div className="flex flex-wrap gap-1.5">
 						{aggregatedData.tags.map((tag) => {
 							const coverage = tag.count / files.length;
@@ -184,38 +186,38 @@ export function MultiFileInspector({ files }: MultiFileInspectorProps) {
 			{/* Date ranges */}
 			{(aggregatedData.dateRanges.created ||
 				aggregatedData.dateRanges.modified) && (
-				<Section title="Dates" icon={Calendar}>
+				<Section title={t('inspector.dates')} icon={Calendar}>
 					{aggregatedData.dateRanges.created && (
 						<InfoRow
-							label="Created"
+							label={t('inspector.created')}
 							value={
 								aggregatedData.dateRanges.created.earliest ===
 								aggregatedData.dateRanges.created.latest
-									? new Date(
+									? formatDate(
 											aggregatedData.dateRanges.created.earliest,
-										).toLocaleDateString()
-									: `${new Date(
+										)
+									: `${formatDate(
 											aggregatedData.dateRanges.created.earliest,
-										).toLocaleDateString()} - ${new Date(
+										)} - ${formatDate(
 											aggregatedData.dateRanges.created.latest,
-										).toLocaleDateString()}`
+										)}`
 							}
 						/>
 					)}
 					{aggregatedData.dateRanges.modified && (
 						<InfoRow
-							label="Modified"
+							label={t('inspector.modified')}
 							value={
 								aggregatedData.dateRanges.modified.earliest ===
 								aggregatedData.dateRanges.modified.latest
-									? new Date(
+									? formatDate(
 											aggregatedData.dateRanges.modified.earliest,
-										).toLocaleDateString()
-									: `${new Date(
+										)
+									: `${formatDate(
 											aggregatedData.dateRanges.modified.earliest,
-										).toLocaleDateString()} - ${new Date(
+										)} - ${formatDate(
 											aggregatedData.dateRanges.modified.latest,
-										).toLocaleDateString()}`
+										)}`
 							}
 						/>
 					)}

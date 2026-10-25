@@ -1,18 +1,19 @@
 import {
 	Books,
 	Database,
+	EjectSimple,
 	EyeSlash,
-	Gauge,
-	EjectSimple
+	Gauge
 } from '@phosphor-icons/react';
-import type { Volume } from '@sd/ts-client';
+import type {Volume} from '@sd/ts-client';
+import {useLibraryMutation} from '../../../contexts/SpacedriveContext';
 import {
 	useContextMenu,
 	type ContextMenuItem,
 	type ContextMenuResult
 } from '../../../hooks/useContextMenu';
-import { useLibraryMutation } from '../../../contexts/SpacedriveContext';
-import { useAddToLibraryDialog } from '../../../routes/explorer/components/AddToLibraryModal';
+import {useI18n} from '../../../i18n';
+import {useAddToLibraryDialog} from '../../../routes/explorer/components/AddToLibraryModal';
 
 interface UseVolumeContextMenuOptions {
 	volume: Volume;
@@ -38,19 +39,20 @@ export function useVolumeContextMenu({
 	const ejectVolume = useLibraryMutation('volumes.eject');
 
 	const isRemovable = volume.mount_type === 'External';
+	const {t} = useI18n();
 
 	const items: ContextMenuItem[] = [
 		{
 			icon: Books,
-			label: 'Add to Library',
+			label: t('context.addToLibrary'),
 			onClick: () => {
-				openAddToLibrary({ target: { kind: 'volume', volume } });
+				openAddToLibrary({target: {kind: 'volume', volume}});
 			},
 			condition: () => !volume.is_tracked && volume.is_mounted
 		},
 		{
 			icon: EyeSlash,
-			label: 'Untrack Volume',
+			label: t('context.untrackVolume'),
 			onClick: async () => {
 				try {
 					await untrackVolume.mutateAsync({
@@ -63,10 +65,10 @@ export function useVolumeContextMenu({
 			variant: 'danger' as const,
 			condition: () => volume.is_tracked
 		},
-		{ type: 'separator' },
+		{type: 'separator'},
 		{
 			icon: Database,
-			label: 'Re-index Volume',
+			label: t('context.reindexVolume'),
 			onClick: async () => {
 				try {
 					const result = await indexVolume.mutateAsync({
@@ -84,7 +86,7 @@ export function useVolumeContextMenu({
 		},
 		{
 			icon: Gauge,
-			label: 'Speed Test',
+			label: t('context.speedTest'),
 			onClick: async () => {
 				try {
 					const result = await speedTestVolume.mutateAsync({
@@ -105,7 +107,7 @@ export function useVolumeContextMenu({
 		},
 		{
 			icon: EjectSimple,
-			label: 'Eject',
+			label: t('context.eject'),
 			onClick: async () => {
 				try {
 					const result = await ejectVolume.mutateAsync({
@@ -125,5 +127,5 @@ export function useVolumeContextMenu({
 		}
 	];
 
-	return useContextMenu({ items });
+	return useContextMenu({items});
 }

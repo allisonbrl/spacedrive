@@ -5,6 +5,7 @@ import { MediaView } from '../MediaView';
 import { ColumnView } from '../ColumnView';
 import { SizeView } from '../SizeView';
 import { KnowledgeView } from '../KnowledgeView';
+import { useI18n } from '../../../../i18n';
 
 /**
  * SearchView is a router that delegates to the appropriate view component.
@@ -21,6 +22,7 @@ import { KnowledgeView } from '../KnowledgeView';
  * - All other explorer features
  */
 export function SearchView() {
+	const { t } = useI18n();
 	const explorer = useExplorer();
 	const { viewMode, mode } = explorer;
 
@@ -48,7 +50,7 @@ export function SearchView() {
 			return (
 				<div className="flex h-full flex-col items-center justify-center p-8 text-center">
 					<p className="text-ink-dull text-sm">
-						Search in {viewMode} view coming soon
+						{t('explorer.views.searchComing', { viewMode })}
 					</p>
 				</div>
 			);

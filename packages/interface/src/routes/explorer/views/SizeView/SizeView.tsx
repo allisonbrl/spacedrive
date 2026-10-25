@@ -18,6 +18,7 @@ import {useDraggableFile} from '../../hooks/useDraggableFile';
 import {useSelection} from '../../SelectionContext';
 import {formatBytes} from '../../utils';
 import {useExplorerFiles} from '../../hooks/useExplorerFiles';
+import {useI18n} from '../../../../i18n';
 
 // Cache for computed colors
 const colorCache = new Map<string, string>();
@@ -308,6 +309,7 @@ interface TreeNode {
 }
 
 export function SizeView() {
+	const {t} = useI18n();
 	const {
 		currentPath,
 		sortBy,
@@ -1109,7 +1111,7 @@ export function SizeView() {
 					dataSource && (
 						<div className="pointer-events-none absolute inset-0 flex items-center justify-center">
 							<p className="text-ink-dull">
-								No files with size data to display
+								{t('explorer.views.noSizeData')}
 							</p>
 						</div>
 					)}
@@ -1123,25 +1125,25 @@ export function SizeView() {
 						<CircleButton
 							icon={Minus}
 							onClick={handleZoomOut}
-							title="Zoom Out"
+							title={t('explorer.views.zoomOut')}
 							disabled={sizeViewTransform.k <= 0.1}
 						/>
 						<CircleButton
 							icon={Plus}
 							onClick={handleZoomIn}
-							title="Zoom In"
+							title={t('explorer.views.zoomIn')}
 							disabled={sizeViewTransform.k >= 100}
 						/>
 					</CircleButtonGroup>
 					<CircleButton
 						icon={ArrowsOut}
 						onClick={handleFitToView}
-						title="Fit to View"
+						title={t('explorer.views.fitView')}
 					/>
 					<CircleButton
 						icon={ArrowCounterClockwise}
 						onClick={handleResetZoom}
-						title="Reset Zoom"
+						title={t('explorer.views.resetZoom')}
 					/>
 					<div className="text-ink-dull px-2 text-xs font-medium">
 						{sizeViewTransform.k.toFixed(1)}x

@@ -3,6 +3,7 @@ import type { SdPath, File } from "@sd/ts-client";
 import { useExplorer } from "../../context";
 import { usePlanPreviewStore } from "../../hooks/usePlanPreview";
 import { useSelection } from "../../SelectionContext";
+import { useI18n } from "../../../../i18n";
 import { useNormalizedQuery } from "../../../../contexts/SpacedriveContext";
 import type { DirectorySortBy } from "@sd/ts-client";
 import { Column } from "./Column";
@@ -19,6 +20,7 @@ function getPathString(path: SdPath | null | undefined): string {
 }
 
 export function ColumnView() {
+	const { t } = useI18n();
 	const {
 		currentPath,
 		navigateToPath,
@@ -431,7 +433,7 @@ export function ColumnView() {
 	if (!currentPath && !isVirtualView) {
 		return (
 			<div className="flex items-center justify-center h-full">
-				<div className="text-ink-dull">No folder selected</div>
+				<div className="text-ink-dull">{t('explorer.views.noFolder')}</div>
 			</div>
 		);
 	}

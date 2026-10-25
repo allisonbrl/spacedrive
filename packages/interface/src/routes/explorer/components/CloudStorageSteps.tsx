@@ -9,6 +9,7 @@ import type {
 } from "@sd/ts-client";
 import clsx from "clsx";
 import { useLibraryMutation } from "../../../contexts/SpacedriveContext";
+import { useI18n } from "../../../i18n";
 import { describeError } from "../../../components/modals/RearrangeModal";
 
 import DriveAmazonS3 from "@sd/assets/icons/Drive-AmazonS3.webp";
@@ -202,6 +203,7 @@ export function CloudConnectionFields({
 	provider: CloudProvider;
 	form: ReturnType<typeof useForm<CloudFormData>>;
 }) {
+	const {t} = useI18n();
 	const service = provider.cloudServiceType;
 	const field = (
 		name: keyof CloudFormData,
@@ -221,14 +223,14 @@ export function CloudConnectionFields({
 
 	return (
 		<div className="h-full space-y-4 overflow-y-auto pr-1">
-			{field("display_name", "Display Name", { placeholder: `My ${provider.name}` })}
+			{field("display_name", t('explorer.add.cloud.displayName'), { placeholder: t('explorer.add.cloud.placeholder', {provider: provider.name}) })}
 
 			{isS3Like(service) && (
 				<>
-					{field("bucket", "Bucket", { placeholder: "my-bucket" })}
-					{field("region", "Region", { placeholder: "us-west-2" })}
-					{field("access_key_id", "Access Key ID", { placeholder: "AKIA..." })}
-					{field("secret_access_key", "Secret Access Key", {
+					{field("bucket", t('explorer.add.cloud.bucket'), { placeholder: "my-bucket" })}
+					{field("region", t('explorer.add.cloud.region'), { placeholder: "us-west-2" })}
+					{field("access_key_id", t('explorer.add.cloud.accessKey'), { placeholder: "AKIA..." })}
+					{field("secret_access_key", t('explorer.add.cloud.secretKey'), {
 						type: "password",
 						placeholder: "••••••••••••••••••",
 					})}
@@ -236,7 +238,7 @@ export function CloudConnectionFields({
 						provider.id === "minio" ||
 						provider.id === "wasabi" ||
 						provider.id === "spaces") &&
-						field("endpoint", "Endpoint", {
+						field("endpoint", t('explorer.add.cloud.endpoint'), {
 							placeholder:
 								provider.id === "r2"
 									? "https://account.r2.cloudflarestorage.com"
@@ -249,28 +251,28 @@ export function CloudConnectionFields({
 
 			{isOAuth(service) && (
 				<>
-					{field("client_id", "Client ID")}
-					{field("client_secret", "Client Secret", { type: "password" })}
-					{service !== "dropbox" && field("access_token", "Access Token")}
-					{field("refresh_token", "Refresh Token")}
-					{field("root", "Root Path (Optional)", { placeholder: "/" })}
+					{field("client_id", t('explorer.add.cloud.clientId'))}
+					{field("client_secret", t('explorer.add.cloud.clientSecret'), { type: "password" })}
+					{service !== "dropbox" && field("access_token", t('explorer.add.cloud.accessToken'))}
+					{field("refresh_token", t('explorer.add.cloud.refreshToken'))}
+					{field("root", t('explorer.add.cloud.root'), { placeholder: "/" })}
 				</>
 			)}
 
 			{service === "azblob" && (
 				<>
-					{field("container", "Container", { placeholder: "my-container" })}
-					{field("account_name", "Account Name")}
-					{field("account_key", "Account Key", { type: "password" })}
-					{field("endpoint", "Endpoint (Optional)", { placeholder: "https://..." })}
+					{field("container", t('explorer.add.cloud.container'), { placeholder: "my-container" })}
+					{field("account_name", t('explorer.add.cloud.accountName'))}
+					{field("account_key", t('explorer.add.cloud.accountKey'), { type: "password" })}
+					{field("endpoint", t('explorer.add.cloud.endpointOptional'), { placeholder: "https://..." })}
 				</>
 			)}
 
 			{service === "gcs" && (
 				<>
-					{field("bucket", "Bucket", { placeholder: "my-gcs-bucket" })}
+					{field("bucket", t('explorer.add.cloud.bucket'), { placeholder: "my-gcs-bucket" })}
 					<div className="space-y-2">
-						<Label>Service Account Credential (JSON)</Label>
+						<Label>{t('explorer.add.cloud.credential')}</Label>
 						<textarea
 							{...form.register("credential")}
 							rows={6}
@@ -278,8 +280,8 @@ export function CloudConnectionFields({
 							className="w-full rounded-lg border border-app-line bg-app-input px-3 py-2 font-mono text-sm text-ink"
 						/>
 					</div>
-					{field("root", "Root Path (Optional)", { placeholder: "/" })}
-					{field("endpoint", "Endpoint (Optional)", {
+					{field("root", t('explorer.add.cloud.root'), { placeholder: "/" })}
+					{field("endpoint", t('explorer.add.cloud.endpointOptional'), {
 						placeholder: "https://storage.googleapis.com",
 					})}
 				</>

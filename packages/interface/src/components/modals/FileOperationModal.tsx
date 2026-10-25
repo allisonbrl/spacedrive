@@ -32,6 +32,7 @@ import {
 } from "../../contexts/SpacedriveContext";
 import { File, FileStack } from "../../routes/explorer/File";
 import { usePlanPreviewStore } from "../../routes/explorer/hooks/usePlanPreview";
+import { useI18n } from "../../i18n";
 import { useMergeFoldersDialog } from "./MergeFoldersModal";
 import { hasErrors, pathName, PreflightPanel } from "./PreflightPanel";
 
@@ -61,6 +62,7 @@ export function useFileOperationDialog() {
 }
 
 function FileOperationDialog(props: FileOperationDialogProps) {
+	const { t } = useI18n();
 	const dialog = useDialog(props);
 	const form = useForm();
 	const [operation, setOperation] = useState<"copy" | "move">(props.operation);
@@ -131,7 +133,7 @@ function FileOperationDialog(props: FileOperationDialogProps) {
 					error.validation.findings.map((finding) => finding.message).join("; "),
 				);
 			} else {
-				setFailure(error instanceof Error ? error.message : "Operation failed");
+				setFailure(error instanceof Error ? error.message : t("modals.fileOperation.failed"));
 			}
 		}
 	};
@@ -149,14 +151,19 @@ function FileOperationDialog(props: FileOperationDialogProps) {
 
 	const browse = () => {
 		if (!preview.data) return;
+		const verbBrowse = operation === "copy" ? t("modals.fileOperation.verbCopy") : t("modals.fileOperation.verbMove");
+		const itemTypeBrowse = props.sources.length === 1 ? t("modals.fileOperation.item") : t("modals.fileOperation.itemsWord");
 		enterPreview({
 			source: { type: "files.copy", input },
 			plan: preview.data,
-			label: `${operation === "copy" ? "Copy" : "Move"} ${props.sources.length} ${
-				props.sources.length === 1 ? "item" : "items"
-			} to ${pathName(props.destination)}`,
+			label: t("modals.fileOperation.previewLabel", {
+				verb: verbBrowse,
+				count: props.sources.length,
+				itemType: itemTypeBrowse,
+				dest: pathName(props.destination),
+			}),
 		});
-		toast.info("Browsing the result; exit the preview from the bar above the files");
+		toast.info(t("modals.fileOperation.toastBrowsing"));
 		close();
 	};
 
@@ -206,18 +213,38 @@ function FileOperationDialog(props: FileOperationDialogProps) {
 	});
 
 	const sourceCount = props.sources.length;
-	const pluralItems = sourceCount === 1 ? "item" : "items";
 	const summary = preview.data?.summary;
-	const verb = operation === "copy" ? "Copy" : "Move";
+	const verb = operation === "copy" ? t("modals.fileOperation.verbCopy") : t("modals.fileOperation.verbMove");
 	const ctaLabel = summary
-		? `${verb} ${summary.creates.files + summary.replaces.files + summary.moves.files} files`
+		? t("modals.fileOperation.cta", {
+				verb,
+				count: summary.creates.files + summary.replaces.files + summary.moves.files,
+			})
 		: verb;
+
+	const conflictOptions = [
+		{
+			value: "Skip" as const,
+			label: t("modals.fileOperation.skipExisting"),
+			key: "S",
+		},
+		{
+			value: "AutoModifyName" as const,
+			label: t("modals.fileOperation.keepBoth"),
+			key: "K",
+		},
+		{
+			value: "Overwrite" as const,
+			label: t("modals.fileOperation.overwriteExisting"),
+			key: "O",
+		},
+	];
 
 	return (
 		<Dialog
 			dialog={dialog}
 			form={form}
-			title="File Operation"
+			title={t("modals.fileOperation.title")}
 			icon={<Files size={20} weight="bold" />}
 			ctaLabel={ctaLabel}
 			submitDisabled={refused || validation.isLoading || copyFiles.isPending}
@@ -238,14 +265,14 @@ function FileOperationDialog(props: FileOperationDialogProps) {
 									<FileStack files={sourceFiles} size={80} />
 								)}
 								<div className="text-center w-full">
-									<div className="text-xs text-ink-dull mb-0.5">Source</div>
+									<div className="text-xs text-ink-dull mb-0.5">{t("modals.fileOperation.source")}</div>
 									{sourceFiles.length === 1 ? (
 										<div className="text-sm font-medium text-ink truncate w-full">
 											{sourceFiles[0].name}
 										</div>
 									) : (
 										<div className="text-sm font-medium text-ink">
-											{sourceCount} {pluralItems}
+											{t("modals.fileOperation.items", { count: sourceCount })}
 										</div>
 									)}
 								</div>
@@ -254,9 +281,9 @@ function FileOperationDialog(props: FileOperationDialogProps) {
 							<>
 								<Files className="size-20 text-ink-dull" weight="fill" />
 								<div className="text-center">
-									<div className="text-xs text-ink-dull mb-0.5">Source</div>
+									<div className="text-xs text-ink-dull mb-0.5">{t("modals.fileOperation.source")}</div>
 									<div className="text-sm font-medium text-ink">
-										{sourceCount} {pluralItems}
+										{t("modals.fileOperation.items", { count: sourceCount })}
 									</div>
 								</div>
 							</>
@@ -272,7 +299,7 @@ function FileOperationDialog(props: FileOperationDialogProps) {
 							<>
 								<File.Thumb file={destFile} size={80} />
 								<div className="text-center w-full">
-									<div className="text-xs text-ink-dull mb-0.5">To</div>
+									<div className="text-xs text-ink-dull mb-0.5">{t("modals.fileOperation.to")}</div>
 									<div className="text-sm font-medium text-ink truncate w-full">
 										{destFile.name}
 									</div>
@@ -282,7 +309,7 @@ function FileOperationDialog(props: FileOperationDialogProps) {
 							<>
 								<FolderOpen className="size-20 text-accent" weight="fill" />
 								<div className="text-center">
-									<div className="text-xs text-ink-dull mb-0.5">To</div>
+									<div className="text-xs text-ink-dull mb-0.5">{t("modals.fileOperation.to")}</div>
 									<div className="text-sm font-medium text-ink truncate max-w-full">
 										{pathName(props.destination)}
 									</div>
@@ -294,20 +321,22 @@ function FileOperationDialog(props: FileOperationDialogProps) {
 
 				{/* Operation type selection */}
 				<div className="space-y-2">
-					<div className="text-xs font-medium text-ink-dull mb-2">Operation:</div>
+					<div className="text-xs font-medium text-ink-dull mb-2">
+						{t("modals.fileOperation.operation")}
+					</div>
 					<div className="flex gap-2">
 						<OperationButton
 							active={operation === "copy"}
 							onClick={() => setOperation("copy")}
 							icon={<CopyIcon className="size-4" weight="bold" />}
-							label="Copy"
+							label={t("modals.fileOperation.btnCopy")}
 							shortcut="⌘1"
 						/>
 						<OperationButton
 							active={operation === "move"}
 							onClick={() => setOperation("move")}
 							icon={<ArrowsLeftRight className="size-4" weight="bold" />}
-							label="Move"
+							label={t("modals.fileOperation.btnMove")}
 							shortcut="⌘2"
 						/>
 						{mergeInto && (
@@ -315,15 +344,14 @@ function FileOperationDialog(props: FileOperationDialogProps) {
 								active={false}
 								onClick={handleMerge}
 								icon={<FolderSimplePlus className="size-4" weight="bold" />}
-								label="Merge"
+								label={t("modals.fileOperation.btnMerge")}
 								shortcut="⌘3"
 							/>
 						)}
 					</div>
 					{mergeInto && (
 						<div className="text-[11px] text-ink-dull">
-							A folder named {pathName(mergeInto)} is already there. Merge combines this
-							one with it, file by file, after showing the plan.
+							{t("modals.fileOperation.collisionNote", { name: pathName(mergeInto) })}
 						</div>
 					)}
 				</div>
@@ -331,16 +359,10 @@ function FileOperationDialog(props: FileOperationDialogProps) {
 				{/* Conflict resolution options */}
 				<div className="space-y-2">
 					<div className="text-xs font-medium text-ink-dull mb-2">
-						If files already exist:
+						{t("modals.fileOperation.ifExists")}
 					</div>
 					<div className="space-y-1">
-						{(
-							[
-								{ value: "Skip", label: "Skip existing files", key: "S" },
-								{ value: "AutoModifyName", label: "Keep both (rename new files)", key: "K" },
-								{ value: "Overwrite", label: "Overwrite existing files", key: "O" },
-							] as { value: FileConflictResolution; label: string; key: string }[]
-						).map((option) => (
+						{conflictOptions.map((option) => (
 							<label
 								key={option.value}
 								className="flex items-center justify-between gap-2 px-2 py-2 rounded-md hover:bg-app-hover cursor-pointer transition-colors"
@@ -385,7 +407,7 @@ function FileOperationDialog(props: FileOperationDialogProps) {
 						onClick={browse}
 					>
 						<Eye className="mr-1.5 size-4" weight="bold" />
-						Browse the result
+						{t("modals.fileOperation.browseResult")}
 					</Button>
 				</div>
 			</div>

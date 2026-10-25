@@ -14,6 +14,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import type { File } from "@sd/ts-client";
 import { TimelineScrubber } from "./TimelineScrubber";
+import { useI18n } from "../../i18n";
 
 export interface VideoControlsState {
 	playing: boolean;
@@ -76,6 +77,7 @@ export function VideoControls({
 	sidebarWidth = 0,
 	inspectorWidth = 0,
 }: VideoControlsProps) {
+	const { t } = useI18n();
 	const hasSubs = file.sidecars?.some(
 		(s) => s.kind === "transcript" && s.variant === "srt",
 	);
@@ -166,7 +168,7 @@ export function VideoControls({
 									? "bg-accent/20 text-accent"
 									: "text-white hover:bg-white/10"
 							}`}
-							title="Loop (L)"
+							title={t("quickPreview.video.loop")}
 						>
 							<Repeat size={20} weight="bold" />
 						</button>
@@ -189,7 +191,7 @@ export function VideoControls({
 											? "bg-accent/20 text-accent"
 											: "text-white hover:bg-white/10"
 									}`}
-									title="Toggle subtitles"
+									title={t("quickPreview.video.toggleSubtitles")}
 								>
 									<ClosedCaptioning size={20} weight="fill" />
 								</button>
@@ -199,7 +201,7 @@ export function VideoControls({
 											callbacks.onSubtitleSettingsToggle
 										}
 										className="rounded-md p-2 text-white transition-colors hover:bg-white/10"
-										title="Subtitle settings"
+										title={t("quickPreview.video.subtitleSettings")}
 									>
 										<Gear size={20} weight="fill" />
 									</button>
@@ -213,7 +215,7 @@ export function VideoControls({
 								onClick={callbacks.onZoomOut}
 								disabled={state.zoom <= 1}
 								className="rounded-md p-2 text-white transition-colors hover:bg-white/10 disabled:opacity-30"
-								title="Zoom out (-)"
+								title={t("quickPreview.zoom.zoomOut")}
 							>
 								<MagnifyingGlassMinus size={18} weight="bold" />
 							</button>
@@ -221,7 +223,7 @@ export function VideoControls({
 								onClick={callbacks.onZoomIn}
 								disabled={state.zoom >= 5}
 								className="rounded-md p-2 text-white transition-colors hover:bg-white/10 disabled:opacity-30"
-								title="Zoom in (+)"
+								title={t("quickPreview.zoom.zoomIn")}
 							>
 								<MagnifyingGlassPlus size={18} weight="bold" />
 							</button>
@@ -229,7 +231,7 @@ export function VideoControls({
 								<button
 									onClick={callbacks.onZoomReset}
 									className="rounded-md p-2 text-white transition-colors hover:bg-white/10"
-									title="Reset zoom (0)"
+									title={t("quickPreview.zoom.reset")}
 								>
 									<ArrowCounterClockwise
 										size={18}

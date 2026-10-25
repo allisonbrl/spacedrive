@@ -25,6 +25,7 @@ import {
 	useLibraryValidate,
 } from "../../contexts/SpacedriveContext";
 import { usePlanPreviewStore } from "../../routes/explorer/hooks/usePlanPreview";
+import { useI18n } from "../../i18n";
 import { hasErrors, pathName, pathString, PreflightPanel } from "./PreflightPanel";
 import { BrowseButton, describeError, Failure, useSubmitOnEnter } from "./RearrangeModal";
 
@@ -51,11 +52,12 @@ export function useArchiveDialog() {
 }
 
 function ArchiveDialog(props: ArchiveDialogProps) {
+	const { t } = useI18n();
 	const dialog = useDialog(props);
 	const form = useForm();
 	const [format, setFormat] = useState<ArchiveFormat>("zip");
 	const [stem, setStem] = useState(
-		props.sources.length === 1 ? pathName(props.sources[0]).replace(/\.[^.]+$/, "") : "Archive",
+		props.sources.length === 1 ? pathName(props.sources[0]).replace(/\.[^.]+$/, "") : t("modals.archive.defaultName"),
 	);
 	const [removeSources, setRemoveSources] = useState(false);
 	const [failure, setFailure] = useState<string | null>(null);
@@ -63,11 +65,11 @@ function ArchiveDialog(props: ArchiveDialogProps) {
 	const input = useMemo<FileArchiveInput>(
 		() => ({
 			sources: props.sources,
-			destination: join(props.directory, `${stem || "Archive"}.${EXTENSIONS[format]}`),
+			destination: join(props.directory, `${stem || t("modals.archive.defaultName")}.${EXTENSIONS[format]}`),
 			format,
 			remove_sources: removeSources,
 		}),
-		[props.sources, props.directory, stem, format, removeSources],
+		[props.sources, props.directory, stem, format, removeSources, t],
 	);
 	const validation = useLibraryValidate({ type: "files.archive", input });
 	const preview = useLibraryPreview({ type: "files.archive", input });
@@ -81,7 +83,7 @@ function ArchiveDialog(props: ArchiveDialogProps) {
 		setFailure(null);
 		try {
 			await archive.mutateAsync(input);
-			toast.success(`Writing ${pathName(input.destination)}`);
+			toast.success(t("modals.archive.toastWriting", { name: pathName(input.destination) }));
 			close();
 			props.onComplete?.();
 		} catch (error) {
@@ -94,7 +96,7 @@ function ArchiveDialog(props: ArchiveDialogProps) {
 		enterPreview({
 			source: { type: "files.archive", input },
 			plan: preview.data,
-			label: `Archive ${props.sources.length} items`,
+			label: t("modals.archive.previewArchive", { count: props.sources.length }),
 		});
 		close();
 	};
@@ -105,9 +107,13 @@ function ArchiveDialog(props: ArchiveDialogProps) {
 		<Dialog
 			dialog={dialog}
 			form={form}
-			title={`Compress ${props.sources.length === 1 ? pathName(props.sources[0]) : `${props.sources.length} items`}`}
+			title={
+				props.sources.length === 1
+					? t("modals.archive.compress", { name: pathName(props.sources[0]) })
+					: t("modals.archive.compressItems", { count: props.sources.length })
+			}
 			icon={<FileZip size={20} weight="bold" />}
-			ctaLabel="Compress"
+			ctaLabel={t("modals.archive.ctaCompress")}
 			submitDisabled={refused || validation.isLoading || archive.isPending}
 			loading={archive.isPending}
 			onSubmit={form.handleSubmit(submit)}
@@ -121,7 +127,7 @@ function ArchiveDialog(props: ArchiveDialogProps) {
 						className="flex-1"
 						value={stem}
 						onChange={(event) => setStem(event.target.value)}
-						placeholder="Archive name"
+						placeholder={t("modals.archive.placeholderName")}
 					/>
 					<Select<ArchiveFormat> value={format} size="sm" onChange={setFormat}>
 						<SelectOption value="zip">.zip</SelectOption>
@@ -129,15 +135,14 @@ function ArchiveDialog(props: ArchiveDialogProps) {
 					</Select>
 				</div>
 				<div className="text-[11px] text-ink-dull">
-					Written in {pathName(props.directory)} under a temporary name until complete.
+					{t("modals.archive.noteWritten", { dir: pathName(props.directory) })}
 				</div>
 
 				<label className="flex cursor-pointer items-center justify-between gap-3 rounded-md bg-app-box px-3 py-2">
 					<div>
-						<div className="text-sm text-ink">Move the originals to the trash</div>
+						<div className="text-sm text-ink">{t("modals.archive.removeSources")}</div>
 						<div className="text-[11px] text-ink-dull">
-							Once the archive is complete. Validation says which are the last copy of
-							their content.
+							{t("modals.archive.removeSourcesDesc")}
 						</div>
 					</div>
 					<Switch checked={removeSources} onCheckedChange={setRemoveSources} size="sm" />
@@ -165,11 +170,41 @@ interface ExtractDialogProps {
 	onComplete?: () => void;
 }
 
-const POLICIES: { value: MergeConflictPolicy; label: string; hint: string }[] = [
-	{ value: "skip", label: "Keep existing", hint: "an entry whose file is there is left" },
-	{ value: "overwrite", label: "Overwrite", hint: "the previous file goes to the trash" },
-	{ value: "keep_both", label: "Keep both", hint: "the entry is written beside it, numbered" },
-	{ value: "keep_newer", label: "Keep newer", hint: "the later modification time wins" },
+const POLICIES: {
+	value: MergeConflictPolicy;
+	labelKey: string;
+	hintKey: string;
+	defaultLabel: string;
+	defaultHint: string;
+}[] = [
+	{
+		value: "skip",
+		labelKey: "modals.archive.policy.skip",
+		hintKey: "modals.archive.policy.skipHint",
+		defaultLabel: "Keep existing",
+		defaultHint: "an entry whose file is there is left",
+	},
+	{
+		value: "overwrite",
+		labelKey: "modals.archive.policy.overwrite",
+		hintKey: "modals.archive.policy.overwriteHint",
+		defaultLabel: "Overwrite",
+		defaultHint: "the previous file goes to the trash",
+	},
+	{
+		value: "keep_both",
+		labelKey: "modals.archive.policy.keepBoth",
+		hintKey: "modals.archive.policy.keepBothHint",
+		defaultLabel: "Keep both",
+		defaultHint: "the entry is written beside it, numbered",
+	},
+	{
+		value: "keep_newer",
+		labelKey: "modals.archive.policy.keepNewer",
+		hintKey: "modals.archive.policy.keepNewerHint",
+		defaultLabel: "Keep newer",
+		defaultHint: "the later modification time wins",
+	},
 ];
 
 /**
@@ -185,6 +220,7 @@ export function useExtractDialog() {
 }
 
 function ExtractDialog(props: ExtractDialogProps) {
+	const { t } = useI18n();
 	const dialog = useDialog(props);
 	const form = useForm();
 	const [policy, setPolicy] = useState<MergeConflictPolicy>("skip");
@@ -213,7 +249,7 @@ function ExtractDialog(props: ExtractDialogProps) {
 		setFailure(null);
 		try {
 			await extract.mutateAsync(input);
-			toast.success(`Extracting ${pathName(props.archive)}`);
+			toast.success(t("modals.archive.toastExtracting", { name: pathName(props.archive) }));
 			close();
 			props.onComplete?.();
 		} catch (error) {
@@ -226,7 +262,7 @@ function ExtractDialog(props: ExtractDialogProps) {
 		enterPreview({
 			source: { type: "files.extract", input },
 			plan: preview.data,
-			label: `Extract ${pathName(props.archive)}`,
+			label: t("modals.archive.extract", { name: pathName(props.archive) }),
 		});
 		close();
 	};
@@ -237,12 +273,14 @@ function ExtractDialog(props: ExtractDialogProps) {
 		<Dialog
 			dialog={dialog}
 			form={form}
-			title={`Extract ${pathName(props.archive)}`}
+			title={t("modals.archive.extract", { name: pathName(props.archive) })}
 			icon={<FileArchive size={20} weight="bold" />}
 			ctaLabel={
 				summary
-					? `Extract ${summary.creates.files + summary.replaces.files} files`
-					: "Extract"
+					? t("modals.archive.ctaExtractCount", {
+							count: summary.creates.files + summary.replaces.files,
+						})
+					: t("modals.archive.ctaExtract")
 			}
 			submitDisabled={refused || validation.isLoading || extract.isPending}
 			loading={extract.isPending}
@@ -252,11 +290,10 @@ function ExtractDialog(props: ExtractDialogProps) {
 		>
 			<div className="space-y-4 py-1">
 				<div className="text-sm text-ink-dull">
-					Into {pathName(props.directory)}, entry by entry, from the archive's own
-					directory.
+					{t("modals.archive.extractDesc", { dir: pathName(props.directory) })}
 				</div>
 				<div className="space-y-1">
-					<div className="text-xs font-medium text-ink-dull">When a file is already there</div>
+					<div className="text-xs font-medium text-ink-dull">{t("modals.archive.whenAlreadyThere")}</div>
 					<div className="grid grid-cols-2 gap-1">
 						{POLICIES.map((option) => (
 							<button
@@ -269,17 +306,21 @@ function ExtractDialog(props: ExtractDialogProps) {
 										: "rounded-md bg-app-box px-2.5 py-1.5 text-left text-ink hover:bg-app-hover"
 								}
 							>
-								<div className="text-sm font-medium">{option.label}</div>
-								<div className="text-[11px] opacity-70">{option.hint}</div>
+								<div className="text-sm font-medium">
+									{(t(option.labelKey as any) as string) || option.defaultLabel}
+								</div>
+								<div className="text-[11px] opacity-70">
+									{(t(option.hintKey as any) as string) || option.defaultHint}
+								</div>
 							</button>
 						))}
 					</div>
 				</div>
 				<label className="flex items-center justify-between gap-3 rounded-md bg-app-box px-3 py-2 text-sm text-ink">
 					<div>
-						<div>Drop leading folders</div>
+						<div>{t("modals.archive.dropLeading")}</div>
 						<div className="text-[11px] text-ink-dull">
-							How many path components to strip from every entry.
+							{t("modals.archive.dropLeadingDesc")}
 						</div>
 					</div>
 					<Input

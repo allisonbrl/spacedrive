@@ -1,4 +1,5 @@
-import { Component, type ErrorInfo, type ReactNode } from "react";
+import {Component, type ErrorInfo, type ReactNode} from 'react';
+import {useI18n} from '../i18n';
 
 interface ErrorBoundaryProps {
 	children: ReactNode;
@@ -8,36 +9,29 @@ interface ErrorBoundaryState {
 	error: Error | null;
 }
 
-function ErrorFallback({
-	error,
-	onReset,
-}: {
-	error: Error;
-	onReset: () => void;
-}) {
+function ErrorFallback({error, onReset}: {error: Error; onReset: () => void}) {
+	const {t} = useI18n();
 	return (
-		<div className="flex h-screen items-center justify-center bg-app p-8">
-			<div className="max-w-2xl rounded-lg border border-app-line bg-app-box p-8 shadow-lg">
-				<h1 className="mb-4 text-2xl font-bold text-ink">
-					Something went wrong
+		<div className="bg-app flex h-screen items-center justify-center p-8">
+			<div className="border-app-line bg-app-box max-w-2xl rounded-lg border p-8 shadow-lg">
+				<h1 className="text-ink mb-4 text-2xl font-bold">
+					{t('error.somethingWentWrong')}
 				</h1>
-				<p className="mb-4 text-ink-dull">
-					The application encountered an error. Please try restarting.
-				</p>
+				<p className="text-ink-dull mb-4">{t('error.restartPrompt')}</p>
 				<details className="mb-4">
-					<summary className="cursor-pointer text-sm text-ink-faint hover:text-ink-dull">
-						Error details
+					<summary className="text-ink-faint hover:text-ink-dull cursor-pointer text-sm">
+						{t('error.details')}
 					</summary>
-					<pre className="mt-2 overflow-auto rounded bg-app-darkBox p-4 text-xs text-ink-faint">
+					<pre className="bg-app-darkBox text-ink-faint mt-2 overflow-auto rounded p-4 text-xs">
 						{error.toString()}
 						{error.stack}
 					</pre>
 				</details>
 				<button
 					onClick={onReset}
-					className="rounded bg-accent px-4 py-2 text-white hover:bg-accent-deep"
+					className="bg-accent hover:bg-accent-deep rounded px-4 py-2 text-white"
 				>
-					Reload Application
+					{t('error.reload')}
 				</button>
 			</div>
 		</div>
@@ -54,14 +48,14 @@ export class ErrorBoundary extends Component<
 	ErrorBoundaryProps,
 	ErrorBoundaryState
 > {
-	state: ErrorBoundaryState = { error: null };
+	state: ErrorBoundaryState = {error: null};
 
 	static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-		return { error };
+		return {error};
 	}
 
 	componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-		console.error("ErrorBoundary caught an error:", error, errorInfo);
+		console.error('ErrorBoundary caught an error:', error, errorInfo);
 	}
 
 	handleReset = () => {

@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import type { JobRenderer, JobRendererProps } from "./index";
 import { getJobDisplayName, getJobSubtext } from "../types";
 import { UndoButton } from "../components/UndoButton";
+import { useI18n } from "../../../i18n";
 
 /**
  * Generic job card renderer - used for all jobs without custom renderers
@@ -21,8 +22,9 @@ function GenericCardContent({
 	onAction,
 	onCancel,
 }: JobRendererProps) {
-	const displayName = getJobDisplayName(job);
-	const subtext = getJobSubtext(job);
+	const { t } = useI18n();
+	const displayName = getJobDisplayName(job, t);
+	const subtext = getJobSubtext(job, t);
 
 	return (
 		<>
@@ -56,7 +58,7 @@ function GenericCardContent({
 							<button
 								onClick={onAction}
 								className="flex-shrink-0 flex items-center justify-center w-4 h-4 rounded-full bg-app-hover hover:bg-app-selected transition-colors"
-								title={canPause ? "Pause job" : "Resume job"}
+								title={canPause ? t("jobs.action.pauseJob") : t("jobs.action.resumeJob")}
 							>
 								{canPause ? (
 									<Pause size={10} weight="fill" className="text-ink" />
@@ -69,7 +71,7 @@ function GenericCardContent({
 							<button
 								onClick={onCancel}
 								className="flex-shrink-0 flex items-center justify-center w-4 h-4 rounded-full bg-app-hover hover:bg-red-500 transition-colors"
-								title="Cancel job"
+								title={t("jobs.action.cancelJob")}
 							>
 								<X size={10} weight="bold" className="text-ink hover:text-white" />
 							</button>

@@ -1,4 +1,5 @@
 import type { JsonValue, ExtendedJobListItem, GenericProgress } from "@sd/ts-client";
+import type { TranslateFn } from "../../i18n";
 
 // Re-export for backwards compatibility
 export type JobListItem = ExtendedJobListItem;
@@ -20,14 +21,14 @@ export const PROGRESS_BAR_HEIGHT = 12; // px
 /**
  * Extracts a meaningful display name from the job's action context
  */
-export function getJobDisplayName(job: JobListItem): string {
+export function getJobDisplayName(job: JobListItem, t?: TranslateFn): string {
   if (!job.action_context?.action_type) {
     // Fallback to capitalizing job name
     if (job.name === "indexer") {
-      return "Indexing";
+      return t ? t("jobs.name.indexing") : "Indexing";
     }
     if (job.name === "thumbnail_generation") {
-      return "Generating Thumbnails";
+      return t ? t("jobs.name.thumbnails") : "Generating Thumbnails";
     }
     return job.name.split("_").map(word =>
       word.charAt(0).toUpperCase() + word.slice(1)
@@ -43,7 +44,7 @@ export function getJobDisplayName(job: JobListItem): string {
         if (path) {
           // Show full path with ~ for home directory
           const homePath = path.replace(/^\/Users\/[^/]+/, "~");
-          return `Adding ${homePath}`;
+          return t ? t("jobs.action.adding", { path: homePath }) : `Adding ${homePath}`;
         }
         break;
       }
@@ -51,7 +52,7 @@ export function getJobDisplayName(job: JobListItem): string {
         const source = extractSourcePath(action_input);
         if (source) {
           const fileName = source.split("/").pop() || source;
-          return `Copying '${fileName}'`;
+          return t ? t("jobs.action.copying", { name: fileName }) : `Copying '${fileName}'`;
         }
         break;
       }
@@ -59,7 +60,7 @@ export function getJobDisplayName(job: JobListItem): string {
         const source = extractSourcePath(action_input);
         if (source) {
           const fileName = source.split("/").pop() || source;
-          return `Moving '${fileName}'`;
+          return t ? t("jobs.action.moving", { name: fileName }) : `Moving '${fileName}'`;
         }
         break;
       }
@@ -67,19 +68,19 @@ export function getJobDisplayName(job: JobListItem): string {
         const target = extractTargetPath(action_input);
         if (target) {
           const fileName = target.split("/").pop() || target;
-          return `Deleting '${fileName}'`;
+          return t ? t("jobs.action.deleting", { name: fileName }) : `Deleting '${fileName}'`;
         }
         break;
       }
       case "indexing.start":
-        return "Indexing";
+        return t ? t("jobs.name.indexing") : "Indexing";
       case "volumes.index": {
         const context = job.action_context?.context as Record<string, unknown> | null;
         const volumeName = context?.volume_name;
         if (volumeName && typeof volumeName === 'string') {
-          return `Indexing ${volumeName}`;
+          return t ? t("jobs.action.indexingVolumeName", { name: volumeName }) : `Indexing ${volumeName}`;
         }
-        return "Indexing Volume";
+        return t ? t("jobs.action.indexingVolume") : "Indexing Volume";
       }
       default: {
         // Capitalize and format action type
@@ -99,7 +100,7 @@ export function getJobDisplayName(job: JobListItem): string {
 /**
  * Gets the subtext to display below the job title
  */
-export function getJobSubtext(job: JobListItem): string {
+export function getJobSubtext(job: JobListItem, t?: TranslateFn): string {
   switch (job.status) {
     case "running": {
       // Use rich metadata from JobProgress events if available
@@ -111,18 +112,22 @@ export function getJobSubtext(job: JobListItem): string {
           : JSON.stringify(job.current_path);
         return pathStr;
       }
-      return job.progress > 0 ? `${Math.round(job.progress * 100)}%` : "Processing...";
+      return job.progress > 0
+        ? `${Math.round(job.progress * 100)}%`
+        : t
+          ? t("jobs.status.processing")
+          : "Processing...";
     }
     case "completed":
-      return "Completed";
+      return t ? t("jobs.status.completed") : "Completed";
     case "failed":
-      return "Job failed";
+      return t ? t("jobs.status.jobFailed") : "Job failed";
     case "queued":
-      return "Waiting to start";
+      return t ? t("jobs.status.waitingToStart") : "Waiting to start";
     case "paused":
-      return "Paused";
+      return t ? t("jobs.status.paused") : "Paused";
     case "cancelled":
-      return "Cancelled";
+      return t ? t("jobs.status.cancelled") : "Cancelled";
     default:
       return "";
   }
@@ -131,20 +136,20 @@ export function getJobSubtext(job: JobListItem): string {
 /**
  * Gets the status badge text (shown on the right side)
  */
-export function getStatusBadge(job: JobListItem): string {
+export function getStatusBadge(job: JobListItem, t?: TranslateFn): string {
   switch (job.status) {
     case "running":
       return `${Math.round(job.progress * 100)}%`;
     case "completed":
-      return "Completed";
+      return t ? t("jobs.status.completed") : "Completed";
     case "failed":
-      return "Failed";
+      return t ? t("jobs.status.failed") : "Failed";
     case "paused":
-      return "Paused";
+      return t ? t("jobs.status.paused") : "Paused";
     case "queued":
-      return "Queued";
+      return t ? t("jobs.status.queued") : "Queued";
     case "cancelled":
-      return "Cancelled";
+      return t ? t("jobs.status.cancelled") : "Cancelled";
     default:
       return "";
   }
@@ -153,7 +158,7 @@ export function getStatusBadge(job: JobListItem): string {
 /**
  * Formats duration in milliseconds to human-readable string
  */
-export function formatDuration(ms: number): string {
+export function formatDuration(ms: number, _t?: TranslateFn): string {
   const seconds = Math.floor(ms / 1000);
   const minutes = Math.floor(seconds / 60);
   const hours = Math.floor(minutes / 60);
@@ -170,7 +175,7 @@ export function formatDuration(ms: number): string {
 /**
  * Formats a date to time ago (e.g., "2m ago", "1h ago")
  */
-export function timeAgo(date: string | Date | undefined): string {
+export function timeAgo(date: string | Date | undefined, t?: TranslateFn): string {
   if (!date) return "—";
 
   const now = new Date();
@@ -185,10 +190,10 @@ export function timeAgo(date: string | Date | undefined): string {
   const diffHours = Math.floor(diffMinutes / 60);
   const diffDays = Math.floor(diffHours / 24);
 
-  if (diffDays > 0) return `${diffDays}d ago`;
-  if (diffHours > 0) return `${diffHours}h ago`;
-  if (diffMinutes > 0) return `${diffMinutes}m ago`;
-  return "just now";
+  if (diffDays > 0) return t ? t("jobs.time.days", { count: diffDays }) : `${diffDays}d ago`;
+  if (diffHours > 0) return t ? t("jobs.time.hours", { count: diffHours }) : `${diffHours}h ago`;
+  if (diffMinutes > 0) return t ? t("jobs.time.minutes", { count: diffMinutes }) : `${diffMinutes}m ago`;
+  return t ? t("jobs.time.justNow") : "just now";
 }
 
 // Helper functions to extract paths from JsonValue

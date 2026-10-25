@@ -15,6 +15,7 @@ import type {
 } from "@sd/ts-client";
 import { Button, Dialog, dialogManager, useDialog } from "@spacedrive/primitives";
 import { useCoreQuery, useCoreMutation, useSpacedriveClient } from "../../contexts/SpacedriveContext";
+import { useI18n } from "../../i18n";
 
 interface SyncSetupDialogProps {
   id: number;
@@ -30,6 +31,7 @@ export function useSyncSetupDialog() {
 
 function SyncSetupDialog(props: SyncSetupDialogProps) {
   const dialog = useDialog(props);
+  const { t } = useI18n();
   const client = useSpacedriveClient();
   const [step, setStep] = useState<SyncStep>("select-device");
   const [selectedDevice, setSelectedDevice] = useState<PairedDeviceInfo | null>(
@@ -207,8 +209,8 @@ function SyncSetupDialog(props: SyncSetupDialogProps) {
     <Dialog
       dialog={dialog}
       form={form}
-      title="Setup Library Sync"
-      description="Sync your library with another device"
+      title={t("modals.syncSetup.title")}
+      description={t("modals.syncSetup.description")}
       icon={<ArrowsClockwise />}
       cancelBtn
       hideButtons
@@ -230,6 +232,8 @@ function SelectDeviceStep({
   isLoading,
   onSelect,
 }: SelectDeviceStepProps) {
+  const { t, formatDateTime } = useI18n();
+
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -243,9 +247,9 @@ function SelectDeviceStep({
       <div className="flex h-full flex-col items-center justify-center space-y-4">
         <DeviceMobile size={48} className="text-ink-faint" />
         <div className="text-center">
-          <p className="text-ink-dull">No paired devices found</p>
+          <p className="text-ink-dull">{t("modals.syncSetup.noDevices")}</p>
           <p className="text-sm text-ink-faint">
-            Pair a device first using the "Pair Device" button
+            {t("modals.syncSetup.pairFirst")}
           </p>
         </div>
       </div>
@@ -255,7 +259,7 @@ function SelectDeviceStep({
   return (
     <div className="space-y-4">
       <p className="text-sm text-ink-dull">
-        Select a paired device to sync your library with:
+        {t("modals.syncSetup.selectDevice")}
       </p>
       <div className="space-y-2">
         {devices.map((device) => (
@@ -271,7 +275,7 @@ function SelectDeviceStep({
                   <h3 className="font-medium text-ink">{device.name}</h3>
                   {device.isConnected && (
                     <span className="rounded-full bg-green-500 px-2 py-0.5 text-xs text-white">
-                      Connected
+                      {t("modals.syncSetup.connected")}
                     </span>
                   )}
                 </div>
@@ -279,7 +283,9 @@ function SelectDeviceStep({
                   {device.deviceType} • {device.osVersion}
                 </p>
                 <p className="text-xs text-ink-faint">
-                  Last seen: {new Date(device.lastSeen).toLocaleString()}
+                  {t("modals.syncSetup.lastSeen", {
+                    date: formatDateTime(new Date(device.lastSeen)),
+                  })}
                 </p>
               </div>
             </div>
@@ -311,11 +317,13 @@ function ChooseActionStep({
   onSelectAction,
   onBack,
 }: ChooseActionStepProps) {
+  const { t, formatDate, formatNumber } = useI18n();
+
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
         <CircleNotch className="animate-spin" size={32} />
-        <p className="ml-3 text-ink-dull">Discovering libraries...</p>
+        <p className="ml-3 text-ink-dull">{t("modals.syncSetup.discovering")}</p>
       </div>
     );
   }
@@ -325,13 +333,13 @@ function ChooseActionStep({
       <div className="flex h-full flex-col items-center justify-center space-y-4">
         <DeviceMobile size={48} className="text-ink-faint" />
         <div className="text-center">
-          <p className="text-ink-dull">Device is offline</p>
+          <p className="text-ink-dull">{t("modals.syncSetup.deviceOffline")}</p>
           <p className="text-sm text-ink-faint">
-            {device.name} must be online to set up sync
+            {t("modals.syncSetup.mustBeOnline", { device: device.name })}
           </p>
         </div>
         <Button variant="outline" onClick={onBack}>
-          Back
+          {t("modals.syncSetup.back")}
         </Button>
       </div>
     );
@@ -341,13 +349,12 @@ function ChooseActionStep({
     <div className="space-y-4">
       <div>
         <p className="text-sm text-ink-dull">
-          Syncing with:{" "}
-          <span className="font-medium text-ink">{device.name}</span>
+          {t("modals.syncSetup.syncingWith", { device: device.name })}
         </p>
       </div>
 
       <div className="space-y-3">
-        <h3 className="font-medium text-ink">Choose an action:</h3>
+        <h3 className="font-medium text-ink">{t("modals.syncSetup.chooseAction")}</h3>
 
         {/* Share Local Library */}
         <button
@@ -358,11 +365,10 @@ function ChooseActionStep({
             <Share size={24} className="mt-1 text-accent" />
             <div className="flex-1">
               <h4 className="font-medium text-ink">
-                Share my library to this device
+                {t("modals.syncSetup.shareTitle")}
               </h4>
               <p className="mt-1 text-sm text-ink-dull">
-                Create a shared library from your local library. The other
-                device will receive a copy.
+                {t("modals.syncSetup.shareDesc")}
               </p>
             </div>
           </div>
@@ -372,7 +378,7 @@ function ChooseActionStep({
         {remoteLibraries.length > 0 ? (
           <div className="space-y-2">
             <h4 className="text-sm font-medium text-ink">
-              Or join a library from {device.name}:
+              {t("modals.syncSetup.orJoin", { device: device.name })}
             </h4>
             {remoteLibraries.map((library) => (
               <button
@@ -385,13 +391,15 @@ function ChooseActionStep({
                   <div className="flex-1">
                     <h4 className="font-medium text-ink">{library.name}</h4>
                     <p className="mt-1 text-sm text-ink-dull">
-                      {library.statistics.total_files.toLocaleString()} files •{" "}
-                      {(library.statistics.source_count ?? 0).toLocaleString()}{" "}
-                      sources
+                      {t("modals.syncSetup.libraryStats", {
+                        files: formatNumber(library.statistics.total_files),
+                        sources: formatNumber(library.statistics.source_count ?? 0),
+                      })}
                     </p>
                     <p className="text-xs text-ink-faint">
-                      Created:{" "}
-                      {new Date(library.createdAt).toLocaleDateString()}
+                      {t("modals.syncSetup.created", {
+                        date: formatDate(new Date(library.createdAt)),
+                      })}
                     </p>
                   </div>
                 </div>
@@ -401,7 +409,7 @@ function ChooseActionStep({
         ) : (
           <div className="rounded-lg border border-app-line bg-app-box p-4">
             <p className="text-sm text-ink-faint">
-              No libraries found on {device.name}
+              {t("modals.syncSetup.noLibrariesFound", { device: device.name })}
             </p>
           </div>
         )}
@@ -409,7 +417,7 @@ function ChooseActionStep({
 
       <div className="flex justify-start">
         <Button variant="outline" onClick={onBack}>
-          Back
+          {t("modals.syncSetup.back")}
         </Button>
       </div>
     </div>
@@ -432,24 +440,28 @@ function ConfirmStep({
   onBack,
   onConfirm,
 }: ConfirmStepProps) {
+  const { t } = useI18n();
+
   return (
     <div className="space-y-6">
       <div className="rounded-lg bg-app-darkBox p-4">
-        <h3 className="mb-3 font-medium text-ink">Sync Configuration</h3>
+        <h3 className="mb-3 font-medium text-ink">{t("modals.syncSetup.configTitle")}</h3>
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
-            <span className="text-ink-dull">Remote Device:</span>
+            <span className="text-ink-dull">{t("modals.syncSetup.remoteDevice")}</span>
             <span className="font-medium text-ink">{device.name}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-ink-dull">Action:</span>
+            <span className="text-ink-dull">{t("modals.syncSetup.action")}</span>
             <span className="font-medium text-ink">
-              {action === "share" ? "Share My Library" : "Join Remote Library"}
+              {action === "share"
+                ? t("modals.syncSetup.shareAction")
+                : t("modals.syncSetup.joinAction")}
             </span>
           </div>
           {action === "join" && remoteLibrary && (
             <div className="flex justify-between">
-              <span className="text-ink-dull">Remote Library:</span>
+              <span className="text-ink-dull">{t("modals.syncSetup.remoteLibrary")}</span>
               <span className="font-medium text-ink">{remoteLibrary.name}</span>
             </div>
           )}
@@ -459,17 +471,17 @@ function ConfirmStep({
       <div className="rounded-lg border border-yellow-500/20 bg-yellow-500/10 p-4">
         <p className="text-sm text-yellow-200">
           {action === "share"
-            ? "This will create a synchronized copy of your library on the remote device. Both devices will stay in sync."
-            : "This will download the remote library to your device. Your local library will sync with theirs."}
+            ? t("modals.syncSetup.warningShare")
+            : t("modals.syncSetup.warningJoin")}
         </p>
       </div>
 
       <div className="flex gap-2">
         <Button variant="outline" onClick={onBack} className="flex-1">
-          Back
+          {t("modals.syncSetup.back")}
         </Button>
         <Button variant="accent" onClick={onConfirm} className="flex-1">
-          Confirm & Setup Sync
+          {t("modals.syncSetup.confirmButton")}
         </Button>
       </div>
     </div>
@@ -483,11 +495,13 @@ interface ExecutingStepProps {
 }
 
 function ExecutingStep({ isLoading, error }: ExecutingStepProps) {
+  const { t } = useI18n();
+
   if (isLoading) {
     return (
       <div className="flex h-full flex-col items-center justify-center space-y-4">
         <CircleNotch className="animate-spin" size={48} />
-        <p className="text-ink-dull">Setting up sync...</p>
+        <p className="text-ink-dull">{t("modals.syncSetup.settingUp")}</p>
       </div>
     );
   }
@@ -496,7 +510,7 @@ function ExecutingStep({ isLoading, error }: ExecutingStepProps) {
     return (
       <div className="flex h-full flex-col items-center justify-center space-y-4">
         <div className="text-red-500">
-          <p className="font-medium">Sync setup failed</p>
+          <p className="font-medium">{t("modals.syncSetup.failed")}</p>
           <p className="text-sm">{error}</p>
         </div>
       </div>
@@ -507,8 +521,8 @@ function ExecutingStep({ isLoading, error }: ExecutingStepProps) {
     <div className="flex h-full flex-col items-center justify-center space-y-4">
       <CheckCircle size={48} className="text-green-500" />
       <div className="text-center">
-        <p className="font-medium text-ink">Sync setup complete!</p>
-        <p className="text-sm text-ink-dull">Your library is now syncing</p>
+        <p className="font-medium text-ink">{t("modals.syncSetup.complete")}</p>
+        <p className="text-sm text-ink-dull">{t("modals.syncSetup.nowSyncing")}</p>
       </div>
     </div>
   );

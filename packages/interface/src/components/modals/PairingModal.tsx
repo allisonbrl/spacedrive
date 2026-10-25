@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import clsx from "clsx";
 import QRCode from "qrcode";
 import { useCoreMutation, useCoreQuery } from "../../contexts/SpacedriveContext";
+import { useI18n } from "../../i18n";
 import { sounds } from "@sd/assets/sounds";
 
 interface PairingModalProps {
@@ -22,6 +23,7 @@ interface PairingModalProps {
 }
 
 export function PairingModal({ isOpen, onClose, mode: initialMode = "generate" }: PairingModalProps) {
+  const { t, formatTime } = useI18n();
   const [mode, setMode] = useState<"generate" | "join">(initialMode);
   const [joinCode, setJoinCode] = useState("");
   const [joinNodeId, setJoinNodeId] = useState("");
@@ -121,8 +123,8 @@ export function PairingModal({ isOpen, onClose, mode: initialMode = "generate" }
             <div className="flex items-center gap-3">
               <DeviceMobile className="size-6 text-accent" weight="bold" />
               <div>
-                <h2 className="text-lg font-semibold text-ink">Device Pairing</h2>
-                <p className="text-xs text-ink-dull">Connect another device to share files</p>
+                <h2 className="text-lg font-semibold text-ink">{t("modals.pairing.title")}</h2>
+                <p className="text-xs text-ink-dull">{t("modals.pairing.description")}</p>
               </div>
             </div>
             <button
@@ -144,7 +146,7 @@ export function PairingModal({ isOpen, onClose, mode: initialMode = "generate" }
                   : "text-ink-dull hover:text-ink"
               )}
             >
-              Generate Code
+              {t("modals.pairing.tabGenerate")}
             </button>
             <button
               onClick={() => setMode("join")}
@@ -155,7 +157,7 @@ export function PairingModal({ isOpen, onClose, mode: initialMode = "generate" }
                   : "text-ink-dull hover:text-ink"
               )}
             >
-              Join with Code
+              {t("modals.pairing.tabJoin")}
             </button>
           </div>
 
@@ -168,6 +170,8 @@ export function PairingModal({ isOpen, onClose, mode: initialMode = "generate" }
                 onGenerate={handleGenerate}
                 onCancel={handleCancel}
                 onCopyCode={copyCode}
+                t={t}
+                formatTime={formatTime}
               />
             ) : (
               <JoinMode
@@ -179,6 +183,7 @@ export function PairingModal({ isOpen, onClose, mode: initialMode = "generate" }
                 currentSession={currentSession}
                 onJoin={handleJoin}
                 onCancel={handleCancel}
+                t={t}
               />
             )}
 
@@ -191,9 +196,11 @@ export function PairingModal({ isOpen, onClose, mode: initialMode = "generate" }
               >
                 <Check className="size-5 text-accent" weight="bold" />
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-accent">Pairing successful!</p>
+                  <p className="text-sm font-medium text-accent">{t("modals.pairing.successful")}</p>
                   <p className="text-xs text-ink-dull mt-0.5">
-                    {joinPairing.data ? `Connected to ${joinPairing.data.device_name}` : "Device paired"}
+                    {joinPairing.data
+                      ? t("modals.pairing.connectedTo", { device: joinPairing.data.device_name })
+                      : t("modals.pairing.paired")}
                   </p>
                 </div>
               </motion.div>
@@ -211,6 +218,8 @@ function GenerateMode({
   onGenerate,
   onCancel,
   onCopyCode,
+  t,
+  formatTime,
 }: any) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const hasCode = generatePairing.data?.code;
@@ -234,9 +243,9 @@ function GenerateMode({
                 <QrCode className="size-5 text-accent" weight="bold" />
               </div>
               <div className="flex-1">
-                <h3 className="text-sm font-medium text-ink">How it works</h3>
+                <h3 className="text-sm font-medium text-ink">{t("modals.pairing.howItWorks")}</h3>
                 <p className="text-xs text-ink-dull mt-1">
-                  Generate a secure code to share with another device. They'll enter the code to establish a trusted connection.
+                  {t("modals.pairing.howItWorksDesc")}
                 </p>
               </div>
             </div>
@@ -254,7 +263,7 @@ function GenerateMode({
             )}
           >
             {isLoading && <ArrowsClockwise className="size-5 animate-spin" weight="bold" />}
-            {isLoading ? "Generating..." : "Generate Pairing Code"}
+            {isLoading ? t("modals.pairing.generating") : t("modals.pairing.generateCode")}
           </button>
         </>
       ) : (
@@ -263,7 +272,7 @@ function GenerateMode({
           <div className="space-y-4">
             {/* QR Code */}
             <div className="flex flex-col items-center gap-3">
-              <p className="text-sm text-ink-dull">Scan with mobile device</p>
+              <p className="text-sm text-ink-dull">{t("modals.pairing.scanMobile")}</p>
               <div className="inline-block p-4 bg-white rounded-lg">
                 <QRCodeCanvas data={generatePairing.data.qr_json} size={192} />
               </div>
@@ -272,7 +281,7 @@ function GenerateMode({
             {/* Word Code */}
             <div>
               <label className="text-xs font-medium text-ink-dull uppercase tracking-wider mb-2 block">
-                Or type manually:
+                {t("modals.pairing.typeManually")}
               </label>
               <div className="relative">
                 <div className="p-4 bg-sidebar-box border border-sidebar-line rounded-lg font-mono text-sm text-ink break-all">
@@ -281,7 +290,7 @@ function GenerateMode({
                 <button
                   onClick={onCopyCode}
                   className="absolute top-2 right-2 p-2 bg-app-box hover:bg-app-hover border border-app-line rounded-md transition-colors"
-                  title="Copy code"
+                  title={t("modals.pairing.copyCode")}
                 >
                   <Copy className="size-4 text-ink-dull" weight="bold" />
                 </button>
@@ -292,7 +301,7 @@ function GenerateMode({
             {generatePairing.data.node_id && (
               <div>
                 <label className="text-xs font-medium text-ink-dull uppercase tracking-wider mb-2 block">
-                  For cross-network pairing:
+                  {t("modals.pairing.crossNetwork")}
                 </label>
                 <div className="relative">
                   <div className="p-3 bg-sidebar-box border border-sidebar-line rounded-lg font-mono text-xs text-ink break-all">
@@ -301,13 +310,13 @@ function GenerateMode({
                   <button
                     onClick={() => navigator.clipboard.writeText(generatePairing.data.node_id)}
                     className="absolute top-1.5 right-1.5 p-1.5 bg-app-box hover:bg-app-hover border border-app-line rounded-md transition-colors"
-                    title="Copy Node ID"
+                    title={t("modals.pairing.copyNodeId")}
                   >
                     <Copy className="size-3 text-ink-dull" weight="bold" />
                   </button>
                 </div>
                 <p className="text-xs text-ink-dull mt-1.5">
-                  Share this Node ID if devices are on different networks
+                  {t("modals.pairing.shareNodeId")}
                 </p>
               </div>
             )}
@@ -317,12 +326,12 @@ function GenerateMode({
               <div className="size-2 rounded-full bg-accent animate-pulse" />
               <span className="text-sm text-ink-dull">
                 {state === "Broadcasting" || state === "WaitingForConnection"
-                  ? "Waiting for device to connect..."
+                  ? t("modals.pairing.waitingConnection")
                   : state === "Authenticating"
-                  ? "Authenticating device..."
+                  ? t("modals.pairing.authenticatingDevice")
                   : state === "ExchangingKeys"
-                  ? "Exchanging encryption keys..."
-                  : "Ready to pair"}
+                  ? t("modals.pairing.exchangingKeys")
+                  : t("modals.pairing.readyToPair")}
               </span>
             </div>
 
@@ -332,7 +341,7 @@ function GenerateMode({
                 onClick={() => setShowAdvanced(!showAdvanced)}
                 className="flex items-center gap-2 text-xs text-ink-dull hover:text-ink transition-colors mx-auto"
               >
-                <span>Advanced</span>
+                <span>{t("modals.pairing.advanced")}</span>
                 <CaretDown
                   className={clsx("size-3 transition-transform", showAdvanced && "rotate-180")}
                   weight="bold"
@@ -351,7 +360,7 @@ function GenerateMode({
                     <div className="mt-3 space-y-2">
                       <div className="p-3 bg-sidebar-box/40 rounded-lg border border-sidebar-line">
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs text-ink-dull">Session ID</span>
+                          <span className="text-xs text-ink-dull">{t("modals.pairing.sessionId")}</span>
                           <button
                             onClick={() => navigator.clipboard.writeText(generatePairing.data.session_id)}
                             className="p-1 hover:bg-app-hover rounded transition-colors"
@@ -366,7 +375,7 @@ function GenerateMode({
 
                       <div className="p-3 bg-sidebar-box/40 rounded-lg border border-sidebar-line">
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs text-ink-dull">QR JSON</span>
+                          <span className="text-xs text-ink-dull">{t("modals.pairing.qrJson")}</span>
                           <button
                             onClick={copyQRJson}
                             className="p-1 hover:bg-app-hover rounded transition-colors"
@@ -381,7 +390,9 @@ function GenerateMode({
 
                       {generatePairing.data.expires_at && (
                         <p className="text-xs text-ink-dull text-center pt-2">
-                          Expires at {new Date(generatePairing.data.expires_at).toLocaleTimeString()}
+                          {t("modals.pairing.expiresAt", {
+                            time: formatTime(new Date(generatePairing.data.expires_at)),
+                          })}
                         </p>
                       )}
                     </div>
@@ -396,7 +407,7 @@ function GenerateMode({
             onClick={onCancel}
             className="w-full px-4 py-2.5 text-sm font-medium text-ink-dull hover:text-ink bg-app-box hover:bg-app-hover border border-app-line rounded-lg transition-colors"
           >
-            Cancel
+            {t("modals.pairing.cancel")}
           </button>
         </>
       )}
@@ -406,7 +417,7 @@ function GenerateMode({
         <div className="flex items-start gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
           <Warning className="size-5 text-red-500 shrink-0 mt-0.5" weight="bold" />
           <div className="flex-1">
-            <p className="text-sm font-medium text-red-500">Failed to generate code</p>
+            <p className="text-sm font-medium text-red-500">{t("modals.pairing.failedToGenerate")}</p>
             <p className="text-xs text-ink-dull mt-0.5">{String(generatePairing.error)}</p>
           </div>
         </div>
@@ -424,6 +435,7 @@ function JoinMode({
   currentSession,
   onJoin,
   onCancel,
+  t,
 }: any) {
   const isLoading = joinPairing.isPending;
   const state = currentSession?.state;
@@ -437,9 +449,9 @@ function JoinMode({
             <QrCode className="size-5 text-accent" weight="bold" />
           </div>
           <div className="flex-1">
-            <h3 className="text-sm font-medium text-ink">Enter pairing code</h3>
+            <h3 className="text-sm font-medium text-ink">{t("modals.pairing.enterCode")}</h3>
             <p className="text-xs text-ink-dull mt-1">
-              Enter the 12-word code from the other device to establish a secure connection.
+              {t("modals.pairing.enterCodeDesc")}
             </p>
           </div>
         </div>
@@ -447,7 +459,7 @@ function JoinMode({
         {/* Code Input */}
         <div>
           <label className="text-xs font-medium text-ink-dull uppercase tracking-wider mb-2 block">
-            Pairing Code
+            {t("modals.pairing.pairingCode")}
           </label>
           <textarea
             value={joinCode}
@@ -458,25 +470,26 @@ function JoinMode({
             className="w-full px-4 py-3 bg-sidebar-box border border-sidebar-line rounded-lg text-sm text-ink placeholder:text-ink-faint resize-none focus:outline-none focus:ring-2 focus:ring-accent/50 disabled:opacity-50"
           />
           <p className="text-xs text-ink-dull mt-2">
-            Paste the full code or type the 12 words separated by hyphens
+            {t("modals.pairing.codeHelp")}
           </p>
         </div>
 
         {/* Node ID Input (optional, for cross-network) */}
         <div>
           <label className="text-xs font-medium text-ink-dull uppercase tracking-wider mb-2 block">
-            Node ID <span className="text-ink-faint">(optional)</span>
+            {t("modals.pairing.nodeId")}{" "}
+            <span className="text-ink-faint">{t("modals.pairing.optional")}</span>
           </label>
           <input
             type="text"
             value={joinNodeId}
             onChange={(e) => setJoinNodeId(e.target.value)}
-            placeholder="Enter Node ID for cross-network pairing"
+            placeholder={t("modals.pairing.nodeIdPlaceholder")}
             disabled={isLoading || !!state}
             className="w-full px-4 py-2.5 bg-sidebar-box border border-sidebar-line rounded-lg text-xs text-ink font-mono placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-accent/50 disabled:opacity-50"
           />
           <p className="text-xs text-ink-dull mt-1.5">
-            Required if devices are on different networks
+            {t("modals.pairing.nodeIdHelp")}
           </p>
         </div>
 
@@ -486,14 +499,14 @@ function JoinMode({
             <div className="size-2 rounded-full bg-accent animate-pulse" />
             <span className="text-sm text-ink-dull">
               {state === "Scanning" || state === "Connecting"
-                ? "Finding device..."
+                ? t("modals.pairing.findingDevice")
                 : state === "Authenticating"
-                ? "Authenticating..."
+                ? t("modals.pairing.authenticating")
                 : state === "ExchangingKeys"
-                ? "Exchanging keys..."
+                ? t("modals.pairing.exchanging")
                 : state === "EstablishingSession"
-                ? "Establishing secure session..."
-                : "Processing..."}
+                ? t("modals.pairing.establishingSession")
+                : t("modals.pairing.processing")}
             </span>
           </div>
         )}
@@ -506,7 +519,7 @@ function JoinMode({
             onClick={onCancel}
             className="flex-1 px-4 py-2.5 text-sm font-medium text-ink-dull hover:text-ink bg-app-box hover:bg-app-hover border border-app-line rounded-lg transition-colors"
           >
-            Cancel
+            {t("modals.pairing.cancel")}
           </button>
         ) : (
           <>
@@ -514,7 +527,7 @@ function JoinMode({
               onClick={onCancel}
               className="px-6 py-2.5 text-sm font-medium text-ink-dull hover:text-ink bg-app-box hover:bg-app-hover border border-app-line rounded-lg transition-colors"
             >
-              Clear
+              {t("modals.pairing.clear")}
             </button>
             <button
               onClick={onJoin}
@@ -527,7 +540,7 @@ function JoinMode({
               )}
             >
               {isLoading && <ArrowsClockwise className="size-5 animate-spin" weight="bold" />}
-              {isLoading ? "Joining..." : "Join"}
+              {isLoading ? t("modals.pairing.joining") : t("modals.pairing.join")}
             </button>
           </>
         )}
@@ -538,7 +551,7 @@ function JoinMode({
         <div className="flex items-start gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
           <Warning className="size-5 text-red-500 shrink-0 mt-0.5" weight="bold" />
           <div className="flex-1">
-            <p className="text-sm font-medium text-red-500">Failed to join</p>
+            <p className="text-sm font-medium text-red-500">{t("modals.pairing.failedToJoin")}</p>
             <p className="text-xs text-ink-dull mt-0.5">{String(joinPairing.error)}</p>
           </div>
         </div>

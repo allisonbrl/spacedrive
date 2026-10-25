@@ -10,6 +10,7 @@ import {
 import { motion } from "framer-motion";
 import type { File } from "@sd/ts-client";
 import { useServer } from "../../contexts/ServerContext";
+import { useI18n } from "../../i18n";
 
 interface SubtitleCue {
 	index: number;
@@ -65,6 +66,7 @@ function parseSRT(srtContent: string): SubtitleCue[] {
 }
 
 export function AudioPlayer({ src, file }: AudioPlayerProps) {
+	const { t } = useI18n();
 	const audioRef = useRef<HTMLAudioElement>(null);
 	const lyricsContainerRef = useRef<HTMLDivElement>(null);
 	const { buildSidecarUrl } = useServer();
@@ -370,7 +372,7 @@ export function AudioPlayer({ src, file }: AudioPlayerProps) {
 						<button
 							onClick={skipBack}
 							className="rounded-full p-2 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
-							title="Skip back 10s"
+							title={t("quickPreview.audio.skipBack")}
 						>
 							<SkipBack size={24} weight="fill" />
 						</button>
@@ -393,7 +395,7 @@ export function AudioPlayer({ src, file }: AudioPlayerProps) {
 						<button
 							onClick={skipForward}
 							className="rounded-full p-2 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
-							title="Skip forward 10s"
+							title={t("quickPreview.audio.skipForward")}
 						>
 							<SkipForward size={24} weight="fill" />
 						</button>

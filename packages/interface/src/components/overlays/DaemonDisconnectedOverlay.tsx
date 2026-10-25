@@ -1,17 +1,20 @@
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Copy } from "@phosphor-icons/react";
-import { useDaemonStatus } from "../../hooks/useDaemonStatus";
-import { usePlatform } from "../../contexts/PlatformContext";
-import { Button } from "@spacedrive/primitives";
-import folderIcon from "@sd/assets/icons/FolderNoSpace.webp";
+import {Copy} from '@phosphor-icons/react';
+import folderIcon from '@sd/assets/icons/FolderNoSpace.webp';
+import {Button} from '@spacedrive/primitives';
+import {AnimatePresence, motion} from 'framer-motion';
+import {useEffect, useState} from 'react';
+import {usePlatform} from '../../contexts/PlatformContext';
+import {useDaemonStatus} from '../../hooks/useDaemonStatus';
+import {useI18n} from '../../i18n';
 
 function CLICommand({
 	command,
 	description,
+	copyLabel
 }: {
 	command: string;
 	description: string;
+	copyLabel: string;
 }) {
 	const copyToClipboard = () => {
 		navigator.clipboard.writeText(command);
@@ -19,14 +22,14 @@ function CLICommand({
 
 	return (
 		<div className="group relative rounded-md px-3 py-2">
-			<code className="text-xs text-accent">{command}</code>
-			<p className="mt-1 text-xs text-ink-dull">{description}</p>
+			<code className="text-accent text-xs">{command}</code>
+			<p className="text-ink-dull mt-1 text-xs">{description}</p>
 			<button
 				onClick={copyToClipboard}
-				className="absolute right-2 top-2 rounded p-1 opacity-0 transition-opacity hover:bg-app-hover group-hover:opacity-100"
-				title="Copy to clipboard"
+				className="hover:bg-app-hover absolute right-2 top-2 rounded p-1 opacity-0 transition-opacity group-hover:opacity-100"
+				title={copyLabel}
 			>
-				<Copy className="size-3 text-ink-dull" weight="bold" />
+				<Copy className="text-ink-dull size-3" weight="bold" />
 			</button>
 		</div>
 	);
@@ -34,17 +37,18 @@ function CLICommand({
 
 export function DaemonDisconnectedOverlay({
 	forceShow = false,
-	daemonStatus,
+	daemonStatus
 }: {
 	forceShow?: boolean;
 	daemonStatus: ReturnType<typeof useDaemonStatus>;
 }) {
+	const {t} = useI18n();
 	const {
 		isConnected,
 		isChecking,
 		isInstalled,
 		startDaemon,
-		installAndStartDaemon,
+		installAndStartDaemon
 	} = daemonStatus;
 	const [installAsService, setInstallAsService] = useState(isInstalled);
 	const platform = usePlatform();
@@ -52,8 +56,8 @@ export function DaemonDisconnectedOverlay({
 	// Update checkbox when installation state changes
 	useEffect(() => {
 		console.log(
-			"[DaemonDisconnectedOverlay] isInstalled changed to:",
-			isInstalled,
+			'[DaemonDisconnectedOverlay] isInstalled changed to:',
+			isInstalled
 		);
 		setInstallAsService(isInstalled);
 	}, [isInstalled]);
@@ -61,8 +65,8 @@ export function DaemonDisconnectedOverlay({
 	// Log checkbox state changes
 	useEffect(() => {
 		console.log(
-			"[DaemonDisconnectedOverlay] installAsService checkbox state:",
-			installAsService,
+			'[DaemonDisconnectedOverlay] installAsService checkbox state:',
+			installAsService
 		);
 	}, [installAsService]);
 
@@ -72,45 +76,47 @@ export function DaemonDisconnectedOverlay({
 		<AnimatePresence>
 			{shouldShow && (
 				<motion.div
-					initial={{ opacity: 0 }}
-					animate={{ opacity: 1 }}
-					exit={{ opacity: 0 }}
-					transition={{ duration: 0.2 }}
-					className="fixed inset-0 z-[9999] flex items-center justify-center backdrop-blur-lg bg-black/50"
+					initial={{opacity: 0}}
+					animate={{opacity: 1}}
+					exit={{opacity: 0}}
+					transition={{duration: 0.2}}
+					className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-lg"
 				>
 					<div className="fixed right-4 top-4 flex items-center gap-2">
-						<div className="flex items-center gap-2 rounded-full border border-app-line bg-app-box px-3 py-1.5 text-xs font-medium">
+						<div className="border-app-line bg-app-box flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium">
 							<div
 								className={`size-2 rounded-full ${
 									isChecking
-										? "bg-yellow-500"
+										? 'bg-yellow-500'
 										: isConnected
-											? "bg-green-500"
-											: "bg-red-500"
+											? 'bg-green-500'
+											: 'bg-red-500'
 								} animate-pulse`}
 							/>
 							<span className="text-ink-dull">
 								{isChecking
-									? "Starting..."
+									? t('daemon.starting')
 									: isConnected
-										? "Connected"
-										: "Disconnected"}
+										? t('daemon.connected')
+										: t('daemon.disconnected')}
 							</span>
 						</div>
 
-						<div className="flex items-center gap-2 rounded-full border border-app-line bg-app-box px-3 py-1.5 text-xs font-medium">
+						<div className="border-app-line bg-app-box flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium">
 							<div
 								className={`size-2 rounded-full ${
-									isInstalled ? "bg-accent" : "bg-gray-500"
+									isInstalled ? 'bg-accent' : 'bg-gray-500'
 								}`}
 							/>
 							<span className="text-ink-dull">
-								{isInstalled ? "Persistent" : "Temporary"}
+								{isInstalled
+									? t('daemon.persistent')
+									: t('daemon.temporary')}
 							</span>
 						</div>
 					</div>
 
-					<div className="flex max-w-4xl gap-8 rounded-lg border border-app-line p-8 shadow-2xl">
+					<div className="border-app-line flex max-w-4xl gap-8 rounded-lg border p-8 shadow-2xl">
 						<div className="flex flex-1 flex-col items-center justify-center gap-6 px-12">
 							<img
 								src={folderIcon}
@@ -120,19 +126,16 @@ export function DaemonDisconnectedOverlay({
 							/>
 
 							<div className="flex flex-col items-center gap-2 text-center">
-								<h1 className="text-2xl font-bold text-ink">
-									Daemon Disconnected
+								<h1 className="text-ink text-2xl font-bold">
+									{t('daemon.disconnectedTitle')}
 								</h1>
-								<p className="max-w-xs text-sm leading-relaxed text-ink-dull">
-									The Spacedrive daemon is required for the
-									app to function. It runs in the background,
-									managing your libraries, indexing files, and
-									syncing data across devices.
+								<p className="text-ink-dull max-w-xs text-sm leading-relaxed">
+									{t('daemon.disconnectedDescription')}
 								</p>
 							</div>
 
 							<div className="flex flex-col items-center gap-3">
-								<label className="flex cursor-pointer items-center gap-2 text-sm text-ink">
+								<label className="text-ink flex cursor-pointer items-center gap-2 text-sm">
 									<input
 										type="checkbox"
 										checked={installAsService}
@@ -152,58 +155,69 @@ export function DaemonDisconnectedOverlay({
 													await platform.uninstallDaemonService?.();
 												} catch (error) {
 													console.error(
-														"Failed to uninstall daemon service:",
-														error,
+														'Failed to uninstall daemon service:',
+														error
 													);
 													setInstallAsService(true);
 												}
 											}
 										}}
-										className="size-4 cursor-pointer rounded border-app-line bg-app accent-accent"
+										className="border-app-line bg-app accent-accent size-4 cursor-pointer rounded"
 									/>
-									<span>Install as persistent service</span>
+									<span>{t('daemon.installPersistent')}</span>
 								</label>
 
 								<div className="flex items-center gap-2">
-									<Button variant="gray">Help</Button>
+									<Button variant="gray">
+										{t('daemon.help')}
+									</Button>
 									<Button
 										onClick={startDaemon}
 										disabled={isChecking}
 										variant="accent"
 									>
 										{isChecking
-											? "Starting daemon..."
-											: "Restart Daemon"}
+											? t('daemon.startingDaemon')
+											: t('daemon.restartDaemon')}
 									</Button>
 								</div>
 							</div>
 						</div>
 
-						<div className="flex w-80 flex-col gap-3 rounded-lg border border-app-line p-4">
-							<span className="text-xs font-medium text-ink-dull">
-								CLI Commands
+						<div className="border-app-line flex w-80 flex-col gap-3 rounded-lg border p-4">
+							<span className="text-ink-dull text-xs font-medium">
+								{t('daemon.cliCommands')}
 							</span>
 
 							<div className="space-y-2">
 								<CLICommand
 									command="sd start"
-									description="Start the daemon in background mode"
+									description={t(
+										'daemon.cli.startBackground'
+									)}
+									copyLabel={t('daemon.copy')}
 								/>
 								<CLICommand
 									command="sd start --foreground"
-									description="Start the daemon in foreground mode (see logs)"
+									description={t(
+										'daemon.cli.startForeground'
+									)}
+									copyLabel={t('daemon.copy')}
 								/>
 								<CLICommand
 									command="sd stop"
-									description="Stop the daemon gracefully"
+									description={t('daemon.cli.stop')}
+									copyLabel={t('daemon.copy')}
 								/>
 								<CLICommand
 									command="sd restart"
-									description="Restart the daemon"
+									description={t('daemon.cli.restart')}
+									copyLabel={t('daemon.copy')}
 								/>
 								<CLICommand
 									command="sd daemon install"
-									description="Install daemon to start automatically on login (macOS/Linux)"
+									description={t('daemon.cli.install')}
+									copyLabel={t('daemon.copy')}
 								/>
 							</div>
 						</div>

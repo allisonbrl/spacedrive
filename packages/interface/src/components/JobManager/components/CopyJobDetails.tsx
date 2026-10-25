@@ -8,6 +8,7 @@ import type { File } from "@sd/ts-client";
 import { SpeedGraph } from "./SpeedGraph";
 import { Thumb } from "../../../routes/explorer/File/Thumb";
 import { formatBytes } from "../../../routes/explorer/utils";
+import { useI18n } from "../../../i18n";
 
 interface CopyJobDetailsProps {
   job: JobListItem;
@@ -15,6 +16,7 @@ interface CopyJobDetailsProps {
 }
 
 export function CopyJobDetails({ job, speedHistory }: CopyJobDetailsProps) {
+  const { t } = useI18n();
   const generic = job.generic_progress;
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const prevScrollIndexRef = useRef<number>(-1);
@@ -85,7 +87,7 @@ export function CopyJobDetails({ job, speedHistory }: CopyJobDetailsProps) {
   if (!generic) {
     return (
       <div className="p-4 text-xs text-ink-faint">
-        No progress data available
+        {t("jobs.details.noProgress")}
       </div>
     );
   }
@@ -104,7 +106,7 @@ export function CopyJobDetails({ job, speedHistory }: CopyJobDetailsProps) {
       {/* File queue */}
       {files.length > 0 && (
         <div>
-          <div className="text-xs font-medium text-ink mb-2">Transfer Queue</div>
+          <div className="text-xs font-medium text-ink mb-2">{t("jobs.details.transferQueue")}</div>
           <div
             ref={scrollContainerRef}
             className="space-y-0 max-h-[200px] overflow-y-auto border border-app-line rounded-lg"
@@ -157,7 +159,7 @@ export function CopyJobDetails({ job, speedHistory }: CopyJobDetailsProps) {
                       file.status === "skipped" && "text-ink-dull",
                       file.status === "pending" && "text-ink"
                     )}>
-                      {fileObj?.name || extractFileName(file.source_path)}
+                      {fileObj?.name || extractFileName(file.source_path, t)}
                     </div>
                     <div className="text-[10px] text-ink-faint truncate font-mono">
                       {formatPath(file.source_path)}
@@ -179,7 +181,7 @@ export function CopyJobDetails({ job, speedHistory }: CopyJobDetailsProps) {
 }
 
 // Extract filename from SdPath
-function extractFileName(path: any): string {
+function extractFileName(path: any, t?: (key: any) => string): string {
   if (typeof path === "string") {
     return path.split("/").pop() || path;
   }
@@ -189,7 +191,7 @@ function extractFileName(path: any): string {
     return p.split("/").pop() || p;
   }
 
-  return "Unknown";
+  return t ? t("jobs.details.unknown") : "Unknown";
 }
 
 // Format SdPath to readable string for subtext

@@ -6,6 +6,7 @@
 import "./styles.css";
 
 export { Shell } from "./Shell";
+export { I18nProvider, useI18n } from "./i18n";
 export { DemoWindow } from "./windows/DemoWindow";
 export { ErrorBoundary } from "./components/ErrorBoundary";
 export { FloatingControls } from "./windows/FloatingControls";

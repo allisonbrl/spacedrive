@@ -1,5 +1,3 @@
-import { useState, useEffect } from "react";
-import clsx from "clsx";
 import {
 	Books,
 	Broadcast,
@@ -9,37 +7,34 @@ import {
 	Palette,
 	ShieldCheck,
 	Wrench,
-	type Icon,
-} from "@phosphor-icons/react";
+	type Icon
+} from '@phosphor-icons/react';
+import {ReactQueryDevtools} from '@tanstack/react-query-devtools';
+import clsx from 'clsx';
+import {useEffect, useState} from 'react';
+import {usePlatform} from '../../contexts/PlatformContext';
+import {useCoreQuery} from '../../contexts/SpacedriveContext';
+import {useI18n, type TranslationKey} from '../../i18n';
 import {
-	GeneralSettings,
-	AppearanceSettings,
-	LibrarySettings,
-	IndexerSettings,
-	ServicesSettings,
-	PrivacySettings,
-	AdvancedSettings,
 	AboutSettings,
-} from "../../Settings/pages";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { usePlatform } from "../../contexts/PlatformContext";
-import { useCoreQuery } from "../../contexts/SpacedriveContext";
+	AdvancedSettings,
+	AppearanceSettings,
+	GeneralSettings,
+	IndexerSettings,
+	LibrarySettings,
+	PrivacySettings,
+	ServicesSettings
+} from '../../Settings/pages';
 
-interface Section {
-	id: string;
-	label: string;
-	icon: Icon;
-}
-
-const sections: Section[] = [
-	{ id: "general", label: "General", icon: Gear },
-	{ id: "appearance", label: "Appearance", icon: Palette },
-	{ id: "library", label: "Library", icon: Books },
-	{ id: "indexer", label: "Indexer", icon: MagnifyingGlass },
-	{ id: "services", label: "Services", icon: Broadcast },
-	{ id: "privacy", label: "Privacy", icon: ShieldCheck },
-	{ id: "advanced", label: "Advanced", icon: Wrench },
-	{ id: "about", label: "About", icon: Info },
+const sections: {id: string; labelKey: TranslationKey; icon: Icon}[] = [
+	{id: 'general', labelKey: 'settings.general', icon: Gear},
+	{id: 'appearance', labelKey: 'settings.appearance', icon: Palette},
+	{id: 'library', labelKey: 'settings.library', icon: Books},
+	{id: 'indexer', labelKey: 'settings.indexer', icon: MagnifyingGlass},
+	{id: 'services', labelKey: 'settings.services', icon: Broadcast},
+	{id: 'privacy', labelKey: 'settings.privacy', icon: ShieldCheck},
+	{id: 'advanced', labelKey: 'settings.advanced', icon: Wrench},
+	{id: 'about', labelKey: 'settings.about', icon: Info}
 ];
 
 interface SettingsSidebarProps {
@@ -51,8 +46,9 @@ interface SettingsSidebarProps {
 function SettingsSidebar({
 	currentPage,
 	onPageChange,
-	isAboutPage,
+	isAboutPage
 }: SettingsSidebarProps) {
+	const {t} = useI18n();
 	return (
 		<ul className="flex-1 space-y-1 p-2.5">
 			{sections.map((section) => {
@@ -63,18 +59,21 @@ function SettingsSidebar({
 							type="button"
 							onClick={() => onPageChange(section.id)}
 							className={clsx(
-								"flex h-8 w-full flex-row items-center gap-1.5 rounded-lg px-2 text-sm transition-colors duration-300",
+								'flex h-8 w-full flex-row items-center gap-1.5 rounded-lg px-2 text-sm transition-colors duration-300',
 								isSelected
 									? isAboutPage
-										? "bg-white/20 text-white"
-										: "bg-sidebar-selected text-sidebar-ink"
+										? 'bg-white/20 text-white'
+										: 'bg-sidebar-selected text-sidebar-ink'
 									: isAboutPage
-										? "text-white/60 hover:bg-white/10 hover:text-white"
-										: "text-sidebar-ink-dull hover:bg-sidebar-box hover:text-sidebar-ink",
+										? 'text-white/60 hover:bg-white/10 hover:text-white'
+										: 'text-sidebar-ink-dull hover:bg-sidebar-box hover:text-sidebar-ink'
 							)}
 						>
-							<section.icon className="size-4 opacity-60" weight="bold" />
-							<span>{section.label}</span>
+							<section.icon
+								className="size-4 opacity-60"
+								weight="bold"
+							/>
+							<span>{t(section.labelKey)}</span>
 						</button>
 					</li>
 				);
@@ -83,8 +82,9 @@ function SettingsSidebar({
 	);
 }
 
-function SettingsFooter({ isAboutPage }: { isAboutPage: boolean }) {
-	const { data: status } = useCoreQuery({ type: "core.status", input: {} });
+function SettingsFooter({isAboutPage}: {isAboutPage: boolean}) {
+	const {t, formatDate} = useI18n();
+	const {data: status} = useCoreQuery({type: 'core.status', input: {}});
 	const [copied, setCopied] = useState(false);
 
 	useEffect(() => {
@@ -98,22 +98,18 @@ function SettingsFooter({ isAboutPage }: { isAboutPage: boolean }) {
 	const builtAt = new Date(status.built_at);
 	const builtLabel = Number.isNaN(builtAt.getTime())
 		? status.built_at
-		: builtAt.toLocaleDateString(undefined, {
-				year: "numeric",
-				month: "short",
-				day: "numeric",
-			});
+		: formatDate(builtAt);
 
 	return (
 		<div
 			className={clsx(
-				"flex flex-col items-start gap-0.5 border-t p-2.5 transition-colors duration-500",
-				isAboutPage ? "border-white/10" : "border-sidebar-line",
+				'flex flex-col items-start gap-0.5 border-t p-2.5 transition-colors duration-500',
+				isAboutPage ? 'border-white/10' : 'border-sidebar-line'
 			)}
 		>
 			<button
 				type="button"
-				title="Copy version to clipboard"
+				title={t('settings.copyVersion')}
 				onClick={() => {
 					navigator.clipboard
 						.writeText(status.version)
@@ -121,41 +117,41 @@ function SettingsFooter({ isAboutPage }: { isAboutPage: boolean }) {
 						.catch(() => undefined);
 				}}
 				className={clsx(
-					"-ml-1 cursor-copy rounded px-1 py-0.5 text-xs transition-colors",
+					'-ml-1 cursor-copy rounded px-1 py-0.5 text-xs transition-colors',
 					isAboutPage
-						? "text-white/50 hover:bg-white/10 hover:text-white"
-						: "text-sidebar-ink-dull hover:bg-sidebar-box hover:text-sidebar-ink",
+						? 'text-white/50 hover:bg-white/10 hover:text-white'
+						: 'text-sidebar-ink-dull hover:bg-sidebar-box hover:text-sidebar-ink'
 				)}
 			>
-				{copied ? "Copied" : `v${status.version}`}
+				{copied ? t('settings.copied') : `v${status.version}`}
 			</button>
 			<span
 				className={clsx(
-					"px-1 text-tiny transition-colors duration-500",
-					isAboutPage ? "text-white/30" : "text-sidebar-ink-faint",
+					'text-tiny px-1 transition-colors duration-500',
+					isAboutPage ? 'text-white/30' : 'text-sidebar-ink-faint'
 				)}
 			>
-				Built {builtLabel}
+				{t('settings.built', {date: builtLabel})}
 			</span>
 		</div>
 	);
 }
 
-function SettingsContent({ page }: { page: string }) {
+function SettingsContent({page}: {page: string}) {
 	switch (page) {
-		case "appearance":
+		case 'appearance':
 			return <AppearanceSettings />;
-		case "library":
+		case 'library':
 			return <LibrarySettings />;
-		case "indexer":
+		case 'indexer':
 			return <IndexerSettings />;
-		case "services":
+		case 'services':
 			return <ServicesSettings />;
-		case "privacy":
+		case 'privacy':
 			return <PrivacySettings />;
-		case "advanced":
+		case 'advanced':
 			return <AdvancedSettings />;
-		case "about":
+		case 'about':
 			return (
 				<div className="h-full overflow-y-auto">
 					<AboutSettings />
@@ -167,33 +163,36 @@ function SettingsContent({ page }: { page: string }) {
 }
 
 function SettingsContentWrapper() {
+	const {t} = useI18n();
 	const pathname = window.location.pathname;
-	const initialPage = pathname.split("/").filter(Boolean)[1] || "general";
+	const initialPage = pathname.split('/').filter(Boolean)[1] || 'general';
 	const [currentPage, setCurrentPage] = useState(initialPage);
-	const isAboutPage = currentPage === "about";
+	const isAboutPage = currentPage === 'about';
 
 	return (
 		<div
 			className={clsx(
-				"relative flex h-screen transition-colors duration-500",
-				isAboutPage ? "bg-black" : "bg-app",
+				'relative flex h-screen transition-colors duration-500',
+				isAboutPage ? 'bg-black' : 'bg-app'
 			)}
 		>
 			<nav
 				className={clsx(
-					"flex w-48 shrink-0 flex-col border-r transition-colors duration-500",
-					isAboutPage ? "border-black bg-black" : "border-sidebar-line bg-sidebar",
+					'flex w-48 shrink-0 flex-col border-r transition-colors duration-500',
+					isAboutPage
+						? 'border-black bg-black'
+						: 'border-sidebar-line bg-sidebar'
 				)}
 			>
 				{/* Traffic lights sit over the sidebar, which doubles as the drag handle */}
 				<div data-tauri-drag-region className="h-[52px] shrink-0" />
 				<h1
 					className={clsx(
-						"px-3.5 pb-4 text-xl font-semibold transition-colors duration-500",
-						isAboutPage ? "text-white" : "text-sidebar-ink",
+						'px-3.5 pb-4 text-xl font-semibold transition-colors duration-500',
+						isAboutPage ? 'text-white' : 'text-sidebar-ink'
 					)}
 				>
-					Settings
+					{t('settings.title')}
 				</h1>
 				<SettingsSidebar
 					currentPage={currentPage}
@@ -221,7 +220,7 @@ export function Settings() {
 		// Apply macOS titlebar styling after window is ready
 		if (platform.applyMacOSStyling) {
 			platform.applyMacOSStyling().catch((err) => {
-				console.warn("Failed to apply macOS styling:", err);
+				console.warn('Failed to apply macOS styling:', err);
 			});
 		}
 	}, [platform]);
@@ -229,7 +228,10 @@ export function Settings() {
 	return (
 		<>
 			<SettingsContentWrapper />
-			<ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-right" />
+			<ReactQueryDevtools
+				initialIsOpen={false}
+				buttonPosition="bottom-right"
+			/>
 		</>
 	);
 }

@@ -22,6 +22,7 @@ import clsx from "clsx";
 import { File as FileComponent } from "../File";
 
 import { tagColor } from "../../../components/Tags";
+import { useI18n } from "../../../i18n";
 const CONTENT_KIND_ICONS: Record<ContentKind, PhosphorIcon> = {
 	image: Image,
 	video: FilmStrip,
@@ -52,37 +53,8 @@ const CONTENT_KIND_ICONS: Record<ContentKind, PhosphorIcon> = {
 	unknown: FileIcon,
 };
 
-const CONTENT_KIND_LABELS: Record<ContentKind, string> = {
-	image: "Images",
-	video: "Videos",
-	audio: "Audio",
-	document: "Documents",
-	archive: "Archives",
-	code: "Code",
-	text: "Text",
-	database: "Databases",
-	book: "Books",
-	font: "Fonts",
-	mesh: "3D Models",
-	config: "Config",
-	encrypted: "Encrypted",
-	key: "Keys",
-	executable: "Apps",
-	binary: "Binary",
-	spreadsheet: "Spreadsheets",
-	presentation: "Presentations",
-	email: "Emails",
-	calendar: "Calendar",
-	contact: "Contacts",
-	web: "Web",
-	shortcut: "Shortcuts",
-	package: "Packages",
-	model_entry: "Models",
-	memory: "Memory",
-	unknown: "Other",
-};
-
 export function KnowledgeView() {
+	const { t } = useI18n();
 	const {mode: layoutMode} = useShellGeometry();
 	const { inspectorVisible, currentPath, sortBy, viewSettings } =
 		useExplorer();
@@ -157,16 +129,16 @@ export function KnowledgeView() {
 						<Sparkle className="size-8 text-accent" weight="fill" />
 						<div>
 							<h1 className="text-2xl font-semibold text-ink">
-								Knowledge View
+								{t('explorer.knowledge.title')}
 							</h1>
 							<p className="text-sm text-ink-dull">
-								AI-powered insights for {files.length} items
+								{t('explorer.knowledge.insights', {count: files.length})}
 							</p>
 						</div>
 					</div>
 
 					{/* Content Piles */}
-					<Section title="Content" icon={Folder}>
+					<Section title={t('explorer.knowledge.content')} icon={Folder}>
 						<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
 							{filesByKind.map(([kind, kindFiles]) => (
 								<ContentPile
@@ -174,6 +146,7 @@ export function KnowledgeView() {
 									kind={kind}
 									files={kindFiles.slice(0, 3)}
 									totalCount={kindFiles.length}
+									label={t(`contentKinds.${kind}` as never)}
 								/>
 							))}
 						</div>
@@ -181,7 +154,7 @@ export function KnowledgeView() {
 
 					{/* Tags */}
 					{allTags.length > 0 && (
-						<Section title="Tags" icon={TagIcon}>
+						<Section title={t('explorer.knowledge.tags')} icon={TagIcon}>
 							<div className="flex flex-wrap gap-2">
 								{allTags.map((tag) => (
 									<button
@@ -209,17 +182,14 @@ export function KnowledgeView() {
 					{/* Summary & Conversations */}
 					<div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 						{/* Summary */}
-						<Section title="Summary" icon={Sparkle}>
+						<Section title={t('explorer.knowledge.summary')} icon={Sparkle}>
 							<div className="space-y-2 text-sm text-ink-dull">
 								<p>
-									This directory contains {files.length} items
-									across {filesByKind.length} content types.
+									{t('explorer.knowledge.directorySummary', {count: files.length, types: filesByKind.length})}
 								</p>
 								{filesByKind.length > 0 && (
 									<p>
-										Most common type:{" "}
-										{CONTENT_KIND_LABELS[filesByKind[0][0]]}{" "}
-										({filesByKind[0][1].length} items)
+										{t('explorer.knowledge.mostCommon', {kind: t(`contentKinds.${filesByKind[0][0]}` as never), count: filesByKind[0][1].length})}
 									</p>
 								)}
 								{allTags.length > 0 && (
@@ -235,7 +205,7 @@ export function KnowledgeView() {
 						</Section>
 
 						{/* Conversations */}
-						<Section title="Conversations" icon={Chat}>
+						<Section title={t('explorer.knowledge.conversations')} icon={Chat}>
 							<div className="grid grid-cols-2 gap-2">
 								<ConversationCard
 									title="Organize photos"
@@ -252,7 +222,7 @@ export function KnowledgeView() {
 					</div>
 
 					{/* Intelligence Sidecars */}
-					<Section title="Intelligence" icon={Database}>
+					<Section title={t('explorer.knowledge.intelligence')} icon={Database}>
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
 							<SidecarItem
 								kind="OCR Text"
@@ -321,13 +291,14 @@ function ContentPile({
 	kind,
 	files,
 	totalCount,
+	label,
 }: {
 	kind: ContentKind;
 	files: File[];
 	totalCount: number;
+	label: string;
 }) {
 	const Icon = CONTENT_KIND_ICONS[kind];
-	const label = CONTENT_KIND_LABELS[kind];
 
 	return (
 		<button className="group flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-app-box/40 transition-colors">

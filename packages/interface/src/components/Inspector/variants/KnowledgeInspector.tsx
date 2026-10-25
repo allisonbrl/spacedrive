@@ -1,6 +1,7 @@
 import { Sparkle, PaperPlaneRight, Paperclip } from "@phosphor-icons/react";
 import { useState } from "react";
 import clsx from "clsx";
+import {useI18n} from "../../../i18n";
 
 interface Message {
   id: number;
@@ -10,13 +11,13 @@ interface Message {
 }
 
 export function KnowledgeInspector() {
+  const {t, formatTime} = useI18n();
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
       role: "assistant",
-      content:
-        "Hi! I'm your AI assistant for Spacedrive. I can help you organize files, search your library, and answer questions about your data.",
+      content: t('knowledge.welcome'),
       timestamp: new Date(),
     },
   ]);
@@ -39,7 +40,7 @@ export function KnowledgeInspector() {
       const aiResponse: Message = {
         id: messages.length + 2,
         role: "assistant",
-        content: "This is a prototype. AI responses will be implemented soon!",
+        content: t('knowledge.prototype'),
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiResponse]);
@@ -56,10 +57,10 @@ export function KnowledgeInspector() {
           </div>
           <div>
             <div className="text-sm font-semibold text-sidebar-ink">
-              AI Assistant
+              {t('knowledge.assistant')}
             </div>
             <div className="text-[10px] text-sidebar-inkDull">
-              Knowledge & Insights
+              {t('knowledge.title')}
             </div>
           </div>
         </div>
@@ -111,10 +112,7 @@ export function KnowledgeInspector() {
                 </p>
               </div>
               <span className="text-[10px] text-sidebar-inkDull mt-1 px-1">
-                {msg.timestamp.toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
+                {formatTime(msg.timestamp, {hour: "2-digit", minute: "2-digit"})}
               </span>
             </div>
           </div>
@@ -126,7 +124,7 @@ export function KnowledgeInspector() {
         <div className="flex items-end gap-2">
           <button
             className="p-2 rounded-lg hover:bg-sidebar-selected transition-colors text-sidebar-inkDull hover:text-sidebar-ink"
-            title="Attach file"
+            title={t('knowledge.attach')}
           >
             <Paperclip className="size-4" weight="bold" />
           </button>
@@ -142,7 +140,7 @@ export function KnowledgeInspector() {
                   handleSend();
                 }
               }}
-              placeholder="Ask me anything..."
+              placeholder={t('knowledge.placeholder')}
               className="flex-1 bg-transparent text-sm text-sidebar-ink placeholder:text-sidebar-inkDull outline-none"
             />
           </div>
@@ -156,7 +154,7 @@ export function KnowledgeInspector() {
                 ? "bg-accent hover:bg-accent/90 text-white"
                 : "bg-app-box text-sidebar-inkDull cursor-not-allowed",
             )}
-            title="Send message"
+            title={t('knowledge.send')}
           >
             <PaperPlaneRight className="size-4" weight="fill" />
           </button>
@@ -165,13 +163,13 @@ export function KnowledgeInspector() {
         {/* Quick actions */}
         <div className="flex flex-wrap gap-1.5">
           <button className="px-2.5 py-1.5 text-[11px] font-medium text-sidebar-inkDull hover:text-sidebar-ink bg-app-box/40 hover:bg-app-box/60 rounded-md transition-colors">
-            Organize files
+            {t('knowledge.organize')}
           </button>
           <button className="px-2.5 py-1.5 text-[11px] font-medium text-sidebar-inkDull hover:text-sidebar-ink bg-app-box/40 hover:bg-app-box/60 rounded-md transition-colors">
-            Find duplicates
+            {t('knowledge.duplicates')}
           </button>
           <button className="px-2.5 py-1.5 text-[11px] font-medium text-sidebar-inkDull hover:text-sidebar-ink bg-app-box/40 hover:bg-app-box/60 rounded-md transition-colors">
-            Smart search
+            {t('knowledge.search')}
           </button>
         </div>
       </div>

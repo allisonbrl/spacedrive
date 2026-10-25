@@ -3,12 +3,17 @@ import { useNavigate } from "react-router-dom";
 import { useAdapterIcons } from "../../hooks/useAdapterIcons";
 import { SourceTypeIcon } from "./SourceTypeIcon";
 import { SourceStatusBadge } from "./SourceStatusBadge";
+import { useI18n, type TranslateFn } from "../../i18n";
 
 interface SourceCardProps {
 	source: SourceInfo;
 }
 
-function formatRelative(iso: string): string {
+function formatRelative(
+	iso: string,
+	t?: TranslateFn,
+	formatDateFn?: (d: Date | string | number) => string
+): string {
 	const date = new Date(iso);
 	const now = new Date();
 	const diffMs = now.getTime() - date.getTime();
@@ -16,16 +21,20 @@ function formatRelative(iso: string): string {
 	const diffHr = Math.floor(diffMin / 60);
 	const diffDay = Math.floor(diffHr / 24);
 
-	if (diffMin < 1) return "just now";
-	if (diffMin < 60) return `${diffMin}m ago`;
-	if (diffHr < 24) return `${diffHr}h ago`;
-	if (diffDay < 30) return `${diffDay}d ago`;
-	return date.toLocaleDateString();
+	if (diffMin < 1) return t ? t('sources.card.lastSeen.justNow') : "just now";
+	if (diffMin < 60)
+		return t ? t('sources.card.lastSeen.minutes', { count: diffMin }) : `${diffMin}m ago`;
+	if (diffHr < 24)
+		return t ? t('sources.card.lastSeen.hours', { count: diffHr }) : `${diffHr}h ago`;
+	if (diffDay < 30)
+		return t ? t('sources.card.lastSeen.days', { count: diffDay }) : `${diffDay}d ago`;
+	return formatDateFn ? formatDateFn(date) : date.toLocaleDateString();
 }
 
 export function SourceCard({ source }: SourceCardProps) {
 	const navigate = useNavigate();
 	const { getIcon } = useAdapterIcons();
+	const { t, formatDate, formatNumber } = useI18n();
 
 	return (
 		<button
@@ -49,13 +58,12 @@ export function SourceCard({ source }: SourceCardProps) {
 
 			<div className="text-ink-faint flex items-center justify-between text-xs">
 				<span>
-					{source.item_count.toLocaleString()} item
-					{source.item_count !== 1 ? "s" : ""}
+					{t('sources.card.items', { count: formatNumber(source.item_count) })}
 				</span>
 				<span>
 					{source.last_synced
-						? formatRelative(source.last_synced)
-						: "Never synced"}
+						? formatRelative(source.last_synced, t, formatDate)
+						: t('sources.card.neverSyncedCapital')}
 				</span>
 			</div>
 		</button>

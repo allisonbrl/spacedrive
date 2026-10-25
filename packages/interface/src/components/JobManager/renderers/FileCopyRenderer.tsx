@@ -5,22 +5,23 @@ import { CopyJobDetails } from "../components/CopyJobDetails";
 import { UndoButton } from "../components/UndoButton";
 import { useNormalizedQuery } from "../../../contexts/SpacedriveContext";
 import type { Device } from "@sd/ts-client";
+import { useI18n, type TranslateFn } from "../../../i18n";
 
 /**
  * Map strategy name to display label (enables i18n in future)
  */
-function getStrategyLabel(strategyName: string | undefined, _isMove: boolean): string | null {
+function getStrategyLabel(strategyName: string | undefined, _isMove: boolean, t?: TranslateFn): string | null {
 	if (!strategyName) return null;
 
 	switch (strategyName) {
 		case "RemoteTransfer":
-			return "Network";
+			return t ? t("jobs.strategy.network") : "Network";
 		case "LocalMove":
-			return "Atomic";
+			return t ? t("jobs.strategy.atomic") : "Atomic";
 		case "FastCopy":
-			return "Fast";
+			return t ? t("jobs.strategy.fast") : "Fast";
 		case "LocalStream":
-			return "Streaming";
+			return t ? t("jobs.strategy.streaming") : "Streaming";
 		default:
 			return strategyName;
 	}
@@ -117,10 +118,15 @@ function FileCopyCardContent({
 	onAction,
 	onCancel,
 }: JobRendererProps) {
+	const { t } = useI18n();
 	const generic = job.generic_progress;
 	const metadata = (generic as any)?.metadata as any;
 	const strategyName = metadata?.strategy?.strategy_name;
-	const strategyLabel = getStrategyLabel(strategyName, job.action_context?.action_type === "files.move");
+	const strategyLabel = getStrategyLabel(
+		strategyName,
+		job.action_context?.action_type === "files.move",
+		t,
+	);
 
 	// Fetch devices to determine if destination is remote
 	const { data: devices } = useNormalizedQuery<any, Device[]>({
@@ -136,47 +142,61 @@ function FileCopyCardContent({
 	const isCrossDevice = metadata?.strategy?.is_cross_device === true;
 
 	// Find current device and infer destination device
-	const currentDevice = devices?.find(d => d.is_current);
+	const currentDevice = devices?.find((d) => d.is_current);
 
-	// For cross-device transfers, infer the destination device
-	// LIMITATION: This assumes only 2 devices in the transfer scenario.
-	// TODO: Add destination_device_id to CopyStrategyMetadata in Rust
-	// (core/src/ops/files/copy/routing.rs) to properly identify the destination
-	// device in multi-device environments instead of inferring it.
-	const destinationDevice = isCrossDevice && currentDevice
-		? devices?.find(d => !d.is_current)
-		: null;
+	const destinationDevice =
+		isCrossDevice && currentDevice
+			? devices?.find((d) => !d.is_current)
+			: null;
 
 	// Calculate title
 	const fileCount = generic?.completion?.total || 0;
 	const fileName = extractFirstFileName(job);
-	const baseTitle = fileCount > 1
-		? `${isMove ? "Moving" : "Copying"} ${fileCount} items`
-		: `${isMove ? "Moving" : "Copying"} '${fileName}'`;
+	const baseTitle =
+		fileCount > 1
+			? isMove
+				? t("jobs.fileCopy.movingItems", { count: fileCount })
+				: t("jobs.fileCopy.copyingItems", { count: fileCount })
+			: isMove
+				? t("jobs.fileCopy.movingFile", { name: fileName })
+				: t("jobs.fileCopy.copyingFile", { name: fileName });
 
 	const title = destinationDevice
-		? `${baseTitle} to ${destinationDevice.name}`
+		? t("jobs.fileCopy.toDevice", {
+				title: baseTitle,
+				device: destinationDevice.name,
+			})
 		: baseTitle;
 
 	// Calculate rich subtext with progress, speed, and ETA
 	const completed = generic?.completion?.completed || 0;
-	const speed = generic?.performance?.rate ? formatSpeed(generic.performance.rate) : null;
+	const speed = generic?.performance?.rate
+		? formatSpeed(generic.performance.rate)
+		: null;
 	const eta = generic?.performance?.estimated_remaining
 		? formatDurationSeconds(generic.performance.estimated_remaining.secs)
 		: null;
 
 	const subtext =
 		job.status === "running" && speed && eta
-			? `${completed}/${fileCount} files • ${speed} • ${eta} remaining`
+			? t("jobs.fileCopy.progressWithEta", {
+					completed,
+					total: fileCount,
+					speed,
+					eta,
+				})
 			: job.status === "running"
-			? `${completed}/${fileCount} files`
-			: job.status === "completed"
-			? "Completed"
-			: job.status === "failed"
-			? "Failed"
-			: job.status === "paused"
-			? "Paused"
-			: "Preparing...";
+				? t("jobs.fileCopy.progressFiles", {
+						completed,
+						total: fileCount,
+					})
+				: job.status === "completed"
+					? t("jobs.status.completed")
+					: job.status === "failed"
+						? t("jobs.status.failed")
+						: job.status === "paused"
+							? t("jobs.status.paused")
+							: t("jobs.status.preparing");
 
 	return (
 		<>
@@ -216,7 +236,7 @@ function FileCopyCardContent({
 							<button
 								onClick={onAction}
 								className="flex-shrink-0 flex items-center justify-center w-4 h-4 rounded-full bg-app-hover hover:bg-app-selected transition-colors"
-								title={canPause ? "Pause job" : "Resume job"}
+								title={canPause ? t("jobs.action.pauseJob") : t("jobs.action.resumeJob")}
 							>
 								{canPause ? (
 									<Pause size={10} weight="fill" className="text-ink" />
@@ -230,7 +250,7 @@ function FileCopyCardContent({
 							<button
 								onClick={onCancel}
 								className="flex-shrink-0 flex items-center justify-center w-4 h-4 rounded-full bg-app-hover hover:bg-red-500 transition-colors"
-								title="Cancel job"
+								title={t("jobs.action.cancelJob")}
 							>
 								<X size={10} weight="bold" className="text-ink hover:text-white" />
 							</button>

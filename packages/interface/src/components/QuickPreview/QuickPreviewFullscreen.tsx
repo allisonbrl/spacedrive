@@ -11,6 +11,7 @@ import {
 import { TopBarPortal, TopBarItem } from "../../TopBar";
 import { getContentKind } from "@sd/ts-client";
 import { useExplorer } from "../../routes/explorer/context";
+import { useI18n } from "../../i18n";
 
 interface QuickPreviewFullscreenProps {
 	fileId: string;
@@ -37,6 +38,7 @@ export function QuickPreviewFullscreen({
 	sidebarWidth = 0,
 	inspectorWidth = 0,
 }: QuickPreviewFullscreenProps) {
+	const { t } = useI18n();
 	const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
 	const [isZoomed, setIsZoomed] = useState(false);
 	const [videoControlsState, setVideoControlsState] =
@@ -162,20 +164,20 @@ export function QuickPreviewFullscreen({
 				>
 					{!file && isLoading ? (
 						<div className="flex h-full items-center justify-center text-ink">
-							<div className="animate-pulse">Loading...</div>
+							<div className="animate-pulse">{t("quickPreview.loading")}</div>
 						</div>
 					) : !file && error ? (
 						<div className="flex h-full items-center justify-center text-red-400">
 							<div>
 								<div className="mb-2 text-lg font-medium">
-									Error loading file
+									{t("quickPreview.errorLoading")}
 								</div>
 								<div className="text-sm">{error.message}</div>
 							</div>
 						</div>
 					) : !file ? (
 						<div className="flex h-full items-center justify-center text-ink-dull">
-							<div>File not found</div>
+							<div>{t("quickPreview.fileNotFound")}</div>
 						</div>
 					) : (
 						<>
@@ -186,7 +188,7 @@ export function QuickPreviewFullscreen({
 										{(hasPrevious || hasNext) && (
 											<TopBarItem
 												id="preview-navigation"
-												label="Navigation"
+												label={t("quickPreview.topbar.navigation")}
 												priority="high"
 											>
 												{navigationButtons}
@@ -197,7 +199,7 @@ export function QuickPreviewFullscreen({
 								center={
 									<TopBarItem
 										id="preview-filename"
-										label="File Name"
+										label={t("quickPreview.topbar.fileName")}
 										priority="high"
 									>
 										{filenameDisplay}
@@ -206,7 +208,7 @@ export function QuickPreviewFullscreen({
 								right={
 									<TopBarItem
 										id="preview-close"
-										label="Close"
+										label={t("quickPreview.topbar.close")}
 										priority="high"
 										onClick={onClose}
 									>
@@ -263,21 +265,11 @@ export function QuickPreviewFullscreen({
 							{/* Footer with keyboard hints */}
 							<div className="absolute bottom-0 z-10 px-6 py-3" style={{left: sidebarWidth, right: inspectorWidth}}>
 								<div className="text-center text-xs text-white/50">
-									<span className="text-white/70">ESC</span>{" "}
-									or{" "}
-									<span className="text-white/70">Space</span>{" "}
-									to close
+									{t("quickPreview.shortcuts.close")}
 									{(hasPrevious || hasNext) && (
 										<>
 											{" · "}
-											<span className="text-white/70">
-												←
-											</span>{" "}
-											/{" "}
-											<span className="text-white/70">
-												→
-											</span>{" "}
-											to navigate
+											{t("quickPreview.shortcuts.navigate")}
 										</>
 									)}
 								</div>

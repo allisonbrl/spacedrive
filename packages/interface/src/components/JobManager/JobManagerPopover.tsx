@@ -7,12 +7,14 @@ import { motion } from "framer-motion";
 import { JobList } from "./components/JobList";
 import { useJobsContext } from "./hooks/JobsContext";
 import { CARD_HEIGHT } from "./types";
+import { useI18n } from "../../i18n";
 
 interface JobManagerPopoverProps {
   className?: string;
 }
 
 export function JobManagerPopover({ className }: JobManagerPopoverProps) {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const popover = usePopover();
   const [showOnlyRunning, setShowOnlyRunning] = useState(true);
@@ -44,7 +46,7 @@ export function JobManagerPopover({ className }: JobManagerPopoverProps) {
               <ListBullets weight="bold" size={16} />
             )}
           </div>
-          <span>Jobs</span>
+          <span>{t("jobs.popover.trigger")}</span>
           {activeJobCount > 0 && (
             <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-accent rounded-full">
               {activeJobCount}
@@ -58,12 +60,12 @@ export function JobManagerPopover({ className }: JobManagerPopoverProps) {
       )}>
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-app-line">
-          <h3 className="text-sm font-semibold text-ink">Job Manager</h3>
+          <h3 className="text-sm font-semibold text-ink">{t("jobs.popover.title")}</h3>
 
           <div className="flex items-center gap-2">
             {activeJobCount > 0 && (
               <span className="text-xs text-ink-dull">
-                {activeJobCount} active
+                {t("jobs.popover.active", { count: activeJobCount })}
               </span>
             )}
 
@@ -71,7 +73,7 @@ export function JobManagerPopover({ className }: JobManagerPopoverProps) {
             <CircleButton
               icon={ArrowsOut}
               onClick={() => navigate("/jobs")}
-              title="Open full jobs screen"
+              title={t("jobs.popover.openFull")}
             />
 
             {/* Filter toggle button */}
@@ -79,7 +81,7 @@ export function JobManagerPopover({ className }: JobManagerPopoverProps) {
               icon={FunnelSimple}
               active={showOnlyRunning}
               onClick={() => setShowOnlyRunning(!showOnlyRunning)}
-              title={showOnlyRunning ? "Show all jobs" : "Show only active jobs"}
+              title={showOnlyRunning ? t("jobs.popover.showAll") : t("jobs.popover.showOnlyActive")}
             />
           </div>
         </div>

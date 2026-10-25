@@ -1,75 +1,82 @@
 import {
 	createContext,
-	useState,
 	useCallback,
-	useMemo,
 	useEffect,
-	type ReactNode,
-} from "react";
-import { createBrowserRouter, type RouteObject } from "react-router-dom";
+	useMemo,
+	useState,
+	type ReactNode
+} from 'react';
+import {createBrowserRouter, type RouteObject} from 'react-router-dom';
+import type {TranslationKey} from '../../i18n';
+import {useI18n} from '../../i18n';
+
 type Router = ReturnType<typeof createBrowserRouter>;
 
 /**
  * Derives a tab title from the current route pathname and search params
  */
-function deriveTitleFromPath(pathname: string, search: string): string {
+function deriveTitleFromPath(
+	pathname: string,
+	search: string,
+	t: (key: TranslationKey) => string
+): string {
 	const routeTitles: Record<string, string> = {
-		"/": "Overview",
-		"/favorites": "Favorites",
-		"/recents": "Recents",
-		"/file-kinds": "File Kinds",
-		"/search": "Search",
-		"/jobs": "Jobs",
-		"/daemon": "Daemon",
+		'/': t('tab.overview'),
+		'/favorites': t('tab.favorites'),
+		'/recents': t('tab.recents'),
+		'/file-kinds': t('tab.fileKinds'),
+		'/search': t('tab.search'),
+		'/jobs': t('tab.jobs'),
+		'/daemon': t('tab.daemon')
 	};
 
 	if (routeTitles[pathname]) {
 		return routeTitles[pathname];
 	}
 
-	if (pathname.startsWith("/tag/")) {
-		const tagId = pathname.split("/")[2];
-		return tagId ? `Tag: ${tagId.slice(0, 8)}...` : "Tag";
+	if (pathname.startsWith('/tag/')) {
+		const tagId = pathname.split('/')[2];
+		return tagId ? `Tag: ${tagId.slice(0, 8)}...` : 'Tag';
 	}
 
-	if (pathname === "/explorer" && search) {
+	if (pathname === '/explorer' && search) {
 		const params = new URLSearchParams(search);
 
-		const view = params.get("view");
-		if (view === "device") {
-			return "This Device";
+		const view = params.get('view');
+		if (view === 'device') {
+			return 'This Device';
 		}
 
-		const pathParam = params.get("path");
+		const pathParam = params.get('path');
 		if (pathParam) {
 			try {
 				const sdPath = JSON.parse(decodeURIComponent(pathParam));
 				if (sdPath?.Physical?.path) {
 					const fullPath = sdPath.Physical.path as string;
-					const parts = fullPath.split("/").filter(Boolean);
-					return parts[parts.length - 1] || "Explorer";
+					const parts = fullPath.split('/').filter(Boolean);
+					return parts[parts.length - 1] || 'Explorer';
 				}
 			} catch {
 				// Fall through
 			}
 		}
-		return "Explorer";
+		return 'Explorer';
 	}
 
-	return "Spacedrive";
+	return 'Spacedrive';
 }
 
 // ============================================================================
 // Types
 // ============================================================================
 
-export type ViewMode = "grid" | "list" | "column" | "media" | "size";
+export type ViewMode = 'grid' | 'list' | 'column' | 'media' | 'size';
 export type SortBy =
-	| "name"
-	| "size"
-	| "date_modified"
-	| "date_created"
-	| "kind";
+	| 'name'
+	| 'size'
+	| 'date_modified'
+	| 'date_created'
+	| 'kind';
 
 export interface Tab {
 	id: string;
@@ -100,27 +107,27 @@ export interface TabExplorerState {
 	scrollLeft: number;
 
 	// Size view transform (zoom + pan)
-	sizeViewTransform: { k: number; x: number; y: number };
+	sizeViewTransform: {k: number; x: number; y: number};
 }
 
 /** Default explorer state for new tabs */
 const DEFAULT_EXPLORER_STATE: TabExplorerState = {
-	viewMode: "grid",
-	sortBy: "name",
+	viewMode: 'grid',
+	sortBy: 'name',
 	gridSize: 120,
 	gapSize: 16,
 	foldersFirst: true,
 	columnStack: [],
 	scrollTop: 0,
 	scrollLeft: 0,
-	sizeViewTransform: { k: 1, x: 0, y: 0 },
+	sizeViewTransform: {k: 1, x: 0, y: 0}
 };
 
 // ============================================================================
 // Persistence
 // ============================================================================
 
-const STORAGE_KEY = "sd-tabs-state";
+const STORAGE_KEY = 'sd-tabs-state';
 
 interface PersistedState {
 	tabs: Tab[];
@@ -139,8 +146,8 @@ function loadPersistedState(): PersistedState | null {
 		// Validate structure
 		if (
 			!Array.isArray(parsed.tabs) ||
-			typeof parsed.activeTabId !== "string" ||
-			typeof parsed.explorerStates !== "object"
+			typeof parsed.activeTabId !== 'string' ||
+			typeof parsed.explorerStates !== 'object'
 		) {
 			return null;
 		}
@@ -183,7 +190,7 @@ interface TabManagerContextValue {
 	getExplorerState: (tabId: string) => TabExplorerState;
 	updateExplorerState: (
 		tabId: string,
-		updates: Partial<TabExplorerState>,
+		updates: Partial<TabExplorerState>
 	) => void;
 
 	// Selection state (per-tab, ephemeral - not persisted)
@@ -204,8 +211,9 @@ interface TabManagerProviderProps {
 
 export function TabManagerProvider({
 	children,
-	routes,
+	routes
 }: TabManagerProviderProps) {
+	const {t} = useI18n();
 	const router = useMemo(() => createBrowserRouter(routes), [routes]);
 
 	const [tabs, setTabs] = useState<Tab[]>(() => {
@@ -218,12 +226,12 @@ export function TabManagerProvider({
 		return [
 			{
 				id: initialTabId,
-				title: "Overview",
+				title: 'Overview',
 				icon: null,
 				isPinned: false,
 				lastActive: Date.now(),
-				savedPath: "/",
-			},
+				savedPath: '/'
+			}
 		];
 	});
 
@@ -232,7 +240,7 @@ export function TabManagerProvider({
 		if (persisted && persisted.activeTabId) {
 			// Verify the activeTabId exists in tabs
 			const tabExists = persisted.tabs.some(
-				(t) => t.id === persisted.activeTabId,
+				(t) => t.id === persisted.activeTabId
 			);
 			if (tabExists) return persisted.activeTabId;
 		}
@@ -248,7 +256,7 @@ export function TabManagerProvider({
 		}
 
 		const initialMap = new Map<string, TabExplorerState>();
-		initialMap.set(tabs[0].id, { ...DEFAULT_EXPLORER_STATE });
+		initialMap.set(tabs[0].id, {...DEFAULT_EXPLORER_STATE});
 		return initialMap;
 	});
 
@@ -265,8 +273,8 @@ export function TabManagerProvider({
 	const [defaultNewTabPath, setDefaultNewTabPathState] = useState<string>(
 		() => {
 			const persisted = loadPersistedState();
-			return persisted?.defaultNewTabPath ?? "/";
-		},
+			return persisted?.defaultNewTabPath ?? '/';
+		}
 	);
 
 	// ========================================================================
@@ -280,7 +288,7 @@ export function TabManagerProvider({
 			tabs,
 			activeTabId,
 			explorerStates: explorerStatesObject,
-			defaultNewTabPath,
+			defaultNewTabPath
 		});
 	}, [tabs, activeTabId, explorerStates, defaultNewTabPath]);
 
@@ -295,10 +303,10 @@ export function TabManagerProvider({
 	const createTab = useCallback(
 		(title?: string, path?: string) => {
 			const tabPath = path ?? defaultNewTabPath;
-			const [pathname, search = ""] = tabPath.split("?");
+			const [pathname, search = ''] = tabPath.split('?');
 			const derivedTitle =
 				title ||
-				deriveTitleFromPath(pathname, search ? `?${search}` : "");
+				deriveTitleFromPath(pathname, search ? `?${search}` : '', t);
 
 			const newTab: Tab = {
 				id: crypto.randomUUID(),
@@ -306,12 +314,12 @@ export function TabManagerProvider({
 				icon: null,
 				isPinned: false,
 				lastActive: Date.now(),
-				savedPath: tabPath,
+				savedPath: tabPath
 			};
 
 			// Initialize explorer state for the new tab
 			setExplorerStates((prev) =>
-				new Map(prev).set(newTab.id, { ...DEFAULT_EXPLORER_STATE }),
+				new Map(prev).set(newTab.id, {...DEFAULT_EXPLORER_STATE})
 			);
 
 			// Initialize empty selection state for the new tab
@@ -320,7 +328,7 @@ export function TabManagerProvider({
 			setTabs((prev) => [...prev, newTab]);
 			setActiveTabId(newTab.id);
 		},
-		[defaultNewTabPath],
+		[defaultNewTabPath]
 	);
 
 	const closeTab = useCallback(
@@ -358,7 +366,7 @@ export function TabManagerProvider({
 				return next;
 			});
 		},
-		[activeTabId],
+		[activeTabId]
 	);
 
 	const switchTab = useCallback(
@@ -369,28 +377,26 @@ export function TabManagerProvider({
 
 			setTabs((prev) =>
 				prev.map((tab) =>
-					tab.id === newTabId
-						? { ...tab, lastActive: Date.now() }
-						: tab,
-				),
+					tab.id === newTabId ? {...tab, lastActive: Date.now()} : tab
+				)
 			);
 
 			setActiveTabId(newTabId);
 		},
-		[activeTabId],
+		[activeTabId]
 	);
 
 	const updateTabTitle = useCallback((tabId: string, title: string) => {
 		setTabs((prev) =>
-			prev.map((tab) => (tab.id === tabId ? { ...tab, title } : tab)),
+			prev.map((tab) => (tab.id === tabId ? {...tab, title} : tab))
 		);
 	}, []);
 
 	const updateTabPath = useCallback((tabId: string, path: string) => {
 		setTabs((prev) =>
 			prev.map((tab) =>
-				tab.id === tabId ? { ...tab, savedPath: path } : tab,
-			),
+				tab.id === tabId ? {...tab, savedPath: path} : tab
+			)
 		);
 	}, []);
 
@@ -429,7 +435,7 @@ export function TabManagerProvider({
 				switchTab(tabs[index].id);
 			}
 		},
-		[tabs, switchTab],
+		[tabs, switchTab]
 	);
 
 	// ========================================================================
@@ -438,21 +444,21 @@ export function TabManagerProvider({
 
 	const getExplorerState = useCallback(
 		(tabId: string): TabExplorerState => {
-			return explorerStates.get(tabId) ?? { ...DEFAULT_EXPLORER_STATE };
+			return explorerStates.get(tabId) ?? {...DEFAULT_EXPLORER_STATE};
 		},
-		[explorerStates],
+		[explorerStates]
 	);
 
 	const updateExplorerState = useCallback(
 		(tabId: string, updates: Partial<TabExplorerState>) => {
 			setExplorerStates((prev) => {
 				const current = prev.get(tabId) ?? {
-					...DEFAULT_EXPLORER_STATE,
+					...DEFAULT_EXPLORER_STATE
 				};
-				return new Map(prev).set(tabId, { ...current, ...updates });
+				return new Map(prev).set(tabId, {...current, ...updates});
 			});
 		},
-		[],
+		[]
 	);
 
 	// ========================================================================
@@ -463,12 +469,15 @@ export function TabManagerProvider({
 		(tabId: string): string[] => {
 			return selectionStates.get(tabId) ?? [];
 		},
-		[selectionStates],
+		[selectionStates]
 	);
 
-	const updateSelectionIds = useCallback((tabId: string, fileIds: string[]) => {
-		setSelectionStates((prev) => new Map(prev).set(tabId, fileIds));
-	}, []);
+	const updateSelectionIds = useCallback(
+		(tabId: string, fileIds: string[]) => {
+			setSelectionStates((prev) => new Map(prev).set(tabId, fileIds));
+		},
+		[]
+	);
 
 	// ========================================================================
 	// Context value
@@ -492,7 +501,7 @@ export function TabManagerProvider({
 			getExplorerState,
 			updateExplorerState,
 			getSelectionIds,
-			updateSelectionIds,
+			updateSelectionIds
 		}),
 		[
 			tabs,
@@ -511,8 +520,8 @@ export function TabManagerProvider({
 			getExplorerState,
 			updateExplorerState,
 			getSelectionIds,
-			updateSelectionIds,
-		],
+			updateSelectionIds
+		]
 	);
 
 	return (
@@ -522,4 +531,4 @@ export function TabManagerProvider({
 	);
 }
 
-export { TabManagerContext };
+export {TabManagerContext};

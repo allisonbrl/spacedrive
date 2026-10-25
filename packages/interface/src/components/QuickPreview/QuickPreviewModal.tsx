@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useLibraryQuery } from '../../contexts/SpacedriveContext';
 import { Inspector } from '../Inspector/Inspector';
 import { ContentRenderer } from './ContentRenderer';
+import { useI18n } from '../../i18n';
 
 interface QuickPreviewModalProps {
 	fileId: string;
@@ -24,6 +25,7 @@ export function QuickPreviewModal({
 	hasPrevious,
 	hasNext
 }: QuickPreviewModalProps) {
+	const { t } = useI18n();
 	const { data: file, isLoading, error } = useLibraryQuery(
 		{
 			type: 'files.by_id',
@@ -83,12 +85,12 @@ export function QuickPreviewModal({
 					>
 						{isLoading || !file ? (
 							<div className="flex h-full items-center justify-center text-ink">
-								<div className="animate-pulse">Loading...</div>
+								<div className="animate-pulse">{t('quickPreview.loading')}</div>
 							</div>
 						) : error ? (
 							<div className="flex h-full items-center justify-center text-red-400">
 								<div>
-									<div className="mb-2 text-lg font-medium">Error loading file</div>
+									<div className="mb-2 text-lg font-medium">{t('quickPreview.errorLoading')}</div>
 									<div className="text-sm">{error.message}</div>
 								</div>
 							</div>
@@ -144,13 +146,11 @@ export function QuickPreviewModal({
 								{/* Footer with keyboard hints */}
 								<div className="border-t border-app-line bg-app-box/30 px-4 py-2">
 									<div className="text-center text-xs text-ink-dull">
-										<span className="text-ink">ESC</span> or{' '}
-										<span className="text-ink">Space</span> to close
+										{t('quickPreview.shortcuts.close')}
 										{(hasPrevious || hasNext) && (
 											<>
 												{' • '}
-												<span className="text-ink">←</span> /{' '}
-												<span className="text-ink">→</span> to navigate
+												{t('quickPreview.shortcuts.navigate')}
 											</>
 										)}
 									</div>
