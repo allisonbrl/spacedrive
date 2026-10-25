@@ -13,8 +13,8 @@ import {useVolumeContextMenu} from '../../components/SpacesSidebar/hooks/useVolu
 import {useSpacedriveClient} from '../../contexts/SpacedriveContext';
 import {useVolumeIndexingStore} from '../../stores/volumeIndexingStore';
 import {formatRelativeTime} from '../explorer/utils';
-import {formatBytes, getVolumeIcon} from './DevicePanel';
-import {useI18n} from '../../i18n';
+import {getVolumeIcon} from './DevicePanel';
+import {isTranslationKey, useI18n} from '../../i18n';
 
 function getDiskTypeLabel(diskType: string): string {
 	return diskType === 'SSD' ? 'SSD' : diskType === 'HDD' ? 'HDD' : diskType;
@@ -37,7 +37,7 @@ interface IndexingProgress {
 }
 
 export function VolumeBar({volume, sources, isLocal, index}: VolumeBarProps) {
-	const {t, locale, formatNumber} = useI18n();
+	const {t, locale, formatNumber, formatBytes} = useI18n();
 	const [indexingProgress, setIndexingProgress] =
 		useState<IndexingProgress | null>(null);
 	const client = useSpacedriveClient();
@@ -198,6 +198,10 @@ export function VolumeBar({volume, sources, isLocal, index}: VolumeBarProps) {
 			: (volume.volume_type as any)?.Other ||
 					JSON.stringify(volume.volume_type)
 	);
+	const volumeTypeKey = `overview.volumeType.${volumeTypeStr}`;
+	const volumeTypeLabel = isTranslationKey(volumeTypeKey)
+		? t(volumeTypeKey)
+		: volumeTypeStr;
 
 	return (
 		<motion.div
@@ -245,7 +249,7 @@ export function VolumeBar({volume, sources, isLocal, index}: VolumeBarProps) {
 						)}
 						{volumeTypeStr && (
 							<span className="bg-app-box border-app-line rounded border px-1.5 py-0.5">
-								{volumeTypeStr}
+								{volumeTypeLabel}
 							</span>
 						)}
 						{volume.locked ? (

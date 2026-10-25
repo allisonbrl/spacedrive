@@ -3,7 +3,6 @@ import type {IndexSourceInfo, SizeTreeOutput} from '@sd/ts-client';
 import {useState} from 'react';
 import {useNavigate, useSearchParams} from 'react-router-dom';
 import {useCoreQuery} from '../../contexts/SpacedriveContext';
-import {formatBytes} from '../overview/DevicePanel';
 import {Sunburst} from './Sunburst';
 import {useI18n} from '../../i18n';
 
@@ -80,7 +79,7 @@ function SourceCard({
 	source: IndexSourceInfo;
 	onOpen: () => void;
 }) {
-	const {t, formatNumber} = useI18n();
+	const {t, formatNumber, formatBytes} = useI18n();
 	const {data} = useCoreQuery({
 		type: 'files.size_tree',
 		input: {path: source.root, depth: 2, top: 8}
@@ -133,7 +132,7 @@ function AnalyzerDetail({
 	onNavigate: (path: string | null) => void;
 }) {
 	const navigate = useNavigate();
-	const {t} = useI18n();
+	const {t, formatBytes} = useI18n();
 	const [hovered, setHovered] = useState<{
 		label: string;
 		size: number;

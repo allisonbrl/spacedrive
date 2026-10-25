@@ -38,6 +38,47 @@ interface I18nContextValue {
 		options?: Intl.DateTimeFormatOptions
 	) => string;
 	formatNumber: (value: number, options?: Intl.NumberFormatOptions) => string;
+	formatBytes: (bytes: number | bigint | null) => string;
+	formatByteParts: (bytes: number | bigint | null) => ByteParts;
+}
+
+export interface ByteParts {
+	value: string;
+	unit: string;
+}
+
+const BYTE_UNITS = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+
+/**
+ * Splits a byte count into a binary-scaled value and unit, formatted for the
+ * given language tag. Whole bytes show no decimals; larger units show one.
+ */
+export function formatByteParts(
+	bytes: number | bigint | null,
+	languageTag: string
+): ByteParts {
+	const count = bytes === null ? 0 : Number(bytes);
+	const exponent =
+		count > 0
+			? Math.min(
+					Math.floor(Math.log(count) / Math.log(1024)),
+					BYTE_UNITS.length - 1
+				)
+			: 0;
+	const fractionDigits = exponent === 0 ? 0 : 1;
+	const value = new Intl.NumberFormat(languageTag, {
+		minimumFractionDigits: fractionDigits,
+		maximumFractionDigits: fractionDigits
+	}).format(count / Math.pow(1024, exponent));
+
+	return {value, unit: BYTE_UNITS[exponent]};
+}
+
+function formatBytesFor(languageTag: string) {
+	return (bytes: number | bigint | null) => {
+		const {value, unit} = formatByteParts(bytes, languageTag);
+		return `${value} ${unit}`;
+	};
 }
 
 const I18nContext = createContext<I18nContextValue>({
@@ -50,7 +91,9 @@ const I18nContext = createContext<I18nContextValue>({
 	formatDateTime: (value, options) =>
 		new Intl.DateTimeFormat('en', options).format(new Date(value)),
 	formatNumber: (value, options) =>
-		new Intl.NumberFormat('en', options).format(value)
+		new Intl.NumberFormat('en', options).format(value),
+	formatBytes: formatBytesFor('en'),
+	formatByteParts: (bytes) => formatByteParts(bytes, 'en')
 });
 
 export function isTranslationKey(key: string): key is TranslationKey {
@@ -156,7 +199,9 @@ export function I18nProvider({children}: {children: ReactNode}) {
 					}
 				),
 			formatNumber: (value, options) =>
-				new Intl.NumberFormat(languageTag, options).format(value)
+				new Intl.NumberFormat(languageTag, options).format(value),
+			formatBytes: formatBytesFor(languageTag),
+			formatByteParts: (bytes) => formatByteParts(bytes, languageTag)
 		};
 	}, [locale]);
 

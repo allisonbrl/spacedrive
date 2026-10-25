@@ -45,14 +45,6 @@ type DeviceWithConnection = Device & {
 		| null;
 };
 
-export function formatBytes(bytes: number): string {
-	if (bytes === 0) return '0 B';
-	const k = 1024;
-	const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
-	const i = Math.floor(Math.log(bytes) / Math.log(k));
-	return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`;
-}
-
 export function getVolumeIcon(volumeType: any, name?: string): string {
 	// Convert volume type to string if it's an enum variant object
 	const volumeTypeStr =
@@ -339,7 +331,7 @@ function DeviceCard({
 	jobs,
 	volumesLoading
 }: DeviceCardProps) {
-	const {t} = useI18n();
+	const {t, formatBytes} = useI18n();
 	const deviceName = device?.name || t('overview.devices.unknown');
 	const deviceIconSrc = device ? getDeviceIcon(device) : null;
 	const {pause, resume, cancel, getSpeedHistory} = useJobsContext();
@@ -512,7 +504,7 @@ function DeviceCard({
 // A source whose volume the card doesn't list. There is no capacity bar
 // because the row knows the source's contents, not the drive underneath it.
 function SourceRow({source}: {source: SourceInfo}) {
-	const {t, formatNumber, formatTime} = useI18n();
+	const {t, formatNumber, formatTime, formatBytes} = useI18n();
 	return (
 		<div className="bg-app-box border-app-line/50 overflow-hidden rounded-lg border">
 			<div className="flex h-[64px] items-center gap-3 px-3">

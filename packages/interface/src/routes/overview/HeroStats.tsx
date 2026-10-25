@@ -23,17 +23,6 @@ interface HeroStatsProps {
 	sidecarSize: number; // bytes
 }
 
-function formatBytes(bytes: number): {value: string; unit: string} {
-	if (bytes === 0) return {value: '0', unit: 'B'};
-	const k = 1024;
-	const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
-	const i = Math.floor(Math.log(bytes) / Math.log(k));
-	return {
-		value: (bytes / Math.pow(k, i)).toFixed(1),
-		unit: sizes[i]
-	};
-}
-
 export function HeroStats({
 	totalStorage,
 	usedStorage,
@@ -46,7 +35,7 @@ export function HeroStats({
 	sidecarCount,
 	sidecarSize
 }: HeroStatsProps) {
-	const {t, formatNumber} = useI18n();
+	const {t, formatNumber, formatByteParts} = useI18n();
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const [canScrollLeft, setCanScrollLeft] = useState(false);
 	const [canScrollRight, setCanScrollRight] = useState(false);
@@ -54,10 +43,10 @@ export function HeroStats({
 	const usagePercent =
 		totalStorage > 0 ? (usedStorage / totalStorage) * 100 : 0;
 
-	const storageFormatted = formatBytes(totalStorage);
-	const usedFormatted = formatBytes(usedStorage);
-	const databaseFormatted = formatBytes(databaseSize);
-	const sidecarFormatted = formatBytes(sidecarSize);
+	const storageFormatted = formatByteParts(totalStorage);
+	const usedFormatted = formatByteParts(usedStorage);
+	const databaseFormatted = formatByteParts(databaseSize);
+	const sidecarFormatted = formatByteParts(sidecarSize);
 
 	const updateScrollState = () => {
 		if (!scrollRef.current) return;

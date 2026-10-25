@@ -63,29 +63,6 @@ function extractFirstFileName(job: JobRendererProps["job"]): string {
 }
 
 /**
- * Format bytes to human readable
- */
-function formatBytes(bytes: number): string {
-	const units = ["B", "KB", "MB", "GB", "TB"];
-	let size = bytes;
-	let unitIndex = 0;
-
-	while (size >= 1024 && unitIndex < units.length - 1) {
-		size /= 1024;
-		unitIndex++;
-	}
-
-	return `${size.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
-}
-
-/**
- * Format speed (bytes/sec) to human readable
- */
-function formatSpeed(bytesPerSecond: number): string {
-	return `${formatBytes(bytesPerSecond)}/s`;
-}
-
-/**
  * Format duration from seconds to human readable
  */
 function formatDurationSeconds(seconds: number): string {
@@ -118,7 +95,7 @@ function FileCopyCardContent({
 	onAction,
 	onCancel,
 }: JobRendererProps) {
-	const { t } = useI18n();
+	const { t, formatBytes } = useI18n();
 	const generic = job.generic_progress;
 	const metadata = (generic as any)?.metadata as any;
 	const strategyName = metadata?.strategy?.strategy_name;
@@ -171,7 +148,7 @@ function FileCopyCardContent({
 	// Calculate rich subtext with progress, speed, and ETA
 	const completed = generic?.completion?.completed || 0;
 	const speed = generic?.performance?.rate
-		? formatSpeed(generic.performance.rate)
+		? `${formatBytes(generic.performance.rate)}/s`
 		: null;
 	const eta = generic?.performance?.estimated_remaining
 		? formatDurationSeconds(generic.performance.estimated_remaining.secs)

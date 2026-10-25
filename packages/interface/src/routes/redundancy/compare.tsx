@@ -34,17 +34,9 @@ const EMPTY_FILTERS: SearchFilters = {
 	max_volume_count: null
 };
 
-function formatBytes(bytes: number): string {
-	if (bytes === 0) return '0 B';
-	const k = 1024;
-	const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
-	const i = Math.floor(Math.log(bytes) / Math.log(k));
-	return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`;
-}
-
 export function CompareVolumes() {
 	const navigate = useNavigate();
-	const {t} = useI18n();
+	const {t, formatBytes} = useI18n();
 	const [volumeA, setVolumeA] = useState<string | null>(null);
 	const [volumeB, setVolumeB] = useState<string | null>(null);
 	const [mode, setMode] = useState<CompareMode>('unique_a');

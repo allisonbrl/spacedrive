@@ -13,14 +13,6 @@ interface RedundancyVolumeBarProps {
 	totalFileCount: number;
 }
 
-function formatBytes(bytes: number): string {
-	if (bytes === 0) return '0 B';
-	const k = 1024;
-	const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
-	const i = Math.floor(Math.log(bytes) / Math.log(k));
-	return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`;
-}
-
 export function RedundancyVolumeBar({
 	volumeUuid,
 	displayName,
@@ -32,7 +24,7 @@ export function RedundancyVolumeBar({
 	totalFileCount
 }: RedundancyVolumeBarProps) {
 	const navigate = useNavigate();
-	const {t, formatNumber} = useI18n();
+	const {t, formatNumber, formatBytes} = useI18n();
 
 	const redundantPercent =
 		totalBytes > 0 ? (redundantBytes / totalBytes) * 100 : 0;

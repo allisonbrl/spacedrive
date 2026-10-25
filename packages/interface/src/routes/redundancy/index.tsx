@@ -14,17 +14,9 @@ import {TopBarItem, TopBarPortal} from '../../TopBar';
 import {RedundancyVolumeBar} from './components/RedundancyVolumeBar';
 import {useI18n} from '../../i18n';
 
-function formatBytes(bytes: number): string {
-	if (bytes === 0) return '0 B';
-	const k = 1024;
-	const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
-	const i = Math.floor(Math.log(bytes) / Math.log(k));
-	return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`;
-}
-
 export function RedundancyDashboard() {
 	const navigate = useNavigate();
-	const {t, formatNumber} = useI18n();
+	const {t, formatNumber, formatBytes} = useI18n();
 
 	const {data, isLoading} = useLibraryQuery({
 		type: 'redundancy.summary',

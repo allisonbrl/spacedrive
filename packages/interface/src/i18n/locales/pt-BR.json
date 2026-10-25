@@ -1476,5 +1476,13 @@
   "spacedrop.noDevices": "Nenhum dispositivo encontrado",
   "spacedrop.waitingNearby": "Aguardando dispositivos próximos...",
   "spacedrop.online": "Online",
-  "spacedrop.offline": "Offline"
+  "spacedrop.offline": "Offline",
+  "overview.volumeType.Primary": "Principal",
+  "overview.volumeType.UserData": "Dados do usuário",
+  "overview.volumeType.External": "Externo",
+  "overview.volumeType.Secondary": "Secundário",
+  "overview.volumeType.System": "Sistema",
+  "overview.volumeType.Network": "Rede",
+  "overview.volumeType.Cloud": "Nuvem",
+  "overview.volumeType.Virtual": "Virtual"
 }
