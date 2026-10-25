@@ -21,7 +21,7 @@ import {
 	useLibraryValidate,
 } from "../../contexts/SpacedriveContext";
 import { usePlanPreviewStore } from "../../routes/explorer/hooks/usePlanPreview";
-import { useI18n } from "../../i18n";
+import { useI18n, type TranslationKey } from "../../i18n";
 import { hasErrors, pathName, PreflightPanel } from "./PreflightPanel";
 
 interface RenameDialogProps {
@@ -33,12 +33,12 @@ interface RenameDialogProps {
 type RuleKind = RenameRule["kind"];
 type CaseValue = Extract<RenameRule, { kind: "case" }>["stem"];
 
-const KINDS: { value: RuleKind; labelKey: string; defaultLabel: string }[] = [
-	{ value: "replace", labelKey: "modals.rename.kind.replace", defaultLabel: "Replace text" },
-	{ value: "case", labelKey: "modals.rename.kind.case", defaultLabel: "Change case" },
-	{ value: "affix", labelKey: "modals.rename.kind.affix", defaultLabel: "Add text" },
-	{ value: "sequence", labelKey: "modals.rename.kind.sequence", defaultLabel: "Number" },
-	{ value: "template", labelKey: "modals.rename.kind.template", defaultLabel: "Format" },
+const KINDS: { value: RuleKind; labelKey: TranslationKey }[] = [
+	{ value: "replace", labelKey: "modals.rename.kind.replace" },
+	{ value: "case", labelKey: "modals.rename.kind.case" },
+	{ value: "affix", labelKey: "modals.rename.kind.affix" },
+	{ value: "sequence", labelKey: "modals.rename.kind.sequence" },
+	{ value: "template", labelKey: "modals.rename.kind.template" },
 ];
 
 const TOKENS = "{name} {ext} {n} {n:04} {parent} {date:%Y-%m-%d} {captured:%Y-%m-%d}";
@@ -203,7 +203,7 @@ function RenameDialog(props: RenameDialogProps) {
 								<SelectOption key={kind.value} value={kind.value}>
 									<span className="flex items-center gap-1.5">
 										<Plus className="size-3" weight="bold" />
-										{(t(kind.labelKey as any) as string) || kind.defaultLabel}
+										{t(kind.labelKey)}
 									</span>
 								</SelectOption>
 							))}
@@ -301,7 +301,7 @@ function RuleRow({
 }) {
 	const { t } = useI18n();
 	const kindItem = KINDS.find((kind) => kind.value === rule.kind);
-	const kindLabel = kindItem ? ((t(kindItem.labelKey as any) as string) || kindItem.defaultLabel) : rule.kind;
+	const kindLabel = kindItem ? t(kindItem.labelKey) : rule.kind;
 
 	return (
 		<div className="flex items-center gap-2 rounded-md bg-app-box px-2 py-1.5">

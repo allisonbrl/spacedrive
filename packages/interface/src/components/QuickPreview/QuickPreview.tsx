@@ -6,13 +6,14 @@ import { useEffect, useState } from "react";
 import { formatBytes } from "../../routes/explorer/utils";
 import { X } from "@phosphor-icons/react";
 import { ContentRenderer } from "./ContentRenderer";
-import { useI18n } from "../../i18n";
+import { isTranslationKey, useI18n } from "../../i18n";
 
 function MetadataPanel({ file }: { file: File }) {
 	const { t, formatDateTime } = useI18n();
 	const rawKind = getContentKind(file);
+	const kindKey = `contentKinds.${rawKind}`;
 	const kindLabel = rawKind
-		? t(`contentKinds.${rawKind}` as any)
+		? isTranslationKey(kindKey) ? t(kindKey) : rawKind
 		: t("contentKinds.unknown");
 
 	return (

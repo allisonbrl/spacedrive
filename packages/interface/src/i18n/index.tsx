@@ -3,7 +3,6 @@ import {
 	useContext,
 	useEffect,
 	useMemo,
-	useState,
 	type ReactNode
 } from 'react';
 import {useSpacedriveClient} from '../contexts/SpacedriveContext';
@@ -54,6 +53,10 @@ const I18nContext = createContext<I18nContextValue>({
 		new Intl.NumberFormat('en', options).format(value)
 });
 
+export function isTranslationKey(key: string): key is TranslationKey {
+	return Object.prototype.hasOwnProperty.call(en, key);
+}
+
 function resolveLocale(language: string | undefined): Locale {
 	if (language === 'pt' || language?.toLowerCase() === 'pt-br') {
 		return 'pt-BR';
@@ -76,7 +79,6 @@ function interpolate(
 export function I18nProvider({children}: {children: ReactNode}) {
 	const {config, refetch} = useAppConfig();
 	const client = useSpacedriveClient();
-	const [languageRevision, setLanguageRevision] = useState(0);
 	const locale = resolveLocale(config?.preferences?.language);
 
 	useEffect(() => {
@@ -91,9 +93,7 @@ export function I18nProvider({children}: {children: ReactNode}) {
 					'ConfigChanged' in event &&
 					event.ConfigChanged.field === 'language'
 				) {
-					void refetch().then(() => {
-						setLanguageRevision((revision) => revision + 1);
-					});
+					void refetch();
 				}
 			})
 			.then((cleanup) => {
@@ -158,7 +158,7 @@ export function I18nProvider({children}: {children: ReactNode}) {
 			formatNumber: (value, options) =>
 				new Intl.NumberFormat(languageTag, options).format(value)
 		};
-	}, [locale, languageRevision]);
+	}, [locale]);
 
 	return (
 		<I18nContext.Provider value={value}>{children}</I18nContext.Provider>

@@ -3,7 +3,7 @@ import type { KeybindId } from '../util/keybinds/registry';
 import { getKeybind } from '../util/keybinds/registry';
 import type { KeyCombo, KeybindScope } from '../util/keybinds/types';
 import { getComboForPlatform, getCurrentPlatform, toDisplayString } from '../util/keybinds/platform';
-import { useI18n } from '../i18n';
+import { isTranslationKey, useI18n } from '../i18n';
 
 export interface KeybindMeta {
 	/** The keybind ID */
@@ -47,10 +47,11 @@ export function useKeybindMeta(keybindId: KeybindId): KeybindMeta | null {
 		const platform = getCurrentPlatform();
 		const combo = getComboForPlatform(keybind.combo, platform);
 		const displayString = toDisplayString(combo, platform);
+		const labelKey = `keybinds.${keybind.id}`;
 
 		return {
 			id: keybind.id,
-			label: (t(`keybinds.${keybind.id}` as any) as string) || keybind.label,
+			label: isTranslationKey(labelKey) ? t(labelKey) : keybind.label,
 			displayString,
 			combo,
 			scope: keybind.scope,

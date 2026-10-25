@@ -19,8 +19,10 @@ import { WIRE_METHODS } from "@sd/ts-client";
 import { toast } from "@spacedrive/primitives";
 import { useDuplicateFiles } from "./useDuplicateFiles";
 import { isInputFocused } from "../../../util/keybinds/platform";
+import { useI18n } from "../../../i18n";
 
 export function useExplorerKeyboard() {
+	const { t } = useI18n();
 	const {
 		currentPath,
 		sortBy,
@@ -227,7 +229,7 @@ export function useExplorerKeyboard() {
 			toast.info("Nothing to undo");
 			return;
 		}
-		openUndo({ job: latest.id, label: getJobDisplayName(latest) });
+		openUndo({ job: latest.id, label: getJobDisplayName(latest, t) });
 	});
 
 	useEffect(() => {

@@ -34,7 +34,7 @@ import {
 	resolvePreview,
 	type ContentRendererProps,
 } from "./renderers";
-import { useI18n } from "../../i18n";
+import { isTranslationKey, useI18n } from "../../i18n";
 
 const MeshViewer = lazy(() =>
 	import("./MeshViewer").then((m) => ({ default: m.MeshViewer })),
@@ -427,8 +427,9 @@ function AudioRenderer({ file }: ContentRendererProps) {
 function DocumentRenderer({ file }: ContentRendererProps) {
 	const { t } = useI18n();
 	const rawKind = getContentKind(file);
+	const kindKey = `contentKinds.${rawKind}`;
 	const kindText = rawKind
-		? t(`contentKinds.${rawKind}` as any)
+		? isTranslationKey(kindKey) ? t(kindKey) : rawKind
 		: t("contentKinds.unknown");
 
 	return (
@@ -486,8 +487,9 @@ function TextRenderer({ file }: ContentRendererProps) {
 function DefaultRenderer({ file }: ContentRendererProps) {
 	const { t } = useI18n();
 	const rawKind = getContentKind(file);
+	const kindKey = `contentKinds.${rawKind}`;
 	const kindText = rawKind
-		? t(`contentKinds.${rawKind}` as any)
+		? isTranslationKey(kindKey) ? t(kindKey) : rawKind
 		: t("contentKinds.unknown");
 
 	return (

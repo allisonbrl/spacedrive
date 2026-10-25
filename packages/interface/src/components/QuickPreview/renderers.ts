@@ -2,7 +2,7 @@ import type { ContentKind, File, ListExtensionsOutput, ExtensionKindInfo } from 
 import { getContentKind } from "@sd/ts-client";
 import type { ReactNode } from "react";
 import type { VideoControlsCallbacks, VideoControlsState } from "./VideoControls";
-import type { TranslateFn } from "../../i18n";
+import { isTranslationKey, type TranslateFn } from "../../i18n";
 
 /**
  * The preview renderer registry. Built-in renderers register here by name at
@@ -166,7 +166,8 @@ export function kindLabel(file: File, kinds: ExtensionKinds, t?: TranslateFn): s
 	const name = file.content_kind_name;
 	if (!name) {
 		const kind = getContentKind(file);
-		return t ? t(`contentKinds.${kind}` as any) : kind;
+		const key = `contentKinds.${kind}`;
+		return t && isTranslationKey(key) ? t(key) : kind;
 	}
 	return kinds.get(name)?.display_name ?? name;
 }

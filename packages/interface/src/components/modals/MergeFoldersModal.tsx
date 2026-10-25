@@ -18,7 +18,7 @@ import {
 	useLibraryValidate,
 } from "../../contexts/SpacedriveContext";
 import { usePlanPreviewStore } from "../../routes/explorer/hooks/usePlanPreview";
-import { useI18n } from "../../i18n";
+import { useI18n, type TranslationKey } from "../../i18n";
 import { hasErrors, pathName, PreflightPanel } from "./PreflightPanel";
 
 interface MergeFoldersDialogProps {
@@ -36,38 +36,28 @@ interface MergeFoldersDialogProps {
 
 const POLICIES: {
 	value: MergeConflictPolicy;
-	labelKey: string;
-	hintKey: string;
-	defaultLabel: string;
-	defaultHint: string;
+	labelKey: TranslationKey;
+	hintKey: TranslationKey;
 }[] = [
 	{
 		value: "skip",
 		labelKey: "modals.mergeFolders.policy.skip",
 		hintKey: "modals.mergeFolders.policy.skipHint",
-		defaultLabel: "Keep existing",
-		defaultHint: "a file that differs stays as it is",
 	},
 	{
 		value: "overwrite",
 		labelKey: "modals.mergeFolders.policy.overwrite",
 		hintKey: "modals.mergeFolders.policy.overwriteHint",
-		defaultLabel: "Overwrite",
-		defaultHint: "the incoming file replaces it",
 	},
 	{
 		value: "keep_both",
 		labelKey: "modals.mergeFolders.policy.keepBoth",
 		hintKey: "modals.mergeFolders.policy.keepBothHint",
-		defaultLabel: "Keep both",
-		defaultHint: "the incoming file is written beside it, numbered",
 	},
 	{
 		value: "keep_newer",
 		labelKey: "modals.mergeFolders.policy.keepNewer",
 		hintKey: "modals.mergeFolders.policy.keepNewerHint",
-		defaultLabel: "Keep newer",
-		defaultHint: "the later modification time wins",
 	},
 ];
 
@@ -211,10 +201,10 @@ function MergeFoldersDialog(props: MergeFoldersDialogProps) {
 								}
 							>
 								<div className="text-sm font-medium">
-									{(t(option.labelKey as any) as string) || option.defaultLabel}
+									{t(option.labelKey)}
 								</div>
 								<div className="text-[11px] opacity-70">
-									{(t(option.hintKey as any) as string) || option.defaultHint}
+									{t(option.hintKey)}
 								</div>
 							</button>
 						))}

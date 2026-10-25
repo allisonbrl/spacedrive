@@ -25,7 +25,7 @@ import {
 	useLibraryValidate,
 } from "../../contexts/SpacedriveContext";
 import { usePlanPreviewStore } from "../../routes/explorer/hooks/usePlanPreview";
-import { useI18n } from "../../i18n";
+import { useI18n, type TranslationKey } from "../../i18n";
 import { hasErrors, pathName, pathString, PreflightPanel } from "./PreflightPanel";
 import { BrowseButton, describeError, Failure, useSubmitOnEnter } from "./RearrangeModal";
 
@@ -172,38 +172,28 @@ interface ExtractDialogProps {
 
 const POLICIES: {
 	value: MergeConflictPolicy;
-	labelKey: string;
-	hintKey: string;
-	defaultLabel: string;
-	defaultHint: string;
+	labelKey: TranslationKey;
+	hintKey: TranslationKey;
 }[] = [
 	{
 		value: "skip",
 		labelKey: "modals.archive.policy.skip",
 		hintKey: "modals.archive.policy.skipHint",
-		defaultLabel: "Keep existing",
-		defaultHint: "an entry whose file is there is left",
 	},
 	{
 		value: "overwrite",
 		labelKey: "modals.archive.policy.overwrite",
 		hintKey: "modals.archive.policy.overwriteHint",
-		defaultLabel: "Overwrite",
-		defaultHint: "the previous file goes to the trash",
 	},
 	{
 		value: "keep_both",
 		labelKey: "modals.archive.policy.keepBoth",
 		hintKey: "modals.archive.policy.keepBothHint",
-		defaultLabel: "Keep both",
-		defaultHint: "the entry is written beside it, numbered",
 	},
 	{
 		value: "keep_newer",
 		labelKey: "modals.archive.policy.keepNewer",
 		hintKey: "modals.archive.policy.keepNewerHint",
-		defaultLabel: "Keep newer",
-		defaultHint: "the later modification time wins",
 	},
 ];
 
@@ -307,10 +297,10 @@ function ExtractDialog(props: ExtractDialogProps) {
 								}
 							>
 								<div className="text-sm font-medium">
-									{(t(option.labelKey as any) as string) || option.defaultLabel}
+									{t(option.labelKey)}
 								</div>
 								<div className="text-[11px] opacity-70">
-									{(t(option.hintKey as any) as string) || option.defaultHint}
+									{t(option.hintKey)}
 								</div>
 							</button>
 						))}
