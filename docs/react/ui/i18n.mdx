@@ -10,7 +10,7 @@ The code lives in `packages/interface/src/i18n/`. `index.tsx` holds the provider
 
 ## Translating a string
 
-Add the key to `locales/en.json` and to every other locale file, then read it with `t` from `useI18n`. Keys are typed against `en.json`, so a misspelled key fails `tsc`.
+Add the key to `locales/en.json`, then read it with `t` from `useI18n`. Other locale files can add their translation later. Until they do, the screen shows the English value. Keys are typed against `en.json`, so a misspelled key fails `tsc`.
 
 ~~~tsx
 const { t } = useI18n();
@@ -53,4 +53,4 @@ Text produced by the daemon, such as validation findings and operation errors, a
 
 Copy `en.json` to a new file named after the BCP 47 tag, for example `es.json`, and translate the values. Then register the language in four places: the `LOCALES` map and `resolveLocale` in `i18n/index.tsx`, the `LANGUAGES` list in `Settings/pages/AppearanceSettings.tsx`, and the `LOCALES` map in `i18n/locales.test.ts`.
 
-The locale test fails when a file is missing a key, has an extra key, has an empty value, or changes a placeholder. Run it with `bun test src/i18n` from `packages/interface`.
+The locale test fails when a file has a key that `en.json` lacks, has an empty value, or changes a placeholder. A key that is only missing passes, since it falls back to English. Run the test with `bun test src/i18n` from `packages/interface`.

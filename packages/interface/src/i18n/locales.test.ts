@@ -2,7 +2,8 @@ import { describe, expect, test } from "bun:test";
 import en from "./locales/en.json";
 import ptBR from "./locales/pt-BR.json";
 
-// English is the source of truth; every other locale must mirror its keys.
+// English is the source of truth. Other locales may lag behind it, since a
+// missing key falls back to English, but must never contradict it.
 const LOCALES: Record<string, Record<string, string>> = { "pt-BR": ptBR };
 const reference: Record<string, string> = en;
 
@@ -26,11 +27,6 @@ describe("en locale", () => {
 
 for (const [name, locale] of Object.entries(LOCALES)) {
 	describe(`${name} locale`, () => {
-		test("has every key from en", () => {
-			const missing = Object.keys(reference).filter((key) => !(key in locale));
-			expect(missing).toEqual([]);
-		});
-
 		test("has no keys that en lacks", () => {
 			const extra = Object.keys(locale).filter((key) => !(key in reference));
 			expect(extra).toEqual([]);
