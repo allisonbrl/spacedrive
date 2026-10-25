@@ -100,6 +100,16 @@ export function isTranslationKey(key: string): key is TranslationKey {
 	return Object.prototype.hasOwnProperty.call(en, key);
 }
 
+/** Translates a key built at runtime, or returns `fallback` when no such key exists. */
+export function translateOr(
+	t: TranslateFn,
+	key: string,
+	fallback: string,
+	variables?: Record<string, string | number>
+): string {
+	return isTranslationKey(key) ? t(key, variables) : fallback;
+}
+
 function resolveLocale(language: string | undefined): Locale {
 	if (language === 'pt' || language?.toLowerCase() === 'pt-br') {
 		return 'pt-BR';

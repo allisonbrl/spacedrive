@@ -13,7 +13,7 @@ import { formatBytes } from "../../../routes/explorer/utils";
 import { File as FileComponent } from "../../../routes/explorer/File";
 
 import { tagColor } from "../../Tags";
-import {useI18n} from "../../../i18n";
+import {translateOr, useI18n} from "../../../i18n";
 interface MultiFileInspectorProps {
 	files: File[];
 }
@@ -147,7 +147,7 @@ export function MultiFileInspector({ files }: MultiFileInspectorProps) {
 					{aggregatedData.kindCounts.slice(0, 5).map(([kind, count]) => (
 						<InfoRow
 							key={kind}
-							label={t(`contentKinds.${kind}` as never)}
+							label={translateOr(t, `contentKinds.${kind}`, kind)}
 							value={count}
 						/>
 					))}

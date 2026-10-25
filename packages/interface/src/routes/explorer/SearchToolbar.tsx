@@ -15,7 +15,7 @@ import {
 import clsx from 'clsx';
 import {useState, type Ref} from 'react';
 import {tagColor} from '../../components/Tags';
-import {useI18n} from '../../i18n';
+import {translateOr, useI18n} from '../../i18n';
 import {useExplorer} from './context';
 import type {SearchScope} from './context';
 import {useExplorerFiles} from './hooks/useExplorerFiles';
@@ -196,10 +196,8 @@ function KindPill({
 		selected.length === 0
 			? t('explorer.search.kind')
 			: selected.length === 1
-				? t(
-						`contentKinds.${selected[0]}` as import('../../i18n').TranslationKey
-					)
-				: `${t(`contentKinds.${selected[0]}` as import('../../i18n').TranslationKey)} +${selected.length - 1}`;
+				? translateOr(t, `contentKinds.${selected[0]}`, selected[0])
+				: `${translateOr(t, `contentKinds.${selected[0]}`, selected[0])} +${selected.length - 1}`;
 
 	const toggle = (kind: ContentKind) => {
 		const next = selected.includes(kind)
@@ -238,9 +236,7 @@ function KindPill({
 								onClick={() => toggle(kind)}
 							>
 								<span className="flex w-full items-center justify-between gap-4">
-									{t(
-										`contentKinds.${kind}` as import('../../i18n').TranslationKey
-									)}
+									{translateOr(t, `contentKinds.${kind}`, kind)}
 									{count !== undefined && (
 										<span className="text-ink-faint tabular-nums">
 											{formatNumber(count)}
@@ -347,9 +343,7 @@ function SizePill({filters, onChange}: PillProps) {
 			<Popover.Trigger asChild>
 				<SelectPill size="sm" className={pillClass(activeIndex > 0)}>
 					{activeIndex > 0
-						? t(
-								`explorer.search.sizePreset.${activeIndex}` as import('../../i18n').TranslationKey
-							)
+						? translateOr(t, `explorer.search.sizePreset.${activeIndex}`, SIZE_PRESETS[activeIndex].label)
 						: t('explorer.search.size')}
 				</SelectPill>
 			</Popover.Trigger>
@@ -370,9 +364,7 @@ function SizePill({filters, onChange}: PillProps) {
 								popover.setOpen(false);
 							}}
 						>
-							{t(
-								`explorer.search.sizePreset.${index}` as import('../../i18n').TranslationKey
-							)}
+							{translateOr(t, `explorer.search.sizePreset.${index}`, preset.label)}
 						</OptionListItem>
 					))}
 				</OptionList>
@@ -402,9 +394,7 @@ function DatePill({filters, onChange}: PillProps) {
 				>
 					{filters.date_range
 						? activePreset
-							? t(
-									`explorer.search.datePreset.${DATE_PRESETS.indexOf(activePreset)}` as import('../../i18n').TranslationKey
-								)
+							? translateOr(t, `explorer.search.datePreset.${DATE_PRESETS.indexOf(activePreset)}`, activePreset.label)
 							: t('explorer.search.custom')
 						: t('explorer.search.modified')}
 				</SelectPill>
@@ -438,9 +428,7 @@ function DatePill({filters, onChange}: PillProps) {
 								popover.setOpen(false);
 							}}
 						>
-							{t(
-								`explorer.search.datePreset.${DATE_PRESETS.indexOf(preset)}` as import('../../i18n').TranslationKey
-							)}
+							{translateOr(t, `explorer.search.datePreset.${DATE_PRESETS.indexOf(preset)}`, preset.label)}
 						</OptionListItem>
 					))}
 				</OptionList>

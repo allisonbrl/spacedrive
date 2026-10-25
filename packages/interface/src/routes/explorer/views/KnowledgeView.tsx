@@ -22,7 +22,7 @@ import clsx from "clsx";
 import { File as FileComponent } from "../File";
 
 import { tagColor } from "../../../components/Tags";
-import { useI18n } from "../../../i18n";
+import { translateOr, useI18n } from "../../../i18n";
 const CONTENT_KIND_ICONS: Record<ContentKind, PhosphorIcon> = {
 	image: Image,
 	video: FilmStrip,
@@ -146,7 +146,7 @@ export function KnowledgeView() {
 									kind={kind}
 									files={kindFiles.slice(0, 3)}
 									totalCount={kindFiles.length}
-									label={t(`contentKinds.${kind}` as never)}
+									label={translateOr(t, `contentKinds.${kind}`, kind)}
 								/>
 							))}
 						</div>
@@ -189,7 +189,7 @@ export function KnowledgeView() {
 								</p>
 								{filesByKind.length > 0 && (
 									<p>
-										{t('explorer.knowledge.mostCommon', {kind: t(`contentKinds.${filesByKind[0][0]}` as never), count: filesByKind[0][1].length})}
+										{t('explorer.knowledge.mostCommon', {kind: translateOr(t, `contentKinds.${filesByKind[0][0]}`, filesByKind[0][0]), count: filesByKind[0][1].length})}
 									</p>
 								)}
 								{allTags.length > 0 && (

@@ -2,7 +2,7 @@ import {getIcon} from '@sd/assets/util';
 import type {ContentKind} from '@sd/ts-client';
 import {useNormalizedQuery} from '../../contexts/SpacedriveContext';
 import {useExtensionKinds} from '../../hooks/useExtensionKinds';
-import {useI18n, type TranslationKey} from '../../i18n';
+import {translateOr, useI18n} from '../../i18n';
 
 interface ContentKindStat {
 	/** The built-in kind; the parent for an extension kind */
@@ -143,9 +143,7 @@ export function FileKindsView() {
 								? stat.name.slice(
 										stat.name.lastIndexOf(':') + 1
 									)
-								: t(
-										`contentKinds.${stat.name}` as TranslationKey
-									));
+								: translateOr(t, `contentKinds.${stat.name}`, stat.name));
 						const icon = getIcon(
 							config.iconName,
 							true,

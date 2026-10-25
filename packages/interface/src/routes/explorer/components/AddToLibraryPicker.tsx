@@ -5,7 +5,7 @@ import type { Volume } from "@sd/ts-client";
 import clsx from "clsx";
 import { useLibraryQuery } from "../../../contexts/SpacedriveContext";
 import { usePlatform } from "../../../contexts/PlatformContext";
-import { useI18n } from "../../../i18n";
+import { translateOr, useI18n } from "../../../i18n";
 import { inclusionOf } from "./addToLibrary";
 
 import FolderIcon from "@sd/assets/icons/Folder.webp";
@@ -74,8 +74,8 @@ export function CategoryGrid({
 				>
 					<img src={category.icon} className="size-12" alt="" />
 					<div className="text-center">
-						<div className="text-sm font-medium text-ink">{t(`explorer.add.category.${category.id}.label` as never)}</div>
-						<div className="mt-1 text-xs text-ink-faint">{t(`explorer.add.category.${category.id}.description` as never)}</div>
+						<div className="text-sm font-medium text-ink">{translateOr(t, `explorer.add.category.${category.id}.label`, category.label)}</div>
+						<div className="mt-1 text-xs text-ink-faint">{translateOr(t, `explorer.add.category.${category.id}.description`, category.description)}</div>
 					</div>
 				</button>
 			))}
