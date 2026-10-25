@@ -141,11 +141,28 @@ impl CoreAction for UpdateAppConfigAction {
 			}
 		}
 
-		// A basic ISO 639-1 check
 		if let Some(lang) = &input.language {
-			if lang.len() != 2 || !lang.chars().all(|c| c.is_ascii_lowercase()) {
+			let is_iso_639_1 =
+				lang.len() == 2 && lang.chars().all(|character| character.is_ascii_lowercase());
+			let is_bcp_47_region = {
+				let mut parts = lang.split('-');
+				let language = parts.next().unwrap_or_default();
+				let region = parts.next().unwrap_or_default();
+				parts.next().is_none()
+					&& language.len() == 2
+					&& language
+						.chars()
+						.all(|character| character.is_ascii_lowercase())
+					&& region.len() == 2
+					&& region
+						.chars()
+						.all(|character| character.is_ascii_alphabetic())
+			};
+
+			if !is_iso_639_1 && !is_bcp_47_region {
 				return Err(
-					"Language must be a 2-letter ISO 639-1 code (e.g., 'en', 'de')".to_string(),
+					"Language must be an ISO 639-1 code or BCP 47 tag (e.g., 'en', 'pt-BR', 'zh-CN')"
+						.to_string(),
 				);
 			}
 		}
@@ -359,3 +376,35 @@ impl CoreAction for UpdateAppConfigAction {
 }
 
 crate::register_core_action!(UpdateAppConfigAction, "config.app.update");
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn test_language_tag_validation() {
+		for valid in ["en", "pt", "es", "pt-BR", "zh-CN", "en-US"] {
+			let input = UpdateAppConfigInput {
+				language: Some(valid.to_string()),
+				..Default::default()
+			};
+			assert!(
+				UpdateAppConfigAction::from_input(input).is_ok(),
+				"expected '{}' to be valid",
+				valid
+			);
+		}
+
+		for invalid in ["e", "eng", "pt_BR", "12", "pt-", "-BR", "pt-BRA"] {
+			let input = UpdateAppConfigInput {
+				language: Some(invalid.to_string()),
+				..Default::default()
+			};
+			assert!(
+				UpdateAppConfigAction::from_input(input).is_err(),
+				"expected '{}' to be invalid",
+				invalid
+			);
+		}
+	}
+}

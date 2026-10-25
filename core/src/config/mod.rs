@@ -121,7 +121,7 @@ pub fn is_managed(path: &Path) -> bool {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Preferences {
 	pub theme: String,    // "light", "dark", "system"
-	pub language: String, // ISO 639-1 code
+	pub language: String, // BCP 47 language tag
 }
 
 impl Default for Preferences {
