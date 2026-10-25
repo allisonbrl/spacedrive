@@ -5,6 +5,7 @@
 		"colors",
 		"primitives",
 		"hooks",
+		"i18n",
 		"normalized-cache",
 		"platform",
 		"explorer",

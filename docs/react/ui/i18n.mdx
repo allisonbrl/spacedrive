@@ -1,0 +1,56 @@
+---
+title: Localization
+description: Translated strings and locale-aware formatting in the interface
+sidebarTitle: Localization
+---
+
+Every string the interface shows comes from a locale file, so the same screen can render in English or Brazilian Portuguese. The user picks a language in Appearance settings. The daemon saves it as a BCP 47 tag, and the interface switches without a restart. English is the source of truth, and a missing translation falls back to it.
+
+The code lives in `packages/interface/src/i18n/`. `index.tsx` holds the provider and helpers, and `locales/` holds one flat JSON file per language.
+
+## Translating a string
+
+Add the key to `locales/en.json` and to every other locale file, then read it with `t` from `useI18n`. Keys are typed against `en.json`, so a misspelled key fails `tsc`.
+
+~~~tsx
+const { t } = useI18n();
+return <span>{t('trash.empty')}</span>;
+~~~
+
+Name keys by area and purpose, such as `explorer.context.rename` or `modals.delete.title`. Do not reuse a key for a different sentence just because the English matches. The translation may need to differ.
+
+Values take `{{name}}` placeholders, filled from the second argument: `t('explorer.linked', { name: file.name })`. Keep the same placeholders in every locale.
+
+## Plurals
+
+Pass a numeric `count` and add `_one` and `_other` variants beside the base key. Keep the base key too, since `t` is typed against it. The provider picks the variant with `Intl.PluralRules` for the active language and falls back to the base key when a variant is missing.
+
+~~~json
+"explorer.duplicating": "Duplicating {{count}} items",
+"explorer.duplicating_one": "Duplicating {{count}} item",
+"explorer.duplicating_other": "Duplicating {{count}} items"
+~~~
+
+## Keys built at runtime
+
+A key built from data, such as a content kind or a volume type, cannot be checked by the compiler. Use `translateOr`, which checks the key exists and otherwise returns the fallback you give it:
+
+~~~tsx
+translateOr(t, `contentKinds.${kind}`, kind);
+~~~
+
+Do not cast a template string to `TranslationKey` or `never`. A cast hides a missing key, and the screen shows the raw key instead.
+
+## Dates, numbers and sizes
+
+`useI18n` also returns `formatDate`, `formatTime`, `formatDateTime`, `formatNumber`, `formatBytes` and `formatByteParts`. They use `Intl` with the active language, so a size reads `1,000.0 GB` in English and `1.000,0 GB` in Portuguese. Use them instead of `toFixed` or a local helper.
+
+<Callout>
+Text produced by the daemon, such as validation findings and operation errors, arrives as finished English sentences and is shown as received. Translating it needs the backend to send codes and parameters.
+</Callout>
+
+## Adding a language
+
+Copy `en.json` to a new file named after the BCP 47 tag, for example `es.json`, and translate the values. Then register the language in four places: the `LOCALES` map and `resolveLocale` in `i18n/index.tsx`, the `LANGUAGES` list in `Settings/pages/AppearanceSettings.tsx`, and the `LOCALES` map in `i18n/locales.test.ts`.
+
+The locale test fails when a file is missing a key, has an extra key, has an empty value, or changes a placeholder. Run it with `bun test src/i18n` from `packages/interface`.

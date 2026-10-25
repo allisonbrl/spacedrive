@@ -163,7 +163,7 @@ export function I18nProvider({children}: {children: ReactNode}) {
 	const value = useMemo<I18nContextValue>(() => {
 		const translations = LOCALES[locale] as Record<string, string>;
 		const fallback = en as Record<string, string>;
-		const languageTag = locale === 'pt-BR' ? 'pt-BR' : 'en';
+		const languageTag = locale;
 		const dateFormat = (
 			value: Date | number | string,
 			options?: Intl.DateTimeFormatOptions
